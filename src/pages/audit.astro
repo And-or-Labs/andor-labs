@@ -33,17 +33,18 @@ const description = "23 peer-reviewed checks against your site.";
 
   <main class="aol-auditpage">
     <div class="aol-auditpage__inner">
-      <div class="aol-auditpage__head">
-        <span class="aol-eyebrow">GTM scorecard</span>
-        <h1 class="aol-auditpage__title" id="audit-title">
-          Reading <span class="aol-auditpage__host">your site</span>
-        </h1>
-      </div>
+      {/* ── The scan ──────────────────────────────────────────────────────
+          ONE object, filling the screen. It was a 420px browser mock sitting
+          under a page heading with a separate terminal log beside it — three
+          things competing on a page whose only job, for two minutes, is to
+          hold attention. Now it is a single frame at viewport scale: the
+          wireframe assembles from what the crawler actually found, the beam
+          sweeps it, and the machine's own status runs along the foot the way a
+          browser's does.
 
-      {/* ── The scan stage ─────────────────────────────────────────────
-          A wireframe of the site under the beam. Blocks are added as the
-          crawler reports each page, so the shape of this is the shape of what
-          was actually readable. */}
+          The wireframe is real. A block appears for each page that was read,
+          so no pricing block means no pricing page — someone watching learns
+          what we could see. */}
       <div class="aol-scan" aria-hidden="true">
         <div class="aol-scan__frame">
           <div class="aol-scan__chrome">
@@ -52,26 +53,19 @@ const description = "23 peer-reviewed checks against your site.";
           </div>
           <div class="aol-scan__body"></div>
           <div class="aol-scan__beam"></div>
-        </div>
-        {/* Progress. Discrete while the crawl runs — each step is a real
-            milestone — then time-based through scoring, which is the long
-            opaque stretch. Capped below 100 until the result actually lands,
-            because a bar sitting full while nothing happens is worse than one
-            that is honestly still moving. */}
-        <div class="aol-scan__progress">
-          <div class="aol-scan__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-            <span class="aol-scan__fill"></span>
+          <div class="aol-scan__status">
+            <span class="aol-scan__caption"></span>
+            <div class="aol-scan__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <span class="aol-scan__fill"></span>
+            </div>
           </div>
-          <p class="aol-scan__caption"></p>
         </div>
       </div>
 
-      {/* The log, inside the frame rather than beside it. There were two
-          scanners on this page doing the same job; this is the one. */}
-      <div class="aol-audit aol-audit--page">
-        <div class="aol-term__log aol-audit__log" role="status" aria-live="polite"></div>
-      </div>
-
+      {/* The log, for screen readers and for anyone who wants the detail. The
+          visible surface is the status line inside the frame above; this is the
+          same content, announced rather than drawn. */}
+      <div class="aol-visually-hidden aol-audit__log" role="status" aria-live="polite"></div>
 
       {/* Free-mail fallback — no domain could be derived from the address. */}
       <form class="aol-audit__urlform" hidden>
@@ -155,7 +149,6 @@ const description = "23 peer-reviewed checks against your site.";
   const page = document.querySelector<HTMLElement>(".aol-auditpage");
   if (page) {
     const log = page.querySelector<HTMLElement>(".aol-audit__log")!;
-    const term = page.querySelector<HTMLElement>(".aol-audit")!;
     const report = page.querySelector<HTMLElement>(".aol-report")!;
     const bar = page.querySelector<HTMLElement>(".aol-scan__bar")!;
     const fill = page.querySelector<HTMLElement>(".aol-scan__fill")!;
@@ -213,29 +206,28 @@ const description = "23 peer-reviewed checks against your site.";
     };
     const enqueue = (fn: () => void) => { queue.push(fn); void drain(); };
 
-    const row = (text: string, status = "") => {
+    /**
+     * One live status line, not an accumulating log.
+     *
+     * There used to be a terminal panel beside the scan printing every line.
+     * Two objects doing the same job on a page whose whole task is to hold one
+     * person's attention for two minutes — so the status moved INTO the frame,
+     * along its foot, where a browser puts it. The lines still exist for a
+     * screen reader; they are announced rather than drawn.
+     */
+    const say = (text: string) => {
+      scanCap.textContent = text;
       const el = document.createElement("div");
-      el.className = "aol-term__line is-in";
       el.textContent = text;
-      if (status) {
-        const s = document.createElement("span");
-        s.className = "aol-term__ok is-in";
-        s.textContent = status;
-        el.appendChild(s);
-      }
       log.appendChild(el);
-      log.scrollTop = log.scrollHeight;
     };
-    const print = (label: string, status = "") => row(lead(label), status);
-    const printPlain = (text: string) => row(text);
+    const print = (label: string, status = "") => say(status ? `${label} — ${status}` : label);
+    const printPlain = (text: string) => say(text.replace(/^>\s*/, ""));
 
     const fail = (message: string) => {
-      term.classList.remove("is-working");
+      page.classList.remove("is-running");
       scan.classList.remove("is-scanning");
-      log.querySelector(".aol-audit__tick")?.remove();
-      printPlain("");
-      printPlain(`> ${message}`);
-      scanCap.textContent = "";
+      say(message);
     };
 
     // ── The scan stage ──────────────────────────────────────────────────────
@@ -350,11 +342,11 @@ const description = "23 peer-reviewed checks against your site.";
         fail(msg.message);
       } else if (msg.t === "result") {
         stopScanning();
-        term.classList.remove("is-working");
-        log.querySelector(".aol-audit__tick")?.remove();
-        scanCap.textContent = "done";
         setProgress(100);
-        enqueue(() => { printPlain(""); printPlain("> report ready"); printReport(msg); });
+        say("report ready");
+        // The scan has done its job; the page stops being a waiting room and
+        // becomes the report.
+        enqueue(() => { page.classList.remove("is-running"); printReport(msg); });
       }
     };
 
@@ -362,8 +354,8 @@ const description = "23 peer-reviewed checks against your site.";
     const run = async (email: string, url?: string) => {
       pending = email;
       startForm.hidden = true;
-      term.classList.add("is-working");
-      printPlain("> connecting…");
+      page.classList.add("is-running");
+      say("connecting…");
 
       let res: Response;
       try {
@@ -474,8 +466,8 @@ const description = "23 peer-reviewed checks against your site.";
 
     const runDemo = async () => {
       startForm.hidden = true;
-      term.classList.add("is-working");
-      printPlain("> connecting…");
+      page.classList.add("is-running");
+      say("connecting…");
       for (const [delay, msg] of demoScript) {
         await new Promise((r) => setTimeout(r, reduce ? 0 : delay));
         handleMsg(msg);
@@ -495,12 +487,10 @@ const description = "23 peer-reviewed checks against your site.";
       if (stored) {
         void run(stored);
       } else {
-        // Somebody opened /audit directly. Ask, rather than showing an empty
-        // machine that looks broken.
+        // Somebody opened /audit directly. Ask, rather than showing an idle
+        // scan that looks like it stalled.
         startForm.hidden = false;
-        page.querySelector<HTMLElement>(".aol-auditpage__title")!.textContent = "Grade my site";
         scan.hidden = true;
-        term.hidden = true;
       }
     }
   }
