@@ -1,7 +1,7 @@
 # Lead-generation funnel — design
 
 Date: 2026-08-21
-Status: approved design, not yet planned
+Status: in build on `lead-gen-funnel`. Scoring model revised 08-21 (grade, not score).
 Branch: `lead-gen-funnel`
 
 ## What this is
@@ -32,11 +32,10 @@ These were settled before this document and are not open:
 | Loops write | On submit, before scoring starts |
 | Loading copy | "Overshares about the process" variant |
 
-## Depends on: the positioning change
+## The positioning change (DONE — 08c484b)
 
-Widening the ICP to early-stage technology startups is **separate work that
-should land first**. It is not part of this funnel, but the funnel's copy
-assumes it.
+Widened in this branch rather than separately, at VJ's call. Recorded here
+because the hazards below are permanent facts about these files.
 
 `src/config.ts` currently has `ICP = "adtech"`, with `ICP_STARTUPS` derived as
 `ICP` plus the word "startups", so setting `ICP = "early-stage technology"`
@@ -54,9 +53,14 @@ both re-learned in `6cbbffa`:
   answer that opened "Those three share a buyer" once the set stopped having
   three members.
 
-Also downstream, from that commit's own list: the `<title>` tag, the footer,
-`public/og.png` (a rendered file that does not rebuild itself), and the author
-document already in Sanity, which only refreshes on a `create-author.ts` re-run.
+Checked and NOT needed, contrary to the original scope: `SITE_TITLE` and the
+`og.png` headline are both the H1 verbatim, which carries no ICP, so no card
+re-render. `SiteFooter` has no positioning copy. The `"your ICP"` strings in
+`Capabilities` are the marketing term, not the constant. Still outstanding: the
+Sanity author document, which only refreshes on a `create-author.ts` re-run.
+
+Resolved permanently: `PROMISE` now DERIVES from `ICP_STARTUPS`, so the hazard
+above is retired rather than merely survived.
 
 ## Provenance of the rules
 
@@ -98,20 +102,46 @@ optimisation playbook stops being a strained fit for the audience and becomes
 the obvious one. Under the adtech-only ICP, 12 of the 23 rules needed a pricing
 page that enterprise adtech vendors routinely do not publish.
 
-### The denominator is still dynamic
+### The output is a GRADE, not a score
 
-Kept regardless, because a pre-launch startup with no pricing page yet is a real
-and common slice of early-stage.
+Revised 2026-08-21. The audit reports a grade, A–E. The percentage still exists
+inside `playbook.ts` — ranking six subsections needs an ordering — but it never
+crosses the wire, and a test asserts that.
 
-**A rule that cannot be observed is dropped from the numerator and the
-denominator both.** It is never scored zero. A subsection with no observable
-rules renders as `n/a` with a one-line reason, and the headline score is a
-percentage of what was actually observable.
+The reason is structural, not presentational. **This battery is expected to
+grow**: VJ is adding his own checks over time. Every check added moves the
+denominator, so a site that changed nothing slides from 72 to 68 and a returning
+visitor reads noise we created as a regression in their own work. A grade
+absorbs that — the bands keep meaning the same thing while what feeds them
+changes underneath.
 
-Scoring the unobservable as failure would hand a punitive score to a company for
-not having built a thing yet — the exact visitor the funnel exists to book.
-`readSite()` already reports this condition via its `thin` flag and its per-page
-labels; the scorer consumes both.
+### Two mechanisms, deliberately separate
+
+**The denominator is dynamic.** A rule the crawl could not observe leaves the
+numerator and the denominator both; it is never scored zero. That keeps the
+internal ratio honest so subsection ranking means something, and it stops a
+pre-launch startup being marked down twelve times for a page it has not built.
+
+**Ceilings price the structural gaps.** A `GradeCap` is the highest grade
+attainable while some condition holds. Two are declared:
+
+| Condition | Ceiling | Why |
+|---|---|---|
+| No public pricing page | `C` | Most of how a buyer self-qualifies, and the precondition for half the rule set |
+| Homepage renders client-side | `D` | Most of the site could not be read, so most of it cannot be credited |
+
+A ceiling can only lower a grade, never raise one, and only **binding** caps are
+reported — a site already at E trips the pricing condition, but telling that
+visitor they are "capped at C" is nonsense and makes the scorer look broken.
+
+This split is why a flawless site with no pricing page grades **C** rather than
+either A (the old behaviour, indefensible) or 46/100 (the rejected alternative,
+a punishment nobody can interpret). One legible sentence prints next to the
+grade instead.
+
+**Adding your own checks:** append to `RULES` for a new check, or `GRADE_CAPS`
+for a new structural gate. Caps compose — the strictest wins — so a new one
+cannot silently loosen an existing one, and none of the scoring maths changes.
 
 ## Architecture
 
@@ -137,7 +167,7 @@ terminal modal  ◄──── streamed NDJSON ────────┘
 ```
 {"t":"step","label":"Reading your homepage","status":"OK"}
 {"t":"step","label":"Finding your pricing","status":"EVENTUALLY"}
-{"t":"result","score":58,"outOf":100,"grade":"band C · leaking","findings":[…],"lockedItems":[…]}
+{"t":"result","grade":"C","gradeLabel":"leaking","caps":[…],"findings":[…],"lockedItems":[…]}
 ```
 
 Two hard constraints, both learned the expensive way on Rank My AdTech and
@@ -163,7 +193,9 @@ Taken as-is from the shelved Rank My AdTech engine, which stays shelved:
   as a first-class page, which is exactly what §2 needs.
 - `functions/_lib/providers.ts` — `askLadder()`, provider ladder with
   per-provider timeouts, JSON extraction and retries.
-- `functions/_lib/bands.ts` — `bandFor()` for the grade word.
+NOT `functions/_lib/bands.ts`. Its ladder is calibrated out of 30, so handing
+it a percentage returns the top band for every site above 24/100. `playbook.ts`
+carries its own grade ladder.
 
 New: `functions/_lib/playbook.ts`, holding the 23 rules, their subsections,
 weights, citations, and the observability predicate for each.

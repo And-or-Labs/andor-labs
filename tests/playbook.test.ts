@@ -18,7 +18,9 @@ import {
   rulesPrompt,
   scoreSubsection,
   totals,
-  auditBand,
+  gradeFor,
+  rawGrade,
+  GRADE_CAPS,
   type CrawlContext,
   type SubsectionKey,
 } from "../functions/_lib/playbook";
@@ -94,26 +96,38 @@ describe("observability", () => {
 });
 
 describe("the dynamic denominator", () => {
-  it("shrinks the denominator instead of scoring the unobservable as zero", () => {
-    // Same site, judged perfect on everything visible. Missing pricing must not
-    // drag the score down; it must simply not be part of the question.
-    const withPricing = totals(allSix(FULL, MAX_PER_RULE));
-    const without = totals(allSix(NO_PRICING, MAX_PER_RULE));
+  it("shrinks the denominator rather than scoring the unobservable as zero", () => {
+    // The denominator still shrinks — an unseen rule is not a failed rule, and
+    // the internal ratio stays clean so subsection ranking means something.
+    // What stops a pricing-less site being called flawless is the CEILING, not
+    // arithmetic. Two separate mechanisms, deliberately.
+    const without = totals(allSix(NO_PRICING, MAX_PER_RULE), NO_PRICING);
 
-    expect(withPricing.score).toBe(100);
     expect(without.score).toBe(100);
     expect(without.subsections.find((s) => s.key === "plans")?.possible).toBe(0);
   });
 
-  it("would have scored 0 for the same site if unobservables counted — the bug this prevents", () => {
+  it("still refuses to call that site an A — the ceiling does what the maths must not", () => {
+    const withPricing = totals(allSix(FULL, MAX_PER_RULE), FULL);
+    const without = totals(allSix(NO_PRICING, MAX_PER_RULE), NO_PRICING);
+
+    expect(withPricing.verdict.grade).toBe("A");
+    expect(without.verdict.grade).toBe("C");
+    expect(without.verdict.caps).not.toHaveLength(0);
+  });
+
+  it("prices the gap as a ceiling, not as 54 points of punishment", () => {
+    // The rejected alternative: count every unobservable rule as a zero. That
+    // takes a flawless-but-pricing-less site to 46/100 — a number nobody can
+    // interpret, and a punishment for behaving normally. The ceiling says one
+    // legible thing instead.
     const results = allSix(NO_PRICING, MAX_PER_RULE);
     const naiveEarned = results.reduce((n, r) => n + (r.earned ?? 0), 0);
-    // The naive denominator: every auditable rule, whether or not it was seen.
     const naivePossible = AUDITABLE_RULES.reduce((n, r) => n + MAX_PER_RULE * r.weight, 0);
     const naive = Math.round((naiveEarned / naivePossible) * 100);
 
     expect(naive).toBeLessThan(60);
-    expect(totals(results).score).toBe(100);
+    expect(totals(results, NO_PRICING).verdict.grade).toBe("C");
   });
 
   it("reports a reason rather than a number for an unscorable subsection", () => {
@@ -153,7 +167,7 @@ describe("the dynamic denominator", () => {
 
 describe("the gate", () => {
   it("always opens exactly three and locks exactly three", () => {
-    const t = totals(allSix(FULL, 3));
+    const t = totals(allSix(FULL, 3), FULL);
     expect(t.open).toHaveLength(3);
     expect(t.locked).toHaveLength(3);
     expect(t.open.length + t.locked.length).toBe(SUBSECTIONS.length);
@@ -169,20 +183,20 @@ describe("the gate", () => {
         flat(s.key, ctx, s.key === "messaging" || s.key === "proof" ? 0 : s.key === "plans" ? 2 : MAX_PER_RULE),
       ),
     );
-    const t = totals(results);
+    const t = totals(results, ctx);
     expect(t.open.map((r) => r.key)).toEqual(expect.arrayContaining(["messaging", "proof", "plans"]));
   });
 
   it("sorts unscorable subsections last, not worst", () => {
     // No pricing page: three subsections are unscorable. They must NOT fill the
     // open slots — a report of three "could not read this" is worthless.
-    const t = totals(allSix(NO_PRICING, 1));
+    const t = totals(allSix(NO_PRICING, 1), NO_PRICING);
     expect(t.open.every((r) => r.ratio !== null)).toBe(true);
     expect(t.locked.every((r) => r.ratio === null)).toBe(true);
   });
 
   it("never puts a finding body in the locked half — the gate is names only", () => {
-    const t = totals(allSix(FULL, 2));
+    const t = totals(allSix(FULL, 2), FULL);
     // What ships for a locked item is its label. Anything carrying the score or
     // the reason would defeat the redaction bars it renders as.
     const serialised = JSON.stringify(t.locked.map((r) => r.label));
@@ -193,23 +207,70 @@ describe("the gate", () => {
   });
 });
 
-describe("the verdict band", () => {
-  it("spans the whole 0-100 range instead of collapsing to one label", () => {
-    const labels = [0, 20, 45, 60, 75, 90, 100].map(auditBand);
-    expect(new Set(labels).size).toBeGreaterThan(3);
+describe("the grade", () => {
+  it("spans the whole range instead of collapsing to one letter", () => {
+    const grades = [0, 0.2, 0.45, 0.6, 0.75, 0.9, 1].map(rawGrade);
+    expect(new Set(grades).size).toBeGreaterThan(3);
   });
 
-  it("does not hand a broken site the top band", () => {
+  it("does not hand a broken site the top grade", () => {
     // The bug this guards: functions/_lib/bands.ts is calibrated out of 30, so
-    // bandFor(anything >= 24) returns "Rare air" — which is every percentage
-    // score above 24, including a site that scored 25/100.
-    expect(auditBand(25)).not.toBe(auditBand(95));
-    expect(auditBand(0)).toContain("band E");
-    expect(auditBand(100)).toContain("band A");
+    // bandFor(anything >= 24) returns its top band — which is every percentage
+    // above 24, including a site that scored 25/100.
+    expect(rawGrade(0.25)).not.toBe(rawGrade(0.95));
+    expect(rawGrade(0)).toBe("E");
+    expect(rawGrade(1)).toBe("A");
+  });
+});
+
+describe("grade ceilings", () => {
+  it("refuses an A to a site with no public pricing page", () => {
+    // The point of the ceiling. A flawless §1 must not buy a top grade while
+    // the single most important commercial page is missing.
+    const v = gradeFor(1, NO_PRICING);
+    expect(v.uncapped).toBe("A");
+    expect(v.grade).toBe("C");
+    expect(v.caps).toContain("No public pricing page — capped at C until there is one.");
   });
 
-  it("matches the format ScorecardReport's grade prop expects", () => {
-    for (const s of [0, 41, 56, 71, 86]) expect(auditBand(s)).toMatch(/^band [A-E] · .+/);
+  it("leaves a site with pricing ungoverned by that ceiling", () => {
+    const v = gradeFor(1, FULL);
+    expect(v.grade).toBe("A");
+    expect(v.caps).toHaveLength(0);
+  });
+
+  it("never RAISES a grade — a ceiling can only lower one", () => {
+    // A site already at E must not be lifted to C by tripping the pricing cap.
+    const v = gradeFor(0, NO_PRICING);
+    expect(v.grade).toBe("E");
+  });
+
+  it("stays quiet about a ceiling that changed nothing", () => {
+    // The E site above trips the no-pricing condition, but telling somebody at
+    // E that they are "capped at C" is nonsense and makes the scorer look broken.
+    expect(gradeFor(0, NO_PRICING).caps).toHaveLength(0);
+  });
+
+  it("applies the strictest ceiling when several bite at once", () => {
+    // Unreadable AND no pricing: C and D both apply, D is stricter.
+    const v = gradeFor(1, THIN);
+    expect(v.grade).toBe("D");
+    expect(v.caps).toHaveLength(2);
+  });
+
+  it("explains every ceiling it applies, so a cap is never mysterious", () => {
+    for (const cap of GRADE_CAPS) {
+      expect(cap.reason.length, cap.id).toBeGreaterThan(20);
+    }
+    const v = gradeFor(1, NO_PRICING);
+    expect(v.caps.length).toBe(v.caps.filter((c) => c.length > 20).length);
+  });
+
+  it("keeps ceilings off individual findings — a cap is about the whole site", () => {
+    // Marking the messaging finding down for a missing pricing page would be
+    // incoherent; the ceiling belongs to the headline only.
+    const messaging = scoreSubsection("messaging", NO_PRICING, flat("messaging", NO_PRICING, MAX_PER_RULE));
+    expect(messaging.grade).toBe("A");
   });
 });
 

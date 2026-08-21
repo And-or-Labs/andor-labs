@@ -25,7 +25,7 @@
 import { readSite } from "../_lib/crawl";
 import { deriveTarget, hostFromUserUrl } from "../_lib/email-domain";
 import { scoreSite } from "../_lib/audit-score";
-import { auditBand, subsectionLabel, type SubsectionKey } from "../_lib/playbook";
+import { subsectionLabel, type SubsectionKey } from "../_lib/playbook";
 import {
   checkRate,
   readCache,
@@ -242,14 +242,20 @@ const tick = (ms: number) => new Promise((r) => setTimeout(r, ms));
  * than a blur: a CSS blur ships the whole payload and loses to View Source.
  */
 function gate(result: Awaited<ReturnType<typeof scoreSite>>) {
+  const { verdict } = result;
   return {
     host: result.host,
-    score: result.score,
-    outOf: 100,
-    grade: auditBand(result.score),
+    // The GRADE is the result. No percentage crosses the wire: this battery is
+    // going to grow, and a number that moves when the rule set moves tells a
+    // returning visitor their site got worse when nothing about it changed.
+    grade: verdict.grade,
+    gradeLabel: verdict.label,
+    // Why the grade is lower than the findings suggest, when it is. Never let a
+    // ceiling go unexplained — an unexplained cap reads as a broken scorer.
+    caps: verdict.caps,
     findings: result.open.map((s) => ({
       name: s.label,
-      score: s.earned === null ? "n/a" : `${Math.round((s.ratio ?? 0) * 100)} / 100`,
+      grade: s.grade,
       body: s.reason ?? result.notes.get(s.key as SubsectionKey) ?? "",
     })),
     lockedItems: result.locked.map((s) => subsectionLabel(s.key as SubsectionKey)),

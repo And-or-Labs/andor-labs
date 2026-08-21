@@ -8,7 +8,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { readContext } from "../functions/_lib/audit-score";
-import { SUBSECTIONS, observableRules, scoreSubsection, totals, auditBand, subsectionLabel } from "../functions/_lib/playbook";
+import { SUBSECTIONS, observableRules, scoreSubsection, totals, subsectionLabel } from "../functions/_lib/playbook";
 import type { SiteRead } from "../functions/_lib/crawl";
 
 const site = (pages: string, thin = false): SiteRead => ({
@@ -61,16 +61,16 @@ describe("the wire payload", () => {
     const results = SUBSECTIONS.map((s) =>
       scoreSubsection(s.key, ctx, new Map(observableRules(s.key, ctx).map((r, i) => [r.id, i % 5]))),
     );
-    const t = totals(results);
+    const t = totals(results, ctx);
     const notes = new Map(SUBSECTIONS.map((s) => [s.key, `Secret finding for ${s.label}.`]));
     return {
       host: "acme.com",
-      score: t.score,
-      outOf: 100,
-      grade: auditBand(t.score),
+      grade: t.verdict.grade,
+      gradeLabel: t.verdict.label,
+      caps: t.verdict.caps,
       findings: t.open.map((s) => ({
         name: s.label,
-        score: s.earned === null ? "n/a" : `${Math.round((s.ratio ?? 0) * 100)} / 100`,
+        grade: s.grade,
         body: s.reason ?? notes.get(s.key) ?? "",
       })),
       lockedItems: t.locked.map((s) => subsectionLabel(s.key)),
@@ -94,13 +94,15 @@ describe("the wire payload", () => {
     }
   });
 
-  it("never serialises a withheld finding's score either", () => {
-    const { _locked, _notes, ...wire } = build();
-    const json = JSON.stringify(wire);
+  it("never serialises a withheld finding's grade either", () => {
+    const { _locked, ...wire } = build();
+    // lockedItems must be bare labels. If a withheld grade appeared anywhere,
+    // the redaction bar would be decorative rather than a gate.
+    expect(wire.lockedItems.every((i) => typeof i === "string")).toBe(true);
     for (const s of _locked) {
-      if (s.ratio === null) continue;
-      const pct = `${Math.round(s.ratio * 100)} / 100`;
-      expect(json, `leaked score for ${s.key}`).not.toContain(pct);
+      const entry = wire.lockedItems.find((i) => i === s.label);
+      expect(entry, `missing label for ${s.key}`).toBeDefined();
+      expect(JSON.stringify(entry)).not.toContain(String(s.grade));
     }
   });
 
@@ -109,11 +111,21 @@ describe("the wire payload", () => {
     for (const item of p.lockedItems) expect(typeof item).toBe("string");
   });
 
-  it("gives every shown finding a name, a score and a body", () => {
+  it("gives every shown finding a name, a grade and a body", () => {
     for (const f of build().findings) {
       expect(f.name.length).toBeGreaterThan(0);
-      expect(f.score).toMatch(/^(n\/a|\d+ \/ 100)$/);
+      expect(f.grade === null || /^[A-E]$/.test(f.grade)).toBe(true);
       expect(typeof f.body).toBe("string");
     }
+  });
+
+  it("ships no percentage at all — the number never crosses the wire", () => {
+    const { _locked, _notes, ...wire } = build();
+    const json = JSON.stringify(wire);
+    // A growing rule set moves any percentage, so a returning visitor would
+    // read a changed number as a changed site. Grades absorb that; numbers do not.
+    expect(json).not.toMatch(/\/ 100/);
+    expect(wire).not.toHaveProperty("score");
+    expect(wire).not.toHaveProperty("outOf");
   });
 });

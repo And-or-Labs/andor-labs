@@ -195,6 +195,8 @@ async function scoreSection(
 
 export interface AuditResult extends AuditTotals {
   host: string;
+  /** What the crawl saw, so the caller can explain a ceiling. */
+  ctx: CrawlContext;
   /** Per-subsection prose, for the three findings that get shown. */
   notes: Map<SubsectionKey, string>;
 }
@@ -245,7 +247,7 @@ export async function scoreSite(
     if (worst.length) notes.set(s.key, worst.join(" "));
   }
 
-  return { host, notes, ...totals(results) };
+  return { host, notes, ctx, ...totals(results, ctx) };
 }
 
 // Re-exported so audit.ts does not need to import from two places to build a

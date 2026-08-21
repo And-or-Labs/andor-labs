@@ -403,10 +403,20 @@ export interface SubsectionResult {
   /** Null when nothing in this subsection was observable. */
   earned: number | null;
   possible: number;
-  /** Why it could not be scored. Rendered instead of a number. */
+  /** Why it could not be scored. Rendered instead of a grade. */
   reason?: string;
   /** 0-1, for ranking. Unobservable subsections sort last, not worst. */
   ratio: number | null;
+  /**
+   * Per-finding grade, same ladder as the headline and for the same reason.
+   * Null when the subsection could not be scored at all.
+   *
+   * Ceilings are NOT applied here. A cap is a statement about the site as a
+   * whole ("you cannot be an A without a pricing page"); applying it to an
+   * individual finding would mark the messaging section down for something
+   * that has nothing to do with messaging.
+   */
+  grade: Grade | null;
 }
 
 /**
@@ -434,7 +444,7 @@ export function scoreSubsection(
   const label = subsectionLabel(key);
 
   if (rules.length === 0) {
-    return { key, label, earned: null, possible: 0, ratio: null, reason: missingReason(key, ctx) };
+    return { key, label, earned: null, possible: 0, ratio: null, grade: null, reason: missingReason(key, ctx) };
   }
 
   let earned = 0;
@@ -449,13 +459,20 @@ export function scoreSubsection(
   }
 
   if (possible === 0) {
-    return { key, label, earned: null, possible: 0, ratio: null, reason: missingReason(key, ctx) };
+    return { key, label, earned: null, possible: 0, ratio: null, grade: null, reason: missingReason(key, ctx) };
   }
-  return { key, label, earned, possible, ratio: earned / possible };
+  const ratio = earned / possible;
+  return { key, label, earned, possible, ratio, grade: rawGrade(ratio) };
 }
 
 export interface AuditTotals {
-  /** 0-100, out of what was observable. */
+  /** The reported verdict. */
+  verdict: GradeVerdict;
+  /**
+   * 0-100 across what was observable. INTERNAL. Used for ordering, caching and
+   * regression tests; never presented, because it moves whenever the rule set
+   * grows and would make a visitor think their site changed when it did not.
+   */
   score: number;
   subsections: SubsectionResult[];
   /** Worst three scorable subsections, in order. These are shown. */
@@ -465,17 +482,17 @@ export interface AuditTotals {
 }
 
 /**
- * Roll the six subsections into a headline score and split them into shown and
- * withheld.
+ * Roll the six subsections into a grade and split them into shown and withheld.
  *
  * Unobservable subsections sort LAST rather than worst. Ranking them as
  * failures would fill all three open slots with "we could not read this",
- * which is the least useful report we could hand somebody.
+ * which is the least useful report we could hand somebody — the ceiling is
+ * where a structural absence gets priced, not the ranking.
  */
-export function totals(results: SubsectionResult[]): AuditTotals {
+export function totals(results: SubsectionResult[], ctx: CrawlContext): AuditTotals {
   const earned = results.reduce((n, r) => n + (r.earned ?? 0), 0);
   const possible = results.reduce((n, r) => n + r.possible, 0);
-  const score = possible === 0 ? 0 : Math.round((earned / possible) * 100);
+  const ratio = possible === 0 ? 0 : earned / possible;
 
   const ranked = [...results].sort((a, b) => {
     if (a.ratio === null && b.ratio === null) return 0;
@@ -484,30 +501,128 @@ export function totals(results: SubsectionResult[]): AuditTotals {
     return a.ratio - b.ratio;
   });
 
-  return { score, subsections: results, open: ranked.slice(0, 3), locked: ranked.slice(3) };
+  return {
+    verdict: gradeFor(ratio, ctx),
+    score: Math.round(ratio * 100),
+    subsections: results,
+    open: ranked.slice(0, 3),
+    locked: ranked.slice(3),
+  };
 }
 
 /**
- * The verdict word for a score.
+ * ── GRADES ────────────────────────────────────────────────────────────────
+ *
+ * The audit reports a GRADE, not a score. The percentage still exists inside
+ * this module — ranking subsections needs an ordering — but it is never the
+ * thing shown, and that is a deliberate structural choice rather than a
+ * presentational one.
+ *
+ * A percentage is unstable under a growing rule set. This battery is expected
+ * to grow: as checks are added, the denominator moves, and a site that changed
+ * nothing slides from 72 to 68. Anyone comparing their score across two months
+ * would be reading noise created by us. A grade absorbs that — the bands keep
+ * meaning the same thing while what feeds them changes underneath.
  *
  * NOT functions/_lib/bands.ts. That ladder is calibrated out of 30 — its top
  * band starts at 24 — so handing it a percentage returns "Rare air" for every
- * site on earth, including a broken one. Its labels are also Rank My AdTech's
- * voice, which is a leaderboard's, not an audit's.
- *
- * Phrased as a position rather than a mood, same principle bands.ts argues for:
- * a band has to be a verdict someone could disagree with.
+ * site above 24/100, including a broken one. Its labels are also Rank My
+ * AdTech's voice, which is a leaderboard's rather than an audit's.
  */
-const AUDIT_BANDS: { min: number; label: string }[] = [
-  { min: 85, label: "band A · sharp" },
-  { min: 70, label: "band B · solid, with gaps" },
-  { min: 55, label: "band C · leaking" },
-  { min: 40, label: "band D · needs work" },
-  { min: 0, label: "band E · start here" },
+export type Grade = "A" | "B" | "C" | "D" | "E";
+
+export const GRADES: { grade: Grade; min: number; label: string }[] = [
+  { grade: "A", min: 85, label: "sharp" },
+  { grade: "B", min: 70, label: "solid, with gaps" },
+  { grade: "C", min: 55, label: "leaking" },
+  { grade: "D", min: 40, label: "needs work" },
+  { grade: "E", min: 0, label: "start here" },
 ];
 
-export const auditBand = (score: number): string =>
-  (AUDIT_BANDS.find((b) => score >= b.min) ?? AUDIT_BANDS[AUDIT_BANDS.length - 1]).label;
+const RANK: Record<Grade, number> = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+
+export const gradeLabel = (g: Grade): string =>
+  GRADES.find((x) => x.grade === g)?.label ?? "";
+
+/** The grade a ratio earns before any ceiling is applied. */
+export const rawGrade = (ratio: number): Grade =>
+  (GRADES.find((g) => ratio * 100 >= g.min) ?? GRADES[GRADES.length - 1]).grade;
+
+/**
+ * Ceilings — the highest grade attainable while some condition holds.
+ *
+ * A ceiling is how a structural absence is priced, and it is a better
+ * instrument than arithmetic for the job. Scoring twelve unobservable pricing
+ * rules as zero costs a site fifty-four points, which is a punishment nobody
+ * can interpret; capping it at C says one legible thing instead — you cannot be
+ * graded top without this — and the card prints the reason next to the grade.
+ *
+ * A public pricing page is not a nice-to-have for an early-stage technology
+ * startup. It is most of how a buyer self-qualifies, it is the precondition for
+ * half of this rule set being answerable at all, and its absence is a finding
+ * rather than an unknown. Nobody should be graded A without one.
+ *
+ * ADDING YOUR OWN: append an entry. Ceilings compose — the strictest wins — so
+ * a new one cannot silently loosen an existing one, and none of the scoring
+ * maths needs to change to accommodate it.
+ */
+export interface GradeCap {
+  id: string;
+  /** Best grade still reachable while `when` is true. */
+  ceiling: Grade;
+  when: (ctx: CrawlContext) => boolean;
+  /** Printed beside the grade. Never leave a cap unexplained. */
+  reason: string;
+}
+
+export const GRADE_CAPS: GradeCap[] = [
+  {
+    id: "no-pricing",
+    ceiling: "C",
+    when: (ctx) => !ctx.hasPricing,
+    reason: "No public pricing page — capped at C until there is one.",
+  },
+  {
+    id: "unreadable",
+    ceiling: "D",
+    when: (ctx) => ctx.thin,
+    reason: "The page renders client-side, so most of it could not be read or credited.",
+  },
+];
+
+export interface GradeVerdict {
+  grade: Grade;
+  label: string;
+  /** What the ratio alone would have earned, before ceilings. */
+  uncapped: Grade;
+  /**
+   * Reasons for the ceilings that actually BIT — not every ceiling whose
+   * condition happened to hold.
+   *
+   * A site graded E on its own merits trips the no-pricing ceiling too, but
+   * telling that visitor they are "capped at C" is nonsense: they are nowhere
+   * near C. Reporting a cap that changed nothing makes the scorer look broken
+   * and buries the caps that did change something.
+   */
+  caps: string[];
+}
+
+/** Apply every ceiling that holds. The strictest wins; a ceiling can only lower. */
+export function gradeFor(ratio: number, ctx: CrawlContext): GradeVerdict {
+  const uncapped = rawGrade(ratio);
+  let grade = uncapped;
+  const caps: string[] = [];
+
+  for (const cap of GRADE_CAPS) {
+    if (!cap.when(ctx)) continue;
+    // Binding only if this ceiling is stricter than what was already earned.
+    if (RANK[cap.ceiling] <= RANK[uncapped]) continue;
+    caps.push(cap.reason);
+    if (RANK[cap.ceiling] > RANK[grade]) grade = cap.ceiling;
+  }
+
+  return { grade, label: gradeLabel(grade), uncapped, caps };
+}
 
 /**
  * The rules, serialised for the scoring prompt.
