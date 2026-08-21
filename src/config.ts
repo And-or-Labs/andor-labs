@@ -15,12 +15,13 @@ export const BOOKING_URL = "https://cal.com/jatain/book";
  * The first screen ended up giving three different answers to "is this for me?".
  * Change it here; every surface follows.
  *
- * Narrowed back to adtech on 2026-08-21, deliberately. The hero promise now
- * names advertising technology and nothing else, and an ICP left broad would
- * have reopened the exact split this constant exists to close: a subhead
- * selling to one category with three sections under it selling to three.
+ * Narrowed to adtech on 2026-08-21, then widened the same day to early-stage
+ * technology. The narrowing was sound while PROMISE named advertising
+ * technology and nothing else; the widening is a positioning decision, not a
+ * drift, and PROMISE moved with it in the same commit. The rule that matters is
+ * unchanged: this constant and the promise say the same thing, always.
  */
-export const ICP = "adtech";
+export const ICP = "early-stage technology";
 
 /** The ICP as a noun phrase, e.g. "We help {ICP_STARTUPS} lead their category". */
 export const ICP_STARTUPS = `${ICP} startups`;
@@ -31,8 +32,13 @@ export const ICP_STARTUPS = `${ICP} startups`;
  * These were two separately-typed sentences making two different claims, so the
  * search snippet promised something the page didn't. Same phrase, one source.
  *
- * Spelled out as "advertising technology" rather than interpolating ICP: this is
- * the first sentence a stranger reads and "adtech" is house shorthand. It is the
- * one surface that does not derive from ICP, so the two must be moved together.
+ * This now DERIVES from ICP_STARTUPS, and that is the point. It previously
+ * spelled its category out by hand, because "adtech" was house shorthand and too
+ * terse for the first sentence a stranger reads — a defensible reason that came
+ * with a standing hazard, documented right here as "the one surface that does not
+ * derive from ICP, so the two must be moved together". They then failed to move
+ * together twice. "early-stage technology" reads fine in prose, so the exception
+ * is no longer needed and the hazard is retired with it: change ICP and this
+ * sentence follows, like every other surface.
  */
-export const PROMISE = "We're a boutique consultancy helping advertising technology startups find product-market fit, accelerate revenue growth, and win their category.";
+export const PROMISE = `We're a boutique consultancy helping ${ICP_STARTUPS} find product-market fit, accelerate revenue growth, and win their category.`;
