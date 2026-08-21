@@ -24,7 +24,7 @@
  */
 import { readSite } from "../_lib/crawl";
 import { deriveTarget, hostFromUserUrl } from "../_lib/email-domain";
-import { scoreSite } from "../_lib/audit-score";
+import { readContext, scoreSite } from "../_lib/audit-score";
 import { subsectionLabel, type SubsectionKey } from "../_lib/playbook";
 import {
   checkRate,
@@ -62,6 +62,14 @@ const STEPS: { key: string; label: string; status: string }[] = [
   { key: "math", label: "Doing the arithmetic", status: "OK" },
   { key: "round", label: "Rounding in your favour", status: "NO" },
 ];
+
+/**
+ * How often to emit a keepalive while the models are thinking.
+ *
+ * Well inside any proxy's idle tolerance, and slow enough that the counter on
+ * screen reads as a clock rather than a flicker.
+ */
+const HEARTBEAT_MS = 5_000;
 
 const LOOPS_ENDPOINT = "https://app.loops.so/api/v1/contacts/create";
 
@@ -189,12 +197,46 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         const site = await readSite(host, env.CONTEXT_DEV_API_KEY);
 
         send({ t: "step", ...STEPS[1], status: site.thin ? "BARELY" : "OK" });
-        const sawPricing = /##\s*Pricing/i.test(site.pages);
-        send({ t: "step", ...STEPS[2], status: sawPricing ? "EVENTUALLY" : "NOPE" });
+
+        // ONE pricing check, shared with the scorer.
+        //
+        // This used to test /##\s*Pricing/ here while readContext() used a
+        // broader match, so the log could print "NOPE" for a site the scorer
+        // then went on to grade on its pricing rules. Two functions answering
+        // the same question differently is how a report ends up arguing with
+        // its own progress log.
+        const ctx = readContext(site);
+        send({ t: "step", ...STEPS[2], status: ctx.hasPricing ? "EVENTUALLY" : "NOPE" });
         send({ t: "step", ...STEPS[3] });
         send({ t: "step", ...STEPS[4] });
 
-        const result = await scoreSite(host, site, env);
+        // Heartbeat while the models think.
+        //
+        // Scoring is the long pole — measured at ~240s against a live site when
+        // a provider 500s and the ladder has to climb. Printing all eight step
+        // lines up front and then going silent for four minutes was wrong twice
+        // over: the visitor watches a frozen screen, and a stream that sends
+        // nothing for minutes is exactly the idle connection the edge is
+        // entitled to cut. The step lines only hold the socket open if they
+        // keep arriving.
+        //
+        // setInterval is avoided deliberately — racing the work against a sleep
+        // keeps every timer owned by this scope, so nothing can outlive the
+        // request and keep enqueuing into a closed controller.
+        const scoring = scoreSite(host, site, env);
+        let finished = false;
+        void scoring.then(
+          () => (finished = true),
+          () => (finished = true),
+        );
+        let elapsed = 0;
+        while (!finished) {
+          await Promise.race([scoring.catch(() => {}), tick(HEARTBEAT_MS)]);
+          if (finished) break;
+          elapsed += HEARTBEAT_MS / 1000;
+          send({ t: "tick", seconds: elapsed });
+        }
+        const result = await scoring;
 
         send({ t: "step", ...STEPS[5] });
         send({ t: "step", ...STEPS[6] });

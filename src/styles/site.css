@@ -72,50 +72,42 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
   }
 }
 
-/* ── Responsive column behaviour ──────────────────────────── */
-/* Flattened hero grid: text elements + terminal are peers, placed via named
-   areas. Desktop = text column | terminal column. Mobile = the terminal slots
-   between the headline and the subhead (see the 880px override below). */
+/* ── Hero layout ──────────────────────────────────────────────────────────
+   ONE CENTRED COLUMN. This was a two-track grid built entirely around the
+   ANDOR/OS terminal sitting in the right-hand column: even tracks, minmax(0,1fr)
+   on both to stop the non-wrapping boot log dictating a floor, named areas so
+   the terminal could slot between the headline and the subhead on mobile. All
+   of that machinery existed to hold a terminal that is no longer there.
+
+   With the figure gone there is nothing to balance the text against, so a
+   left-aligned column in a 1200px container would leave half the fold empty.
+   Centred, the hero reads as a single statement and the audit field lands
+   directly under the promise that earns it. */
 .aol-hero-inner {
-  display: grid;
-  /* Even split, not the old 1.12/0.88. The boot log's widest line is ~43 mono
-     chars (~364px with the log's padding); at 0.88fr the terminal column fell
-     to ~347px between 880–1000px and `overflow:hidden` + `white-space:pre`
-     clipped the status word outright. An even split clears it at every width
-     and stops the log hugging the frame. The text column keeps ≥488px, which
-     is the headline's own max-width, so nothing reflows there. */
-  /* minmax(0,1fr), NOT 1fr. Plain `1fr` means minmax(auto,1fr), and that `auto`
-     floors at the item's min-content width. The boot log is white-space:pre, so
-     its min-content is the whole unbroken 43-char line: the column refuses to
-     shrink under it and pushes the hero wider than the viewport.
-     overflow:hidden on .aol-term does not prevent this. The automatic-minimum-
-     size zeroing applies to a grid item whose OWN overflow is non-visible, and
-     the grid item is .aol-hero__term (overflow:visible) — the clip is cosmetic
-     while the intrinsic width still propagates up. */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-areas:
-    "eyebrow  term"
-    "headline term"
-    "subhead  term"
-    "founder  term"
-    "cta      term";
-  column-gap: var(--space-16);
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   padding: var(--space-16) var(--gutter);
 }
-.aol-hero__eyebrow  { grid-area: eyebrow;  margin: 0 0 var(--space-3); }
-/* Tighter below than the subhead's space-8 above it, so the credibility line
-   groups with the CTA rather than floating between the two. */
-.aol-hero__founder  { grid-area: founder;  margin: 0 0 var(--space-5); }
-.aol-hero__headline { grid-area: headline; margin: 0 0 var(--space-6); }
-.aol-hero__subhead  { grid-area: subhead;  margin: 0 0 var(--space-8); }
-/* Column, not a row: the free-tool link is the fallback under the primary ask,
-   not a peer beside it. `align-items:flex-start` keeps the pill at its natural
-   width instead of stretching to the column, and lines the link's first
-   character up with the button's left edge rather than its label — the button's
-   own horizontal padding means those two are not the same thing, and the edge
-   is the one the eye actually tracks down. */
-.aol-hero__cta      { grid-area: cta;      margin: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.aol-hero__eyebrow  { margin: 0 0 var(--space-3); }
+.aol-hero__founder  { margin: 0 0 var(--space-5); }
+.aol-hero__headline { margin: 0 0 var(--space-6); }
+.aol-hero__subhead  { margin: 0 0 var(--space-8); }
+/* The form is the only left-aligned thing in a centred hero, and deliberately:
+   a label, a ruled field and a note are read line by line, and centring a
+   ragged-left stack of three different widths makes all three harder to scan.
+   The BLOCK is centred; its contents are not. */
+.aol-hero__cta {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  text-align: left;
+  width: 100%;
+  max-width: 31rem;
+}
 /* Quiet by design — mono, one step down from the subhead's voice, so it reads
    as an aside to the primary CTA rather than a second button. It carries a
    resting underline (which the header version did not) because there is no
@@ -141,15 +133,11 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
 @media (prefers-reduced-motion: reduce) {
   .aol-hero__alt, .aol-hero__alt span { transition: none; }
 }
-/* min-width:0 severs the min-content dependency described above: without it the
-   non-wrapping log dictates this item's floor at every breakpoint. */
-.aol-hero__term     { grid-area: term;     align-self: center; min-width: 0; }
-.aol-founderpill    { vertical-align: middle; margin-left: 6px; font-size: 10px; padding: 2px 6px; letter-spacing: 0.04em; }
 
 /* Hero fills the first screen below the sticky header and centres its content;
    the credentials bar rests at the bottom of that screen. */
 .aol-hero { display: flex; flex-direction: column; min-height: calc(100svh - 65px); }
-.aol-hero > .aol-hero-inner { flex: 1 1 auto; align-content: center; }
+.aol-hero > .aol-hero-inner { flex: 1 1 auto; justify-content: center; }
 .aol-grid-3 { grid-template-columns: repeat(3, 1fr); }
 .aol-grid-2 { grid-template-columns: 1.25fr 1fr; }
 
@@ -157,27 +145,13 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
   .aol-grid-3 { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 880px) {
-  .aol-hero-inner {
-    /* minmax(0,1fr) for the same reason as the desktop track: this is the
-       single-column case where the non-wrapping boot log did the most damage,
-       widening the page and dragging every section out with it. */
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "eyebrow"
-      "headline"
-      "term"
-      "subhead"
-      "founder"
-      "cta";
-  }
-  .aol-hero__term { align-self: stretch; margin: var(--space-1) 0 var(--space-8); }
-  /* Mobile hero flows from the top (no 100svh centering — content already
+  /* Mobile hero flows from the top (no 100svh centring — content already
      overflows the viewport) with a tighter, even rhythm.
      NB: the space scale is non-linear — --space-7/--space-9 don't exist, and a
      var() to an undefined token invalidates the whole shorthand (which silently
      zeroed the gutter padding). Stick to defined steps. */
   .aol-hero { min-height: auto; }
-  .aol-hero > .aol-hero-inner { align-content: start; padding: var(--space-8) var(--gutter) var(--space-10); }
+  .aol-hero > .aol-hero-inner { justify-content: flex-start; padding: var(--space-8) var(--gutter) var(--space-10); }
   .aol-hero__founder  { margin-bottom: var(--space-5); }
   .aol-hero__headline { margin-bottom: var(--space-5); }
   .aol-hero__subhead  { margin-bottom: var(--space-6); }
@@ -187,6 +161,8 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
      one line at 375px; .aol-badge's own white-space:nowrap means that if it
      ever does wrap on a very narrow screen it moves as one unit rather than
      splitting mid-phrase. */
+.aol-founderpill    { vertical-align: middle; margin-left: 6px; font-size: 10px; padding: 2px 6px; letter-spacing: 0.04em; }
+
   .aol-founderpill    { display: inline-flex; margin: 0 0 0 6px; font-size: 9.5px; padding: 2px 5px; letter-spacing: 0.02em; }
   .aol-grid-2 { grid-template-columns: 1fr; }
   .aol-faq-grid { grid-template-columns: 1fr !important; gap: 32px !important; }

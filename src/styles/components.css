@@ -370,8 +370,12 @@
 .aol-term{
   border:1.5px solid var(--ink-900); border-radius:var(--radius-md);
   background:var(--surface-card); box-shadow:var(--shadow-hard); overflow:hidden;
-  /* Belt and braces with .aol-hero__term's min-width:0 — the frame can never be
-     wider than the column it sits in, whatever the pre-formatted log measures. */
+  /* The frame can never be wider than whatever contains it, however wide the
+     pre-formatted log measures. This used to be belt-and-braces with
+     .aol-hero__term's min-width:0 back when the terminal sat in a hero grid
+     column; that column is gone, and the modal is the only place this renders
+     now, but the guard is still what stops white-space:pre pushing the dialog
+     past the viewport. */
   min-width:0; max-width:100%;
 }
 .aol-term__head{
@@ -2000,103 +2004,97 @@
 }
 
 /* ---- Hero audit field ---------------------------------------------------
-   The primary ask. It lives in the hero rather than the header because it
-   reads under the promise that earns it, and because it sits beside the
-   terminal it opens — the modal FLIPs out of that machine, which only makes
-   sense if the trigger is next to it.
+   A RULED FIELD, not a box. No chrome: a mono label, the typed text, and a
+   baseline rule under it — the way a field is printed on a paper form. That
+   puts it in the same plotting-paper language as the tractor-feed receipt the
+   audit prints, and it keeps the hero light next to the CRT beside it.
 
-   BUILT ON .aol-control, not beside it. The joined input-and-button pill is a
-   composite the design system does not have, but the field inside it is an
-   ordinary input and gets the ordinary input's behaviour: --focus-ring rather
-   than a bare border change, and --error rather than a bespoke invalid class.
+   This IS a departure from .aol-control, which is the only input treatment the
+   design system has and is a bordered box. The departure is deliberate and
+   scoped: the input still uses .aol-control as its base, so it keeps the 16px,
+   the hover, the disabled state and the --error hook, and this rule only
+   removes the frame and substitutes the rule. Worth contributing back to
+   951d1bec as a real `--ruled` variant if a second surface ever wants one.
 
-   The 16px font size is inherited from .aol-control and must not be reduced.
-   Every variant there holds 16px — even --sm, which only trims padding —
-   because iOS zooms the viewport when a focused input is under 16px. A 14px
-   field here looked tidier and zoomed the homepage on every iPhone. */
-.aol-hero__auditform{ width:100%; max-width:29rem; }
-/* Visually hidden, not display:none — the input still needs a real label. */
+   THE 16px IS LOAD-BEARING and is inherited, not restated. Every .aol-control
+   variant holds it — even --sm, which only trims padding — because iOS zooms
+   the viewport when a focused input is under 16px. */
+.aol-hero__auditform{ width:100%; max-width:31rem; }
+/* Matches the canonical DS's .aol-field__label spec (mono / 11px / 0.06em /
+   uppercase / ink-700). Written out rather than reused because the local
+   checkout has Field.astro but never styled its label — one more place the
+   local design system has drifted from 951d1bec. Keep these values in step. */
 .aol-hero__auditlabel{
-  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
-  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+  display:block; font-family:var(--font-mono); font-size:11px;
+  letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-700);
+  margin:0 0 4px;
 }
-.aol-hero__auditrow{
-  display:flex; align-items:stretch;
-  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
-  background:var(--paper-pure); overflow:hidden;
-  box-shadow:var(--shadow-hard);
+.aol-hero__auditrow{ display:flex; align-items:flex-end; gap:16px; }
+.aol-hero__auditinput{
+  flex:1 1 auto; width:auto; min-width:0;
+  background:transparent; box-shadow:none;
+  border:0; border-bottom:1.5px solid var(--ink-400); border-radius:0;
+  padding:6px 2px; min-height:0;
   transition:border-color var(--dur-base) var(--ease-out),
               box-shadow var(--dur-base) var(--ease-out);
 }
-/* The ring goes on the WRAPPER, because the wrapper is what reads as the
-   control. Same token the rest of the site focuses with. */
-.aol-hero__auditrow:focus-within{
-  border-color:var(--blue-500); box-shadow:var(--focus-ring);
+.aol-hero__auditinput:hover{ border-bottom-color:var(--ink-600); }
+/* Focus doubles the rule with an inset shadow rather than thickening the
+   border, so the baseline cannot shift by a pixel as you tab into it. A
+   borderless field cannot take --focus-ring without drawing a box around
+   nothing, so the rule itself carries the state — colour AND weight, not
+   colour alone, since colour alone is not a sufficient indicator. */
+.aol-hero__auditinput:focus,
+.aol-hero__auditinput:focus-visible{
+  outline:none;
+  border-bottom-color:var(--blue-500);
+  box-shadow:inset 0 -1px 0 var(--blue-500);
 }
-/* The input's own frame is removed — the pill supplies it — but everything
-   else about .aol-control is kept, including the 16px. */
-.aol-hero__auditinput{
-  flex:1 1 auto; min-width:0; width:auto;
-  border:0; border-radius:0; box-shadow:none; background:transparent;
-  padding:13px 8px 13px 18px; min-height:52px;
+/* The DS's --error paints border-color ink-900, which on a single rule reads as
+   "slightly darker" rather than as a problem. Copper is the caution colour used
+   elsewhere on the card, so the underline borrows it. */
+.aol-hero__auditinput.aol-control--error{
+  border-bottom-color:var(--copper-600);
+  box-shadow:inset 0 -1px 0 var(--copper-600);
 }
-.aol-hero__auditinput:hover{ border-color:transparent; }
-.aol-hero__auditinput:focus-visible{ outline:none; box-shadow:none; }
-.aol-hero__auditgo{
-  flex:none; display:inline-flex; align-items:center; gap:8px;
-  font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.1em;
-  text-transform:uppercase; cursor:pointer; white-space:nowrap;
-  border:0; padding:0 20px;
-  background:var(--blue-600); color:var(--paper-pure);
-  transition:background var(--dur-base) var(--ease-out);
-}
-.aol-hero__auditgo span{ display:inline-block; transition:transform var(--dur-base) var(--ease-out); }
-@media (hover:hover) and (pointer:fine){
-  .aol-hero__auditgo:hover{ background:var(--blue-700); }
-  .aol-hero__auditgo:hover span{ transform:translateX(3px); }
-}
+/* Sits on the rule's baseline, which is why the row aligns to flex-end. */
+.aol-hero__auditgo{ flex:none; }
 .aol-hero__auditnote{
   margin:10px 0 0; font-family:var(--font-mono); font-size:11.5px;
   letter-spacing:0.04em; color:var(--ink-500);
 }
+.aol-hero__auditform:has(.aol-control--error) .aol-hero__auditnote{ color:var(--copper-600); }
 .aol-hero__auditform:has(.aol-control--error) .aol-hero__auditnote::after{
-  content:" · that address looks off"; color:var(--copper-600);
+  content:" · that address looks off";
 }
-/* Stack at the narrow end rather than squeezing a mono label next to a mono
-   input. The button keeps its full label — "Grade my site" is the whole offer
-   and abbreviating it to an arrow loses the only words that say what happens. */
-@media (max-width:440px){
-  .aol-hero__auditrow{ flex-direction:column; border-radius:var(--radius-md); }
-  .aol-hero__auditinput{ padding:13px 16px; }
-  .aol-hero__auditgo{ padding:13px 16px; justify-content:center; border-top:1.5px solid var(--ink-900); }
-}
-@media (prefers-reduced-motion: reduce){
-  .aol-hero__auditgo span{ transition:none; }
+/* Stack once the button and a usable field stop fitting on one rule. The
+   button keeps its full label — "Grade my site" is the whole offer, and
+   shrinking it to an arrow loses the only words that say what happens. */
+@media (max-width:520px){
+  .aol-hero__auditrow{ flex-direction:column; align-items:stretch; gap:14px; }
+  .aol-hero__auditgo{ align-self:flex-start; }
 }
 
-/* ---- The audit modal ----------------------------------------------------
-   Native <dialog>: focus trap, Esc, inert background and ::backdrop are all
-   free, and each is a thing not to get subtly wrong. */
-.aol-auditmodal{
-  border:0; padding:0; background:transparent;
-  width:min(720px, calc(100vw - 32px));
-  max-height:min(86vh, 900px);
-  overflow:visible;
+/* ---- The audit panel ----------------------------------------------------
+   INLINE, in the hero, in place of the form. Not a dialog.
+
+   A modal was the wrong instrument: it landed on top of the page instead of
+   growing out of it, and after the hero terminal was removed there was nothing
+   left for it to grow out of — so it was just an overlay dropped over content
+   the visitor was mid-way through reading. Swapping one block for another in
+   the same place is both simpler and more honest about what happened. It also
+   deletes the backdrop, the scroll lock and the focus trap outright. */
+.aol-audit{
+  width:100%; max-width:34rem; margin:0 auto; text-align:left;
 }
-.aol-auditmodal::backdrop{
-  background:rgba(11,15,25,0.42);
-  backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
-}
-.aol-term--modal{ display:flex; flex-direction:column; max-height:inherit; }
-/* Head strip stays put; only the screen scrolls. A report can be long and the
-   close control must never scroll out of reach. */
-.aol-term--modal .aol-term__head{ flex:none; }
+.aol-term--panel{ display:flex; flex-direction:column; }
+.aol-term--panel .aol-term__head{ flex:none; }
 .aol-audit__screen{
-  flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch;
-  /* The 5/3 ratio is for the resting hero terminal, where the content is a
-     fixed eight lines. Here the content grows, so height is content-driven
-     inside the dialog's own cap. */
-  aspect-ratio:auto; min-height:220px;
+  /* The 5/3 ratio belonged to the resting hero terminal, whose content was a
+     fixed eight lines. This grows, so height follows content up to a cap and
+     then scrolls — the receipt can be long. */
+  aspect-ratio:auto; min-height:200px; max-height:min(70vh, 620px);
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
 }
 .aol-audit__close{
   display:inline-flex; align-items:center; gap:7px;
@@ -2107,10 +2105,30 @@
 @media (hover:hover) and (pointer:fine){
   .aol-audit__close:hover{ color:var(--ink-900); }
 }
-.aol-audit__close:focus-visible{ outline:2px solid var(--blue-600); outline-offset:2px; }
+.aol-audit__close:focus-visible{ outline:none; box-shadow:var(--focus-ring); }
+/* The panel takes focus when it appears so a keyboard user follows the change,
+   but it is not a trap and must not draw a box for a programmatic focus. */
+.aol-audit:focus{ outline:none; }
 
-/* Free-mail fallback: ask for the URL here rather than back up in the header,
-   because by this point the visitor is looking at the terminal. */
+/* The LED blinks while a run is in flight — the same signal the terminal has
+   always used for "working", reused rather than reinvented. */
+.aol-audit.is-working .aol-term__led{ animation:aol-led-blink 0.5s step-start infinite; }
+/* Each printed line fades up as it lands, so the log reads as output arriving
+   rather than as a block that was already there. */
+.aol-audit__log .aol-term__line{ animation:aol-audit-line var(--dur-base) var(--ease-out) both; }
+@keyframes aol-audit-line{ from{ opacity:0; transform:translateY(2px); } to{ opacity:1; transform:none; } }
+/* The receipt arrives after a long wait, so it gets a longer entrance than a
+   log line — enough to register as a different kind of thing. */
+.aol-audit__roll{ animation:aol-audit-roll 320ms var(--ease-out) both; }
+@keyframes aol-audit-roll{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .aol-audit.is-working .aol-term__led,
+  .aol-audit__log .aol-term__line,
+  .aol-audit__roll{ animation:none; }
+}
+
+/* Free-mail fallback: ask for the URL here rather than back at the entry form,
+   because by this point the visitor is looking at the panel. */
 .aol-audit__urlform{ padding:4px 1.15em 20px; }
 .aol-audit__urllabel{
   display:block; font-family:var(--font-mono); font-size:12px;
@@ -2123,7 +2141,7 @@
 .aol-audit__urlinput{ flex:1 1 auto; min-width:0; width:auto; }
 .aol-audit__urlgo{
   font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em;
-  text-transform:uppercase; cursor:pointer;
+  text-transform:uppercase; cursor:pointer; white-space:nowrap;
   padding:9px 16px; color:var(--paper-pure); background:var(--blue-600);
   border:1.5px solid var(--ink-900); border-radius:var(--radius-sm);
 }
@@ -2247,8 +2265,6 @@
   letter-spacing:0.08em; color:var(--ink-400);
 }
 @media (max-width:560px){
-  .aol-auditmodal{ width:100vw; max-height:100dvh; }
-  .aol-term--modal{ border-radius:0; min-height:100dvh; }
   .aol-roll{ max-width:none; }
 }
 @media (prefers-reduced-motion: reduce){

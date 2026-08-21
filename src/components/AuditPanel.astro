@@ -1,15 +1,21 @@
 ---
 /**
- * The audit surface — the hero terminal, expanded.
+ * The audit surface — INLINE, in the hero, in place of the form.
  *
- * Lives in Base.astro rather than in the hero, because the audit is reachable
- * from anywhere the entry form is placed. On `/` it FLIPs out of the hero
- * terminal's real position so it reads as that machine expanding; with no
- * terminal on the page it grows from the entry form instead.
+ * This was a <dialog> and is not any more. A modal was the wrong instrument
+ * twice over: it landed on top of the page rather than growing out of it, and
+ * once the hero terminal was removed there was nothing for it to grow out of,
+ * so it was simply an overlay dropped over content the visitor had just been
+ * reading. Nothing about an audit needs to interrupt the page.
  *
- * Native <dialog>, not a bespoke overlay. Focus trap, Esc, background inert and
- * ::backdrop all come free, and every one of those is a thing not to write and
- * not to get subtly wrong.
+ * Now the hero IS the surface. Submit the form and it gives way to the log in
+ * the same place, at the same width; the receipt prints under it. No backdrop,
+ * no focus trap, no scroll lock, and nothing to dismiss — the page simply
+ * changes state, which is what actually happened.
+ *
+ * It keeps the ANDOR/OS chassis: the mono log, the head strip and the LED are
+ * the house's language for "something is running", and that language is the one
+ * part of the terminal worth keeping.
  *
  * Deliberately NOT a React island. The stream updates the DOM line by line
  * anyway, so hydrating a component to do imperative DOM work would add a
@@ -21,12 +27,12 @@ import Input from "./ds/Input.astro";
 import { BOOKING_URL } from "../config";
 ---
 
-<dialog class="aol-auditmodal" aria-labelledby="audit-title">
-  <div class="aol-term aol-term--modal is-on is-auditing">
+<section class="aol-audit" aria-labelledby="audit-title" hidden>
+  <div class="aol-term aol-term--panel is-on is-auditing">
     <div class="aol-term__head">
       <span id="audit-title">ANDOR/OS <span class="aol-audit__host"></span></span>
-      <button type="button" class="aol-audit__close" aria-label="Close audit">
-        [ESC] <span class="aol-term__led"></span>
+      <button type="button" class="aol-audit__close" aria-label="Start over">
+        [RESET] <span class="aol-term__led"></span>
       </button>
     </div>
 
@@ -86,14 +92,15 @@ import { BOOKING_URL } from "../config";
       </div>
     </div>
   </div>
-</dialog>
+</section>
 
 <script>
   // ── The audit client ──────────────────────────────────────────────────────
   // Reads the NDJSON stream and prints it. Everything here is deliberately
   // small and imperative: the server decides what is shown, this decides only
   // how fast it appears.
-  const dlg = document.querySelector<HTMLDialogElement>(".aol-auditmodal");
+  const dlg = document.querySelector<HTMLElement>(".aol-audit");
+  const entry = document.querySelector<HTMLElement>(".aol-hero__auditform");
   if (dlg) {
     const log = dlg.querySelector<HTMLElement>(".aol-audit__log")!;
     const rollWrap = dlg.querySelector<HTMLElement>(".aol-audit__roll")!;
@@ -120,6 +127,31 @@ import { BOOKING_URL } from "../config";
       roll.querySelector<HTMLElement>(".aol-roll__cap")!.hidden = true;
     };
 
+    /**
+     * A print queue with a floor on the gap between lines.
+     *
+     * The server emits several steps in the same millisecond, because they
+     * describe work that has already happened. Appending them synchronously
+     * makes the log appear all at once, which reads as a paste rather than as a
+     * machine working — and it was the reason the modal felt like it had no
+     * loading state even while it was streaming correctly.
+     */
+    const queue: (() => void)[] = [];
+    let draining = false;
+    const drain = async () => {
+      if (draining) return;
+      draining = true;
+      while (queue.length) {
+        queue.shift()!();
+        if (!reduce) await new Promise((r) => setTimeout(r, 110));
+      }
+      draining = false;
+    };
+    const enqueue = (fn: () => void) => {
+      queue.push(fn);
+      void drain();
+    };
+
     const print = (label: string, status = "") => {
       const el = document.createElement("div");
       el.className = "aol-term__line is-in";
@@ -134,6 +166,14 @@ import { BOOKING_URL } from "../config";
       log.scrollTop = log.scrollHeight;
     };
 
+    /** Every dead end says one plain sentence. Never fail silently. */
+    const fail = (message: string) => {
+      dlg.classList.remove("is-working");
+      log.querySelector(".aol-audit__tick")?.remove();
+      printPlain("");
+      printPlain(`> ${message}`);
+    };
+
     const printPlain = (text: string) => {
       const el = document.createElement("div");
       el.className = "aol-term__line is-in";
@@ -143,54 +183,41 @@ import { BOOKING_URL } from "../config";
     };
 
     /**
-     * Open, growing out of the hero terminal when there is one.
+     * Show the panel in place of the form, and put it back.
      *
-     * FLIP rather than a canned transition: the point is that THIS machine got
-     * bigger, which only reads if the animation starts at the machine's real
-     * position on screen. With no terminal on the page it grows from the entry
-     * form instead, which is where the visitor's attention already is.
+     * No showModal(), no backdrop, no scroll lock. The hero swaps one block for
+     * another at the same width, which is the whole reason this stopped being a
+     * dialog: nothing is covering anything, so nothing has to be dismissed.
      */
     const open = () => {
-      const origin =
-        document.querySelector<HTMLElement>(".aol-hero__term .aol-term") ??
-        document.querySelector<HTMLElement>(".aol-hero__auditform");
-      const from = origin?.getBoundingClientRect();
-
-      dlg.showModal();
-
-      if (!from || reduce) return;
-      const to = dlg.getBoundingClientRect();
-      const dx = from.left + from.width / 2 - (to.left + to.width / 2);
-      const dy = from.top + from.height / 2 - (to.top + to.height / 2);
-      dlg.animate(
-        [
-          { transform: `translate(${dx}px, ${dy}px) scale(${Math.max(0.2, from.width / to.width)})`, opacity: 0.4 },
-          { transform: "translate(0,0) scale(1)", opacity: 1 },
-        ],
-        { duration: 320, easing: "cubic-bezier(0.2, 0, 0, 1)" },
-      );
+      if (entry) entry.hidden = true;
+      dlg.hidden = false;
+      if (!reduce) {
+        dlg.animate(
+          [
+            { opacity: 0, transform: "translateY(6px)" },
+            { opacity: 1, transform: "none" },
+          ],
+          { duration: 220, easing: "cubic-bezier(0.2, 0, 0, 1)" },
+        );
+      }
+      // Focus lands on the panel so a keyboard user follows the change. Not a
+      // trap — they can tab straight back out into the page, which is the point.
+      dlg.setAttribute("tabindex", "-1");
+      dlg.focus({ preventScroll: true });
     };
 
     const close = () => {
-      if (!dlg.open) return;
-      if (reduce) return dlg.close();
-      dlg
-        .animate([{ opacity: 1 }, { opacity: 0, transform: "scale(0.97)" }], {
-          duration: 160,
-          easing: "ease-in",
-        })
-        .addEventListener("finish", () => dlg.close());
+      dlg.hidden = true;
+      dlg.classList.remove("is-working");
+      clear();
+      if (entry) {
+        entry.hidden = false;
+        entry.querySelector<HTMLInputElement>(".aol-hero__auditinput")?.focus();
+      }
     };
 
     closeBtn.addEventListener("click", close);
-    // Backdrop click. A <dialog>'s own box is the click target for its
-    // backdrop, so compare against the content rect rather than event.target.
-    dlg.addEventListener("click", (e) => {
-      const r = dlg.getBoundingClientRect();
-      const outside =
-        e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
-      if (outside) close();
-    });
 
     /** Render the receipt. */
     const printRoll = (d: any) => {
@@ -240,6 +267,12 @@ import { BOOKING_URL } from "../config";
       pending = email;
       hostSlot.textContent = "";
 
+      // Something on screen BEFORE the request goes out. The first byte back is
+      // fast, but "fast" is not "instant", and an empty black screen for even
+      // 300ms reads as broken.
+      dlg.classList.add("is-working");
+      printPlain("> connecting\u2026");
+
       let res: Response;
       try {
         res = await fetch("/api/audit", {
@@ -248,12 +281,33 @@ import { BOOKING_URL } from "../config";
           body: JSON.stringify({ email, url }),
         });
       } catch {
-        printPlain("> couldn't reach the scorer. try again?");
+        fail("Couldn't reach the scorer. Check your connection and try again.");
+        return;
+      }
+
+      // A NON-OK REPLY MUST NOT BE SILENT.
+      //
+      // This is the bug that made the whole grader look dead. `astro dev` does
+      // not serve Pages Functions, so /api/audit answered 502 with an EMPTY
+      // body — and fetch does not throw on 502. res.body existed, the reader
+      // finished on the first read, the buffer was "", every handler skipped
+      // it, and absolutely nothing appeared. No error, no log line, no clue.
+      // Any 5xx from the edge would have done the same in production.
+      const ctype = res.headers.get("content-type") ?? "";
+      if (!res.ok || !/ndjson|json/i.test(ctype)) {
+        fail(
+          res.status === 502 || res.status === 404
+            ? "The scorer isn't running. Locally that means wrangler: npx wrangler pages dev dist --port 8788"
+            : `The scorer answered ${res.status}. Try again shortly, or just book the call.`,
+        );
         return;
       }
 
       const reader = res.body?.getReader();
-      if (!reader) return;
+      if (!reader) {
+        fail("The scorer sent an empty reply.");
+        return;
+      }
       const dec = new TextDecoder();
       let buf = "";
 
@@ -266,7 +320,7 @@ import { BOOKING_URL } from "../config";
           return;
         }
         if (msg.t === "open") hostSlot.textContent = msg.host ? `· ${msg.host}` : "";
-        else if (msg.t === "step") print(msg.label, msg.status);
+        else if (msg.t === "step") enqueue(() => print(msg.label, msg.status));
         else if (msg.t === "tick") {
           // Scoring takes minutes on a slow provider, and the eight step lines
           // all land in the first few seconds. Without this the visitor watches
@@ -286,11 +340,11 @@ import { BOOKING_URL } from "../config";
           urlForm.hidden = false;
           urlInput.focus();
         } else if (msg.t === "failed") {
-          printPlain("");
-          printPlain(`> ${msg.message}`);
+          fail(msg.message);
         } else if (msg.t === "result") {
           // The counter was a progress indicator, not part of the log. Once the
           // report is here it is clutter sitting above the receipt.
+          dlg.classList.remove("is-working");
           log.querySelector(".aol-audit__tick")?.remove();
           printPlain("");
           printPlain("> report ready");

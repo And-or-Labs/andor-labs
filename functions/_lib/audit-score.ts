@@ -35,6 +35,16 @@ import {
  */
 const LADDER = ["opencode", "gemini", "nvidia"] as const;
 
+/**
+ * How much of the crawl to show the model.
+ *
+ * Cut from 24k after a live run took 240 seconds end to end. Prompt length is
+ * the latency budget on this platform, and the pages that matter — homepage and
+ * pricing — are near the front of what readSite() assembles, so the tail was
+ * mostly blog and careers copy that no rule in sections 1 or 2 asks about.
+ */
+const PROMPT_CHARS = 12_000;
+
 /** How the model must answer. Ids come straight from the rule table. */
 const RESPONSE_SCHEMA = {
   type: "object",
@@ -125,7 +135,7 @@ function buildPrompt(section: 1 | 2, host: string, site: SiteRead, ctx: CrawlCon
     `Return JSON: {"scores":[{"id":"<rule id>","score":<0-${MAX_PER_RULE}>,"note":"<=25 words"}],"summary":"<one sentence>"}`,
     ``,
     `--- PAGES ---`,
-    site.pages.slice(0, 24_000),
+    site.pages.slice(0, PROMPT_CHARS),
   ]
     .filter((l) => l !== "")
     .join("\n");
@@ -182,7 +192,12 @@ async function scoreSection(
           if (parsed.scores.size === 0) throw new Error("no usable scores");
           return parsed;
         },
-        { temperature: 0.2, schema: RESPONSE_SCHEMA, attempts: 2 },
+        // attempts:1, not 2. `attempts` is per RUNG, so with three providers
+        // behind it a retry policy of 2 permits six sequential model calls
+        // before this gives up — which is how a 40-second job became a
+        // four-minute one when the first provider 500'd. The ladder already IS
+        // the retry: a dead rung costs one call, not two.
+        { temperature: 0.2, schema: RESPONSE_SCHEMA, attempts: 1 },
       );
       return value;
     } catch (err) {

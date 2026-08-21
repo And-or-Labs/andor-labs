@@ -1,87 +1,17 @@
 ---
 import Badge from "../ds/Badge.astro";
 import Input from "../ds/Input.astro";
+import Button from "../ds/Button.astro";
+import AuditPanel from "../AuditPanel.astro";
 import { PROMISE } from "../../config";
 
 const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
 
-// ANDOR/OS boot log — server-rendered in its FINAL state (no-JS and
-// reduced-motion visitors see the completed check); JS replays it as a slow
-// boot on load. Dotted leaders align every status to one column.
-//
-// No header line: every row sits at the same single indent, so the block reads
-// as one column of output rather than a heading with children. INDENT is shared
-// by the leader rows, the sign-off and the prompt for exactly that reason —
-// change it in one place or they drift apart.
-// No leading indent. The log's left edge is set by .aol-term__log's 14px
-// padding, which matches .aol-term__head's, so the boot lines start on the same
-// vertical as the ANDOR/OS label above them. The old 2-space indent pushed them
-// ~16px further right than the header and cost 2 characters of width on every
-// line, which mattered once the widest label grew to 23 characters.
-const INDENT = "";
-// Column width must clear the LONGEST label below — `repeat` throws on a
-// negative count, so a label longer than this is a build error, not a wobble.
-// Raised 24 -> 26 for the audit log in AUDIT_LINES, whose longest label
-// ("Rounding in your favour") is 23: at 24 that renders a single dot, which
-// reads as a full stop rather than a leader. Both logs share the column so the
-// resting and working states line up in the same screen.
-//
-// 26 also sets the type scale. The widest line either log produces is 38 chars
-// (26 + 2 spaces + a 10-char status), and .aol-term__log's 3.2cqw cap is
-// derived from exactly that number — a longer status will not wrap, it will be
-// clipped by the frame. Keep statuses to 10 characters.
-const LEADER_COL = 26;
-const lead = (name: string) => INDENT + name + " " + ".".repeat(LEADER_COL - name.length) + " ";
-
-// ANDOR/OS boot — the resting state. The machine has enormous capability and is
-// about to be asked to look at one homepage; the joke is the anticlimax on line
-// four and the weary recovery on line five. The status column carries the
-// comedy, which is the fix for the four identical OKs that were here before:
-// the labels were already doing jokes and the right-hand column was dead.
-const BOOT_LINES: { text: string; status?: string; prompt?: boolean }[] = [
-  { text: lead("Spinning up 40 cores"), status: "OK" },
-  { text: lead("Loading 11 frameworks"), status: "OK" },
-  { text: lead("Consulting 23 studies"), status: "OK" },
-  { text: lead("Awaiting the task"), status: "A HOMEPAGE" },
-  { text: lead("Lowering expectations"), status: "DONE" },
-  { text: " " },
-  { text: INDENT + "overqualified. ready." },
-  { text: INDENT + "> ", prompt: true },
-];
 ---
 <section class="aol-hero" style="border-bottom:1px solid var(--ink-200);background:var(--paper)">
   <div class="aol-hero-inner" style="max-width:var(--container-width);width:100%;margin:0 auto">
     <div class="aol-eyebrow aol-hero__eyebrow" data-r style="--r:0">Est. 2025</div>
     <h1 class="aol-hero__headline" data-r style="font-family:var(--font-display);font-weight:400;font-size:42px;line-height:1.18;letter-spacing:0;max-width:30.5rem;--r:1">Don't just go-to-market. Win it.</h1>
-    <div class="aol-hero__term" data-r style="--r:4">
-      <div class="aol-term">
-        <div class="aol-term__head" aria-hidden="true">
-          <span>ANDOR/OS v1.0</span>
-          <span class="aol-term__head-right">CRT-01 <span class="aol-term__led"></span></span>
-        </div>
-        <div class="aol-term__screen">
-          <div class="aol-term__log" aria-hidden="true">
-            {BOOT_LINES.map((l) => (
-              <div class={"aol-term__line" + (l.prompt ? " aol-term__prompt" : "")}>{l.text}{l.status && <span class={"aol-term__ok" + (l.status !== "OK" ? " aol-term__ok--live" : "")}>{l.status}</span>}</div>
-            ))}
-          </div>
-          <!-- NVIDIA Inception, stamped bottom-right ON the screen rather than
-               added to the credibility strip — a third cell there forced the
-               strip taller and made the logo reel outgrow its old size. Absolute
-               so the screen keeps its exact dimensions. Partner lockup: never
-               recolored or reproportioned. -->
-          <a class="aol-term__stamp" href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" aria-label="NVIDIA Inception program member">
-            <!-- alt="" because the anchor's aria-label already names it — with
-                 both, the label wins and the alt is dead weight. Intrinsic
-                 dimensions match the rendered 34px height at the artwork's true
-                 2.3168 ratio, so it reserves its box and can't shift layout.
-                 NOT lazy: this is above the fold, and deferring it would flash
-                 an empty corner on the hero. -->
-            <img src="/partners/nvidia-inception.svg" alt="" width="79" height="34" decoding="async" />
-          </a>
-        </div>
-      </div>
-    </div>
     <p class="aol-hero__subhead" data-r style="font-size:21px;line-height:1.5;color:var(--ink-600);max-width:42ch;--r:2">
       {PROMISE}
     </p>
@@ -132,14 +62,17 @@ const BOOT_LINES: { text: string; status?: string; prompt?: boolean }[] = [
             placeholder="you@company.com"
             required
           />
-          <button type="submit" class="aol-hero__auditgo">
-            Grade my site <span aria-hidden="true">&rarr;</span>
-          </button>
+          <Button type="submit" variant="primary" size="md" arrow class="aol-hero__auditgo">Grade my site</Button>
         </div>
         <p class="aol-hero__auditnote">
           Free · 23 peer-reviewed checks · no signup
         </p>
       </form>
+      {/* The audit runs HERE, in place of the form above, at the same width.
+          Inline rather than in a dialog: nothing about a scorecard needs to
+          interrupt the page, and an overlay dropped on content someone is
+          reading is a worse gesture than the page simply changing state. */}
+      <AuditPanel />
       {/* <a class="aol-hero__alt" href="/tools/rank-my-adtech/">Get your company ranked by three AI labs <span aria-hidden="true">&rarr;</span></a> */}
     </div>
   </div>
@@ -152,7 +85,18 @@ const BOOT_LINES: { text: string; status?: string; prompt?: boolean }[] = [
       </div>
       <div class="aol-credstrip__cell">
         <span class="aol-eyebrow">Brand partners</span>
-        <span class="aol-credstrip__val">AirOps  ·  Superdesign  ·  Snitcher</span>
+        {/* NVIDIA Inception joins the existing partner line rather than taking a
+            cell of its own. It used to be stamped on the hero terminal's screen
+            specifically so it would NOT add a third cell here — a third column
+            forced the strip taller and shrank the logo reel. The terminal is
+            gone, but that reason has not changed, so the lockup appends to the
+            partners it belongs with. Never recoloured or reproportioned. */}
+        <span class="aol-credstrip__val">
+          AirOps  ·  Superdesign  ·  Snitcher  ·
+          <a class="aol-credstrip__mark" href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" aria-label="NVIDIA Inception program member">
+            <img src="/partners/nvidia-inception.svg" alt="" width="79" height="34" decoding="async" />
+          </a>
+        </span>
       </div>
     </div>
     </div>
@@ -160,54 +104,6 @@ const BOOT_LINES: { text: string; status?: string; prompt?: boolean }[] = [
 </section>
 
 <script>
-  // ── ANDOR/OS boot — the log is server-rendered in its final state; with JS +
-  // motion allowed we hide it and replay a slow, deliberate boot (line lands,
-  // beat, status lands). Final state = the completed check resting on a prompt.
-  // Never blocks page load — it's the hero figure's own behavior, not a gate.
-  const term = document.querySelector<HTMLElement>(".aol-term");
-  const lines = term ? Array.from(term.querySelectorAll<HTMLElement>(".aol-term__line")) : [];
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  let timers: number[] = [];
-  const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
-
-  const runBoot = () => {
-    if (!term) return;
-    clearTimers();
-    term.classList.remove("is-booted");
-    term.classList.add("is-on", "is-booting");
-    lines.forEach((l) => {
-      l.classList.remove("is-in");
-      l.querySelector(".aol-term__ok")?.classList.remove("is-in");
-    });
-    // Deliberate cadence: each check prints and its status lands a beat
-    // later — the old-POST rhythm, unhurried.
-    let t = 500;
-    lines.forEach((l) => {
-      const ok = l.querySelector<HTMLElement>(".aol-term__ok");
-      const isBlank = l.textContent!.trim() === "";
-      timers.push(window.setTimeout(() => l.classList.add("is-in"), t));
-      if (ok) {
-        timers.push(window.setTimeout(() => ok.classList.add("is-in"), t + 340));
-        t += 780;
-      } else {
-        t += isBlank ? 220 : 620;
-      }
-    });
-    timers.push(window.setTimeout(() => {
-      term.classList.remove("is-booting");
-      term.classList.add("is-booted");
-    }, t + 300));
-  };
-
-  if (term) {
-    if (reduce) {
-      term.classList.add("is-on", "is-booted");
-    } else {
-      window.setTimeout(runBoot, 450);
-    }
-  }
-
   // ── Audit field ──────────────────────────────────────────────────────────
   // Validates and hands off, nothing more. The request, the stream and the
   // report belong to AuditModal, which listens for this event — so the hero
