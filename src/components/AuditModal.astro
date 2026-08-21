@@ -2,10 +2,10 @@
 /**
  * The audit surface — the hero terminal, expanded.
  *
- * Lives in Base.astro so it is available from the header on every page, not
- * just the homepage. On `/` it FLIPs out of the hero terminal's real position
- * so it reads as that machine expanding; everywhere else there is no terminal
- * to grow from, so it scales up from the header field instead.
+ * Lives in Base.astro rather than in the hero, because the audit is reachable
+ * from anywhere the entry form is placed. On `/` it FLIPs out of the hero
+ * terminal's real position so it reads as that machine expanding; with no
+ * terminal on the page it grows from the entry form instead.
  *
  * Native <dialog>, not a bespoke overlay. Focus trap, Esc, background inert and
  * ::backdrop all come free, and every one of those is a thing not to write and
@@ -17,6 +17,7 @@
  * follows ScorecardReport's structure from the design system; the difference is
  * that it is printed rather than rendered.
  */
+import Input from "./ds/Input.astro";
 import { BOOKING_URL } from "../config";
 ---
 
@@ -33,12 +34,12 @@ import { BOOKING_URL } from "../config";
       <div class="aol-term__log aol-audit__log" role="status" aria-live="polite"></div>
 
       {/* The URL prompt, shown only when a free-mail address gave us no domain
-          to read. Inside the terminal rather than back up in the header,
+          to read. Inside the terminal rather than back at the entry form,
           because by this point the visitor is looking here. */}
       <form class="aol-audit__urlform" hidden>
         <label class="aol-audit__urllabel" for="audit-url"></label>
         <div class="aol-audit__urlrow">
-          <input
+          <Input
             id="audit-url"
             class="aol-audit__urlinput"
             type="text"
@@ -146,13 +147,13 @@ import { BOOKING_URL } from "../config";
      *
      * FLIP rather than a canned transition: the point is that THIS machine got
      * bigger, which only reads if the animation starts at the machine's real
-     * position on screen. On pages with no hero terminal it grows from the
-     * header field instead, which is where the visitor's attention already is.
+     * position on screen. With no terminal on the page it grows from the entry
+     * form instead, which is where the visitor's attention already is.
      */
     const open = () => {
       const origin =
         document.querySelector<HTMLElement>(".aol-hero__term .aol-term") ??
-        document.querySelector<HTMLElement>(".aol-header__auditform");
+        document.querySelector<HTMLElement>(".aol-hero__auditform");
       const from = origin?.getBoundingClientRect();
 
       dlg.showModal();
@@ -266,7 +267,21 @@ import { BOOKING_URL } from "../config";
         }
         if (msg.t === "open") hostSlot.textContent = msg.host ? `· ${msg.host}` : "";
         else if (msg.t === "step") print(msg.label, msg.status);
-        else if (msg.t === "need-url") {
+        else if (msg.t === "tick") {
+          // Scoring takes minutes on a slow provider, and the eight step lines
+          // all land in the first few seconds. Without this the visitor watches
+          // a frozen screen for the rest of it and assumes the thing hung. The
+          // counter is the only honest thing to show: we genuinely do not know
+          // how long the models will take.
+          let el = log.querySelector<HTMLElement>(".aol-audit__tick");
+          if (!el) {
+            el = document.createElement("div");
+            el.className = "aol-term__line is-in aol-audit__tick";
+            log.appendChild(el);
+          }
+          el.textContent = `${lead("Still reading")}${msg.seconds}s`;
+          log.scrollTop = log.scrollHeight;
+        } else if (msg.t === "need-url") {
           urlLabel.textContent = msg.message;
           urlForm.hidden = false;
           urlInput.focus();
@@ -274,6 +289,9 @@ import { BOOKING_URL } from "../config";
           printPlain("");
           printPlain(`> ${msg.message}`);
         } else if (msg.t === "result") {
+          // The counter was a progress indicator, not part of the log. Once the
+          // report is here it is clutter sitting above the receipt.
+          log.querySelector(".aol-audit__tick")?.remove();
           printPlain("");
           printPlain("> report ready");
           printRoll(msg);

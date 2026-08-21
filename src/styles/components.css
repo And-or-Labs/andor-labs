@@ -1999,47 +1999,80 @@
   .aol-rt__filterset{ width:100%; }
 }
 
-/* ---- Header audit field -------------------------------------------------
-   Replaces the header's "Book a call" button. One field: the site to crawl is
-   derived from the address's domain, so a second input would double the
-   friction in the chrome for something we can usually infer.
+/* ---- Hero audit field ---------------------------------------------------
+   The primary ask. It lives in the hero rather than the header because it
+   reads under the promise that earns it, and because it sits beside the
+   terminal it opens — the modal FLIPs out of that machine, which only makes
+   sense if the trigger is next to it.
 
-   Desktop only. A two-part form in a sticky bar at 375px is worse than the
-   button it replaces, so below 560px this is hidden and the mobile menu's
-   "Book a call" stays the ask. */
-.aol-header__auditform{
-  display:flex; align-items:stretch; gap:0;
-  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
-  background:var(--paper-pure); overflow:hidden;
-  box-shadow:var(--shadow-hard-sm);
-  transition:box-shadow var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
-}
-.aol-header__auditform:focus-within{ border-color:var(--blue-600); }
-.aol-header__auditform.is-invalid{ border-color:var(--copper-600); }
+   BUILT ON .aol-control, not beside it. The joined input-and-button pill is a
+   composite the design system does not have, but the field inside it is an
+   ordinary input and gets the ordinary input's behaviour: --focus-ring rather
+   than a bare border change, and --error rather than a bespoke invalid class.
+
+   The 16px font size is inherited from .aol-control and must not be reduced.
+   Every variant there holds 16px — even --sm, which only trims padding —
+   because iOS zooms the viewport when a focused input is under 16px. A 14px
+   field here looked tidier and zoomed the homepage on every iPhone. */
+.aol-hero__auditform{ width:100%; max-width:29rem; }
 /* Visually hidden, not display:none — the input still needs a real label. */
-.aol-header__auditlabel{
+.aol-hero__auditlabel{
   position:absolute; width:1px; height:1px; padding:0; margin:-1px;
   overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
 }
-.aol-header__auditinput{
-  font-family:var(--font-mono); font-size:12.5px; letter-spacing:0.01em;
-  border:0; background:transparent; color:var(--ink-900);
-  padding:8px 4px 8px 14px; width:172px; min-width:0;
+.aol-hero__auditrow{
+  display:flex; align-items:stretch;
+  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
+  background:var(--paper-pure); overflow:hidden;
+  box-shadow:var(--shadow-hard);
+  transition:border-color var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out);
 }
-.aol-header__auditinput::placeholder{ color:var(--ink-400); }
-.aol-header__auditinput:focus{ outline:none; }
-.aol-header__auditgo{
-  display:inline-flex; align-items:center; justify-content:center;
-  border:0; cursor:pointer; padding:0 14px 0 10px;
+/* The ring goes on the WRAPPER, because the wrapper is what reads as the
+   control. Same token the rest of the site focuses with. */
+.aol-hero__auditrow:focus-within{
+  border-color:var(--blue-500); box-shadow:var(--focus-ring);
+}
+/* The input's own frame is removed — the pill supplies it — but everything
+   else about .aol-control is kept, including the 16px. */
+.aol-hero__auditinput{
+  flex:1 1 auto; min-width:0; width:auto;
+  border:0; border-radius:0; box-shadow:none; background:transparent;
+  padding:13px 8px 13px 18px; min-height:52px;
+}
+.aol-hero__auditinput:hover{ border-color:transparent; }
+.aol-hero__auditinput:focus-visible{ outline:none; box-shadow:none; }
+.aol-hero__auditgo{
+  flex:none; display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.1em;
+  text-transform:uppercase; cursor:pointer; white-space:nowrap;
+  border:0; padding:0 20px;
   background:var(--blue-600); color:var(--paper-pure);
-  font-size:14px; line-height:1;
   transition:background var(--dur-base) var(--ease-out);
 }
+.aol-hero__auditgo span{ display:inline-block; transition:transform var(--dur-base) var(--ease-out); }
 @media (hover:hover) and (pointer:fine){
-  .aol-header__auditgo:hover{ background:var(--blue-700, var(--blue-600)); }
+  .aol-hero__auditgo:hover{ background:var(--blue-700); }
+  .aol-hero__auditgo:hover span{ transform:translateX(3px); }
 }
-@media (max-width:880px){ .aol-header__auditinput{ width:132px; } }
-@media (max-width:560px){ .aol-header__auditform{ display:none; } }
+.aol-hero__auditnote{
+  margin:10px 0 0; font-family:var(--font-mono); font-size:11.5px;
+  letter-spacing:0.04em; color:var(--ink-500);
+}
+.aol-hero__auditform:has(.aol-control--error) .aol-hero__auditnote::after{
+  content:" · that address looks off"; color:var(--copper-600);
+}
+/* Stack at the narrow end rather than squeezing a mono label next to a mono
+   input. The button keeps its full label — "Grade my site" is the whole offer
+   and abbreviating it to an arrow loses the only words that say what happens. */
+@media (max-width:440px){
+  .aol-hero__auditrow{ flex-direction:column; border-radius:var(--radius-md); }
+  .aol-hero__auditinput{ padding:13px 16px; }
+  .aol-hero__auditgo{ padding:13px 16px; justify-content:center; border-top:1.5px solid var(--ink-900); }
+}
+@media (prefers-reduced-motion: reduce){
+  .aol-hero__auditgo span{ transition:none; }
+}
 
 /* ---- The audit modal ----------------------------------------------------
    Native <dialog>: focus trap, Esc, inert background and ::backdrop are all
@@ -2084,14 +2117,10 @@
   color:var(--ink-600); margin:0 0 9px;
 }
 .aol-audit__urlrow{ display:flex; gap:8px; }
-.aol-audit__urlinput{
-  flex:1 1 auto; min-width:0;
-  font-family:var(--font-mono); font-size:13px;
-  padding:9px 12px; color:var(--ink-900);
-  border:1.5px solid var(--ink-900); border-radius:var(--radius-sm);
-  background:var(--paper-pure);
-}
-.aol-audit__urlinput:focus{ outline:none; border-color:var(--blue-600); }
+/* No styling of its own beyond the flex sizing — this is a plain input and it
+   uses .aol-control, which brings the 16px, the hover border and --focus-ring
+   with it. Hand-rolling a second input here is how a design system rots. */
+.aol-audit__urlinput{ flex:1 1 auto; min-width:0; width:auto; }
 .aol-audit__urlgo{
   font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em;
   text-transform:uppercase; cursor:pointer;

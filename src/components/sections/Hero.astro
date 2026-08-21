@@ -1,7 +1,7 @@
 ---
-import Button from "../ds/Button.astro";
 import Badge from "../ds/Badge.astro";
-import { BOOKING_URL, PROMISE } from "../../config";
+import Input from "../ds/Input.astro";
+import { PROMISE } from "../../config";
 
 const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
 
@@ -105,8 +105,41 @@ const BOOT_LINES: { text: string; status?: string; prompt?: boolean }[] = [
         Commented rather than deleted, like the founder line above — the
         `aol-hero__alt` rule stays in site.css so uncommenting is the only step.
         See docs/WIP-rank-my-adtech.md. */}
+    {/* The primary ask is the free audit, and it lives here rather than in the
+        header for two reasons. It reads directly under the promise, which is
+        what earns it — a lead magnet asking for an address before saying what
+        it does is just a form. And it sits beside the terminal it opens, so the
+        modal grows out of the machine the visitor is already looking at.
+
+        ONE FIELD on purpose: the site to crawl is derived from the address's
+        domain (functions/_lib/email-domain.ts), so a second input would double
+        the friction for something we can usually infer. Free-mail addresses
+        cannot be, and get asked inside the modal instead.
+
+        The booking is not gone — it is in the header on every page, which is
+        the right distance for someone who already knows they want to talk. */}
     <div class="aol-hero__cta" data-r style="--r:4">
-      <Button size="lg" variant="primary" arrow href={BOOKING_URL} target="_blank" rel="noopener">Book a call</Button>
+      <form class="aol-hero__auditform" novalidate>
+        <label class="aol-hero__auditlabel" for="hero-audit-email">Work email</label>
+        <div class="aol-hero__auditrow">
+          <Input
+            id="hero-audit-email"
+            class="aol-hero__auditinput"
+            type="email"
+            name="email"
+            inputmode="email"
+            autocomplete="email"
+            placeholder="you@company.com"
+            required
+          />
+          <button type="submit" class="aol-hero__auditgo">
+            Grade my site <span aria-hidden="true">&rarr;</span>
+          </button>
+        </div>
+        <p class="aol-hero__auditnote">
+          Free · 23 peer-reviewed checks · no signup
+        </p>
+      </form>
       {/* <a class="aol-hero__alt" href="/tools/rank-my-adtech/">Get your company ranked by three AI labs <span aria-hidden="true">&rarr;</span></a> */}
     </div>
   </div>
@@ -173,5 +206,34 @@ const BOOT_LINES: { text: string; status?: string; prompt?: boolean }[] = [
     } else {
       window.setTimeout(runBoot, 450);
     }
+  }
+
+  // ── Audit field ──────────────────────────────────────────────────────────
+  // Validates and hands off, nothing more. The request, the stream and the
+  // report belong to AuditModal, which listens for this event — so the hero
+  // ships no fetch logic and the modal keeps working from any future entry
+  // point without a change here. Moving this form from the header to the hero
+  // cost exactly this listener and nothing else, which is the payoff.
+  const auditForm = document.querySelector<HTMLFormElement>(".aol-hero__auditform");
+  const auditInput = auditForm?.querySelector<HTMLInputElement>(".aol-hero__auditinput");
+  if (auditForm && auditInput) {
+    auditForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = auditInput.value.trim();
+      // The same permissive shape the server uses. A stricter regex here would
+      // reject addresses that genuinely deliver; this catches typos.
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+        // .aol-control--error is the design system's invalid state. An
+        // invented .is-invalid would have looked identical here and diverged
+        // the first time the DS restyled errors.
+        auditInput.classList.add("aol-control--error");
+        auditInput.focus();
+        return;
+      }
+      auditInput.classList.remove("aol-control--error");
+      window.dispatchEvent(new CustomEvent("aol:audit", { detail: { email } }));
+      auditInput.blur();
+    });
+    auditInput.addEventListener("input", () => auditInput.classList.remove("aol-control--error"));
   }
 </script>
