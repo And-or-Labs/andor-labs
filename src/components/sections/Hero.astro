@@ -50,7 +50,11 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
         the right distance for someone who already knows they want to talk. */}
     <div class="aol-hero__cta" data-r style="--r:4">
       <form class="aol-hero__auditform" novalidate>
-        <label class="aol-hero__auditlabel" for="hero-audit-email">Work email</label>
+        {/* The label is present but not painted. "No visible label" is a design
+            decision; "no label" would be an accessibility bug — a bare input
+            with only a placeholder announces nothing once the placeholder is
+            typed over, and placeholders are not accessible names. */}
+        <label class="aol-visually-hidden" for="hero-audit-email">Work email</label>
         <div class="aol-hero__auditrow">
           <Input
             id="hero-audit-email"
@@ -62,11 +66,9 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
             placeholder="you@company.com"
             required
           />
-          <Button type="submit" variant="primary" size="md" arrow class="aol-hero__auditgo">Grade my site</Button>
+          <button type="submit" class="aol-hero__auditgo">Free audit</button>
         </div>
-        <p class="aol-hero__auditnote">
-          Free · 23 peer-reviewed checks · no signup
-        </p>
+        <p class="aol-hero__auditerr" role="alert" hidden></p>
       </form>
       {/* The audit runs HERE, in place of the form above, at the same width.
           Inline rather than in a dialog: nothing about a scorecard needs to
@@ -125,6 +127,7 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
   // cost exactly this listener and nothing else, which is the payoff.
   const auditForm = document.querySelector<HTMLFormElement>(".aol-hero__auditform");
   const auditInput = auditForm?.querySelector<HTMLInputElement>(".aol-hero__auditinput");
+  const auditErr = auditForm?.querySelector<HTMLElement>(".aol-hero__auditerr");
   if (auditForm && auditInput) {
     auditForm.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -136,13 +139,18 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
         // invented .is-invalid would have looked identical here and diverged
         // the first time the DS restyled errors.
         auditInput.classList.add("aol-control--error");
+        if (auditErr) { auditErr.textContent = "That doesn't look like an email address."; auditErr.hidden = false; }
         auditInput.focus();
         return;
       }
       auditInput.classList.remove("aol-control--error");
+      if (auditErr) auditErr.hidden = true;
       window.dispatchEvent(new CustomEvent("aol:audit", { detail: { email } }));
       auditInput.blur();
     });
-    auditInput.addEventListener("input", () => auditInput.classList.remove("aol-control--error"));
+    auditInput.addEventListener("input", () => {
+      auditInput.classList.remove("aol-control--error");
+      if (auditErr) auditErr.hidden = true;
+    });
   }
 </script>

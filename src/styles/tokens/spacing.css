@@ -31,6 +31,13 @@
   /* ---- Layout widths ---- */
   --measure:        66ch;     /* ideal reading column */
   --content-width:  720px;    /* narrow column — founder note / article prose */
+  /* Height of the sticky site header. Was a bare 65px in site.css's hero
+     min-height calc, and is now needed in a second place — the hero pulls
+     itself up by exactly this so the horizon runs behind the header. Two
+     hardcoded copies of the same measurement is one edit away from a hairline
+     gap under the nav. */
+  --header-h: 65px;
+
   --container-width: 1200px;  /* the site width — every section except the founder note */
   --gutter:         24px;
 }

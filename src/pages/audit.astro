@@ -21,7 +21,6 @@ import SiteHeader from "../components/sections/SiteHeader.astro";
 import SiteFooter from "../components/sections/SiteFooter.astro";
 import SiteMotion from "../components/SiteMotion.astro";
 import Input from "../components/ds/Input.astro";
-import Button from "../components/ds/Button.astro";
 import { BOOKING_URL } from "../config";
 
 const title = "Your GTM audit — And/or Labs";
@@ -85,13 +84,13 @@ const description = "23 peer-reviewed checks against your site.";
 
       {/* No address at all — somebody opened /audit directly. */}
       <form class="aol-auditpage__start" hidden>
-        <label class="aol-hero__auditlabel" for="audit-email">Work email</label>
+        <label class="aol-visually-hidden" for="audit-email">Work email</label>
         <div class="aol-hero__auditrow">
           <Input id="audit-email" class="aol-hero__auditinput" type="email" name="email"
                  inputmode="email" autocomplete="email" placeholder="you@company.com" required />
-          <Button type="submit" variant="primary" size="md" arrow>Grade my site</Button>
+          <button type="submit" class="aol-hero__auditgo">Free audit</button>
         </div>
-        <p class="aol-hero__auditnote">Free · 23 peer-reviewed checks · no signup</p>
+        <p class="aol-hero__auditerr" role="alert" hidden></p>
       </form>
 
       {/* The receipt. */}
