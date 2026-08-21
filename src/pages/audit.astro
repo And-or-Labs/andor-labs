@@ -94,30 +94,53 @@ const description = "23 peer-reviewed checks against your site.";
         <p class="aol-hero__auditerr" role="alert" hidden></p>
       </form>
 
-      {/* The receipt. */}
-      <div class="aol-audit__roll" hidden>
-        <div class="aol-roll">
-          <div class="aol-roll__head">
-            <span class="aol-roll__eyebrow">GTM scorecard</span>
-            <span class="aol-roll__host"></span>
+      {/* ── The report ────────────────────────────────────────────────────
+          Wide carriage — variant C1 from the design system's tractor
+          exploration, and the right one for a full page. The receipt roll was
+          picked when this lived in a 720px modal, where C1's 880px minimum
+          would have scrolled sideways and pushed the evidence off screen. On a
+          page that constraint inverts: a 430px till receipt in the middle of a
+          browser window looks like a joke.
+
+          One row per check, because that is what a check is. Every row carries
+          its own score, its own evidence quoting the page, and the
+          peer-reviewed paper it rests on. */}
+      <div class="aol-report" hidden>
+        <div class="aol-report__masthead">
+          <div>
+            <span class="aol-eyebrow">GTM scorecard</span>
+            <h2 class="aol-report__host"></h2>
+            <p class="aol-report__meta"></p>
           </div>
-          <div class="aol-roll__grade">
-            <span class="aol-roll__letter"></span>
-            <span class="aol-roll__label"></span>
+          <div class="aol-report__grade">
+            <span class="aol-report__letter"></span>
+            <span class="aol-report__gradelabel"></span>
           </div>
-          <p class="aol-roll__cap" hidden></p>
-          <div class="aol-roll__rule"></div>
-          <div class="aol-roll__findings"></div>
-          <div class="aol-roll__rule"></div>
-          <div class="aol-roll__locked"></div>
-          <div class="aol-roll__coupon">
-            <h3 class="aol-roll__ctatitle">The other three, and what to do about them.</h3>
-            <p class="aol-roll__ctabody">
-              Thirty minutes, no deck. We go through the whole card and you keep the notes
-              either way.
+        </div>
+
+        <p class="aol-report__cap" hidden></p>
+
+        <div class="aol-report__scroll">
+          <div class="aol-report__table">
+            <div class="aol-report__cols" aria-hidden="true">
+              <span></span><span>Check</span><span>Score</span><span>What we found</span><span>Evidence base</span>
+            </div>
+            <div class="aol-report__rows"></div>
+            <div class="aol-report__locked"></div>
+          </div>
+        </div>
+
+        <div class="aol-report__cta">
+          <div>
+            <h3 class="aol-report__ctatitle"></h3>
+            <p class="aol-report__ctabody">
+              Thirty minutes, no deck. We go through every check on the card and
+              you keep the notes either way.
             </p>
-            <a class="aol-roll__cta" href={BOOKING_URL} target="_blank" rel="noopener">Book a call</a>
-            <span class="aol-roll__note">30 min · no deck</span>
+          </div>
+          <div class="aol-report__ctaside">
+            <a class="aol-report__ctabtn" href={BOOKING_URL} target="_blank" rel="noopener">Book a call</a>
+            <span class="aol-report__ctanote">30 min · no deck</span>
           </div>
         </div>
       </div>
@@ -133,8 +156,9 @@ const description = "23 peer-reviewed checks against your site.";
   if (page) {
     const log = page.querySelector<HTMLElement>(".aol-audit__log")!;
     const term = page.querySelector<HTMLElement>(".aol-audit")!;
-    const rollWrap = page.querySelector<HTMLElement>(".aol-audit__roll")!;
-    const roll = page.querySelector<HTMLElement>(".aol-roll")!;
+    const report = page.querySelector<HTMLElement>(".aol-report")!;
+    const bar = page.querySelector<HTMLElement>(".aol-scan__bar")!;
+    const fill = page.querySelector<HTMLElement>(".aol-scan__fill")!;
     const scan = page.querySelector<HTMLElement>(".aol-scan")!;
     const scanBody = page.querySelector<HTMLElement>(".aol-scan__body")!;
     const scanUrl = page.querySelector<HTMLElement>(".aol-scan__url")!;
@@ -151,6 +175,26 @@ const description = "23 peer-reviewed checks against your site.";
     const lead = (s: string) => s + " " + ".".repeat(Math.max(1, LEADER_COL - s.length)) + " ";
 
     let pending: string | null = null;
+
+    /**
+     * Progress, and it does not lie.
+     *
+     * The crawl steps are real milestones, so they move the bar in discrete
+     * jumps. Scoring is one long opaque wait with no internal signal, so that
+     * stretch is driven by elapsed time against a typical run and CAPPED BELOW
+     * 100 — a bar sitting full while nothing happens is worse than one honestly
+     * still crawling. Only the result fills it.
+     */
+    const SCORING_FLOOR = 34;
+    const SCORING_CEILING = 94;
+    const TYPICAL_SCORING_S = 120;
+    const STEP_ORDER = ["wake", "home", "pricing", "studies", "sodont"];
+    let progress = 0;
+    const setProgress = (n: number) => {
+      progress = Math.max(progress, Math.min(100, n));
+      fill.style.width = `${progress}%`;
+      bar.setAttribute("aria-valuenow", String(Math.round(progress)));
+    };
 
     // ── Printing ────────────────────────────────────────────────────────────
     // A queue with a floor between lines: the server emits several steps in the
@@ -215,42 +259,62 @@ const description = "23 peer-reviewed checks against your site.";
     const stopScanning = () => { scan.classList.remove("is-scanning"); };
 
     // ── Rendering the receipt ───────────────────────────────────────────────
-    const printRoll = (d: any) => {
-      roll.querySelector<HTMLElement>(".aol-roll__host")!.textContent = d.host ?? "";
-      roll.querySelector<HTMLElement>(".aol-roll__letter")!.textContent = d.grade ?? "?";
-      roll.querySelector<HTMLElement>(".aol-roll__label")!.textContent = d.gradeLabel ?? "";
+    /** Render the report. One row per check. */
+    const printReport = (d: any) => {
+      report.querySelector<HTMLElement>(".aol-report__host")!.textContent = d.host ?? "";
+      report.querySelector<HTMLElement>(".aol-report__letter")!.textContent = d.grade ?? "?";
+      report.querySelector<HTMLElement>(".aol-report__gradelabel")!.textContent = d.gradeLabel ?? "";
 
-      const cap = roll.querySelector<HTMLElement>(".aol-roll__cap")!;
+      const shown = (d.findings ?? []).length;
+      const held = (d.lockedItems ?? []).length;
+      report.querySelector<HTMLElement>(".aol-report__meta")!.textContent =
+        `${d.total ?? shown + held} checks run · ${shown} shown · ${held} held back`;
+      report.querySelector<HTMLElement>(".aol-report__ctatitle")!.textContent =
+        `The other ${held} checks, and what to do about them.`;
+
+      const cap = report.querySelector<HTMLElement>(".aol-report__cap")!;
       if (Array.isArray(d.caps) && d.caps.length) { cap.textContent = d.caps[0]; cap.hidden = false; }
 
-      const fWrap = roll.querySelector<HTMLElement>(".aol-roll__findings")!;
-      fWrap.textContent = "";
-      for (const f of d.findings ?? []) {
+      const rows = report.querySelector<HTMLElement>(".aol-report__rows")!;
+      rows.textContent = "";
+      (d.findings ?? []).forEach((f: any, i: number) => {
         const r = document.createElement("div");
-        r.className = "aol-roll__finding";
-        r.innerHTML = `<div class="aol-roll__fhead"><span class="aol-roll__fname"></span><span class="aol-roll__fgrade"></span></div><p class="aol-roll__fbody"></p>`;
-        r.querySelector(".aol-roll__fname")!.textContent = f.name ?? "";
-        r.querySelector(".aol-roll__fgrade")!.textContent = f.grade ?? "n/a";
-        r.querySelector(".aol-roll__fbody")!.textContent = f.body ?? "";
-        fWrap.appendChild(r);
-      }
+        r.className = "aol-report__row";
+        r.innerHTML =
+          `<span class="aol-report__n"></span>` +
+          `<div class="aol-report__check"><span class="aol-report__name"></span><span class="aol-report__area"></span></div>` +
+          `<span class="aol-report__score"></span>` +
+          `<p class="aol-report__found"></p>` +
+          `<p class="aol-report__cite"></p>`;
+        r.querySelector(".aol-report__n")!.textContent = String(i + 1).padStart(2, "0");
+        r.querySelector(".aol-report__name")!.textContent = f.name ?? "";
+        r.querySelector(".aol-report__area")!.textContent = f.area ?? "";
+        r.querySelector(".aol-report__score")!.textContent = f.score ?? "";
+        r.querySelector(".aol-report__found")!.textContent = f.body ?? "";
+        r.querySelector(".aol-report__cite")!.textContent = f.citation ?? "";
+        rows.appendChild(r);
+      });
 
-      // Names only. The server never sent bodies for these, so there is nothing
-      // here to reveal — the bars are a gate, not a blur.
-      const lWrap = roll.querySelector<HTMLElement>(".aol-roll__locked")!;
-      lWrap.textContent = "";
-      for (const name of d.lockedItems ?? []) {
+      // The gate. Names only — the server never sent evidence, a score or a
+      // citation for these, so there is nothing here to un-hide.
+      const locked = report.querySelector<HTMLElement>(".aol-report__locked")!;
+      locked.textContent = "";
+      (d.lockedItems ?? []).forEach((name: string, i: number) => {
         const r = document.createElement("div");
-        r.className = "aol-roll__lock";
-        r.innerHTML = `<span class="aol-roll__lname"></span><span class="aol-roll__redact"></span>`;
-        r.querySelector(".aol-roll__lname")!.textContent = name;
-        lWrap.appendChild(r);
-      }
+        r.className = "aol-report__row aol-report__row--locked";
+        r.innerHTML =
+          `<span class="aol-report__n"></span>` +
+          `<div class="aol-report__check"><span class="aol-report__name"></span></div>` +
+          `<span class="aol-report__score">&mdash;</span>` +
+          `<p class="aol-report__found"><span class="aol-report__redact"></span></p>` +
+          `<p class="aol-report__cite"><span class="aol-report__redact aol-report__redact--short"></span></p>`;
+        r.querySelector(".aol-report__n")!.textContent = String(shown + i + 1).padStart(2, "0");
+        r.querySelector(".aol-report__name")!.textContent = name;
+        locked.appendChild(r);
+      });
 
-      rollWrap.hidden = false;
-      const h = page.querySelector<HTMLElement>(".aol-auditpage__title")!;
-      h.textContent = "Your grade";
-      rollWrap.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+      report.hidden = false;
+      report.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
     };
 
     // ── One message handler, shared by the live stream and the demo ─────────
@@ -261,11 +325,14 @@ const description = "23 peer-reviewed checks against your site.";
         scanCap.textContent = "fetching…";
       } else if (msg.t === "step") {
         enqueue(() => print(msg.label, msg.status));
+        const at = STEP_ORDER.indexOf(msg.key);
+        if (at >= 0) setProgress(((at + 1) / STEP_ORDER.length) * SCORING_FLOOR);
         if (msg.key === "home") { addBlock("homepage", 4); scanCap.textContent = "read the homepage"; }
         if (msg.key === "pricing" && msg.status !== "NOPE") { addBlock("pricing", 5); scanCap.textContent = "found a pricing page"; }
         if (msg.key === "pricing" && msg.status === "NOPE") { scanCap.textContent = "no public pricing page"; }
         if (msg.key === "studies") { beginScanning(); scanCap.textContent = "scoring against 23 studies…"; }
       } else if (msg.t === "tick") {
+        setProgress(SCORING_FLOOR + Math.min(1, msg.seconds / TYPICAL_SCORING_S) * (SCORING_CEILING - SCORING_FLOOR));
         let el = log.querySelector<HTMLElement>(".aol-audit__tick");
         if (!el) {
           el = document.createElement("div");
@@ -286,7 +353,8 @@ const description = "23 peer-reviewed checks against your site.";
         term.classList.remove("is-working");
         log.querySelector(".aol-audit__tick")?.remove();
         scanCap.textContent = "done";
-        enqueue(() => { printPlain(""); printPlain("> report ready"); printRoll(msg); });
+        setProgress(100);
+        enqueue(() => { printPlain(""); printPlain("> report ready"); printReport(msg); });
       }
     };
 
