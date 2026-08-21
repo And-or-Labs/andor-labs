@@ -2263,6 +2263,317 @@
   .aol-roll__cta:active{ transform:none; }
 }
 
+/* ---- The horizon (hero) --------------------------------------------------
+   A pixel-art panorama along the foot of the hero, under the promise and above
+   the credibility strip.
+
+   image-rendering:pixelated is the whole thing. The source was a 1.3MB AI
+   render that only LOOKED like pixel art — 208,000 unique colours and a
+   dominant horizontal run length of one pixel, i.e. smooth. It was halved onto
+   a real grid and quantised to 64 colours, which both made it genuinely pixel
+   art and took it to 84KB. Letting the browser smooth it on the way back up
+   would undo every part of that and leave a soft, slightly wrong photograph.
+
+   Full-bleed rather than contained: a 4:1 panorama boxed inside the 1200px
+   container reads as a picture someone placed, while edge to edge it reads as
+   the horizon the page is standing on. */
+.aol-horizon{
+  position:relative;
+  width:100%;
+  line-height:0;
+  overflow:hidden;
+}
+.aol-horizon img{
+  display:block;
+  width:100%;
+  /* An EXPLICIT height, not max-height. With height:auto a max-height scales the
+     whole image down to fit — width included — so the band would have floated
+     to ~840px on a 1440px screen instead of going edge to edge, and object-fit
+     would have had no box to crop against. A real height is what makes cover
+     crop rather than shrink. */
+  height:clamp(96px, 15vw, 210px);
+  object-fit:cover;
+  /* Anchor to the mountains rather than the sky: when it crops, the sky is the
+     half worth losing. */
+  object-position:center 62%;
+  image-rendering:pixelated;
+}
+/* Fade the top edge into the paper so the band is a horizon rather than a
+   rectangle someone pasted on. The gradient is in the mask, not a scrim
+   overlay, so it works on any background without hardcoding the paper colour —
+   which matters because --paper is a token that has moved before. */
+.aol-horizon::after{
+  content:"";
+  position:absolute; inset:0;
+  background:linear-gradient(to bottom, var(--paper) 0%, transparent 38%);
+  pointer-events:none;
+}
+@media (max-width:880px){
+  /* Shorter on a phone, where vertical space above the fold is the scarce
+     thing and the hero already overflows. */
+  .aol-horizon img{ height:clamp(72px, 22vw, 120px); }
+}
+
+/* ---- Hero audit field ---------------------------------------------------
+   One control: a placeholder and an integrated button, nothing else. No
+   painted label, no ruled underline, no pill.
+
+   Built on .aol-control, which is the design system's only input treatment.
+   The input keeps everything that component brings — the 16px, the hover, the
+   disabled state, the --error hook — and this rule only removes the frame,
+   because the frame moves to the wrapper so the field and the button read as
+   one object, and it is a pill: --radius-sm is 3px on this scale, which reads
+   as square rather than as a rounded field. The curve is why the input and the
+   button both carry extra horizontal padding — text set flush against a 999px
+   radius collides with the curve at the ends.
+
+   THE 16px IS LOAD-BEARING and is inherited, not restated. Every .aol-control
+   variant holds it — even --sm, which only trims padding — because iOS zooms
+   the viewport when a focused input is under 16px. */
+.aol-hero__auditform{ width:100%; max-width:30rem; }
+.aol-hero__auditrow{
+  display:flex; align-items:stretch;
+  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
+  background:var(--paper-pure); overflow:hidden;
+  transition:border-color var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out);
+}
+/* The ring goes on the WRAPPER, because the wrapper is what reads as the
+   control. Same token every other focusable thing on the site uses. */
+.aol-hero__auditrow:focus-within{
+  border-color:var(--blue-500); box-shadow:var(--focus-ring);
+}
+.aol-hero__auditrow:has(.aol-control--error){ border-color:var(--copper-600); }
+.aol-hero__auditinput{
+  flex:1 1 auto; min-width:0; width:auto;
+  background:transparent; box-shadow:none;
+  border:0; border-radius:0;
+  padding:0 12px 0 20px; min-height:50px;
+}
+.aol-hero__auditinput:hover{ border-color:transparent; }
+.aol-hero__auditinput:focus-visible{ outline:none; box-shadow:none; }
+.aol-hero__auditgo{
+  flex:none; cursor:pointer; white-space:nowrap;
+  font-family:var(--font-mono); font-size:11.5px;
+  letter-spacing:0.1em; text-transform:uppercase;
+  border:0; padding:0 24px;
+  background:var(--blue-600); color:var(--paper-pure);
+  transition:background var(--dur-base) var(--ease-out);
+}
+@media (hover:hover) and (pointer:fine){
+  .aol-hero__auditgo:hover{ background:var(--blue-700); }
+}
+.aol-hero__auditgo:focus-visible{ outline:none; box-shadow:inset 0 0 0 2px var(--paper-pure); }
+/* The error message replaces the note that used to live here, and only appears
+   when there is something to say. */
+.aol-hero__auditerr{
+  margin:10px 0 0; font-family:var(--font-mono); font-size:11.5px;
+  letter-spacing:0.04em; color:var(--copper-600);
+}
+/* The button keeps its words at every width. "Free audit" is the offer, and an
+   arrow in its place would save 70px and lose the only two words that say what
+   pressing it does. */
+@media (max-width:420px){
+  .aol-hero__auditinput{ padding:0 8px 0 16px; }
+  .aol-hero__auditgo{ padding:0 16px; letter-spacing:0.06em; }
+}
+
+/* ---- The audit panel ----------------------------------------------------
+   INLINE, in the hero, in place of the form. Not a dialog.
+
+   A modal was the wrong instrument: it landed on top of the page instead of
+   growing out of it, and after the hero terminal was removed there was nothing
+   left for it to grow out of — so it was just an overlay dropped over content
+   the visitor was mid-way through reading. Swapping one block for another in
+   the same place is both simpler and more honest about what happened. It also
+   deletes the backdrop, the scroll lock and the focus trap outright. */
+.aol-audit{
+  width:100%; max-width:34rem; margin:0 auto; text-align:left;
+}
+.aol-term--panel{ display:flex; flex-direction:column; }
+.aol-term--panel .aol-term__head{ flex:none; }
+.aol-audit__screen{
+  /* The 5/3 ratio belonged to the resting hero terminal, whose content was a
+     fixed eight lines. This grows, so height follows content up to a cap and
+     then scrolls — the receipt can be long. */
+  aspect-ratio:auto; min-height:200px; max-height:min(70vh, 620px);
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+}
+.aol-audit__close{
+  display:inline-flex; align-items:center; gap:7px;
+  font:inherit; letter-spacing:inherit; text-transform:inherit;
+  color:var(--ink-500); background:transparent; border:0; cursor:pointer;
+  padding:2px 0;
+}
+@media (hover:hover) and (pointer:fine){
+  .aol-audit__close:hover{ color:var(--ink-900); }
+}
+.aol-audit__close:focus-visible{ outline:none; box-shadow:var(--focus-ring); }
+/* The panel takes focus when it appears so a keyboard user follows the change,
+   but it is not a trap and must not draw a box for a programmatic focus. */
+.aol-audit:focus{ outline:none; }
+
+/* The LED blinks while a run is in flight — the same signal the terminal has
+   always used for "working", reused rather than reinvented. */
+.aol-audit.is-working .aol-term__led{ animation:aol-led-blink 0.5s step-start infinite; }
+/* Each printed line fades up as it lands, so the log reads as output arriving
+   rather than as a block that was already there. */
+.aol-audit__log .aol-term__line{ animation:aol-audit-line var(--dur-base) var(--ease-out) both; }
+@keyframes aol-audit-line{ from{ opacity:0; transform:translateY(2px); } to{ opacity:1; transform:none; } }
+/* The receipt arrives after a long wait, so it gets a longer entrance than a
+   log line — enough to register as a different kind of thing. */
+.aol-audit__roll{ animation:aol-audit-roll 320ms var(--ease-out) both; }
+@keyframes aol-audit-roll{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .aol-audit.is-working .aol-term__led,
+  .aol-audit__log .aol-term__line,
+  .aol-audit__roll{ animation:none; }
+}
+
+/* Free-mail fallback: ask for the URL here rather than back at the entry form,
+   because by this point the visitor is looking at the panel. */
+.aol-audit__urlform{ padding:4px 1.15em 20px; }
+.aol-audit__urllabel{
+  display:block; font-family:var(--font-mono); font-size:12px;
+  color:var(--ink-600); margin:0 0 9px;
+}
+.aol-audit__urlrow{ display:flex; gap:8px; }
+/* No styling of its own beyond the flex sizing — this is a plain input and it
+   uses .aol-control, which brings the 16px, the hover border and --focus-ring
+   with it. Hand-rolling a second input here is how a design system rots. */
+.aol-audit__urlinput{ flex:1 1 auto; min-width:0; width:auto; }
+.aol-audit__urlgo{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em;
+  text-transform:uppercase; cursor:pointer; white-space:nowrap;
+  padding:9px 16px; color:var(--paper-pure); background:var(--blue-600);
+  border:1.5px solid var(--ink-900); border-radius:var(--radius-sm);
+}
+
+/* ---- The receipt --------------------------------------------------------
+   Tractor-feed variant C3, from the design system's scorecard exploration.
+   Chosen over C1 "wide carriage" for a structural reason: C1 is min-width
+   880px and would scroll horizontally inside a 720px modal, pushing the
+   finding BODY — the prose that earns the call — off-screen first.
+
+   The roll also keeps the terminal in character. It is mono, narrow and
+   dashed, the same language the boot log is already speaking, so the machine
+   that spent forty seconds printing a progress log then prints a receipt.
+
+   ONE departure from C3: finding bodies are serif, not preformatted mono.
+   Twenty-five words of prose at 12px mono in a 430px column is the least
+   readable way to present the substance of the audit, and both the wide
+   carriage and the shipped ScorecardReport use serif here for that reason. */
+.aol-audit__roll{ padding:8px 0 26px; }
+.aol-roll{
+  position:relative; max-width:430px; margin:0 auto;
+  background:var(--paper-pure); padding:24px 24px 0;
+  border-left:1px solid var(--ink-200); border-right:1px solid var(--ink-200);
+  box-shadow:var(--shadow-hard-sm);
+}
+/* Torn edges, top and bottom. Masked scallops rather than an image so they
+   inherit the surface colour and survive a theme change. */
+.aol-roll::before,.aol-roll::after{
+  content:""; position:absolute; left:0; right:0; height:9px;
+  background:linear-gradient(to bottom,var(--ink-100) 0 7px,var(--ink-300) 7px 9px);
+  -webkit-mask-size:12px 9px; mask-size:12px 9px;
+}
+.aol-roll::before{
+  top:-9px;
+  -webkit-mask-image:radial-gradient(circle at 6px 0,transparent 5.5px,#000 5.5px);
+  mask-image:radial-gradient(circle at 6px 0,transparent 5.5px,#000 5.5px);
+}
+.aol-roll::after{
+  bottom:-9px;
+  -webkit-mask-image:radial-gradient(circle at 6px 9px,transparent 5.5px,#000 5.5px);
+  mask-image:radial-gradient(circle at 6px 9px,transparent 5.5px,#000 5.5px);
+}
+.aol-roll__head{ text-align:center; }
+.aol-roll__eyebrow{
+  display:block; font-family:var(--font-mono); font-size:10px;
+  letter-spacing:0.14em; text-transform:uppercase; color:var(--blue-600);
+}
+.aol-roll__host{
+  display:block; font-family:var(--font-mono); font-size:12px;
+  color:var(--ink-500); margin-top:6px;
+}
+/* The grade IS the result, so it gets the size a score used to get. */
+.aol-roll__grade{ text-align:center; padding:14px 0 4px; }
+.aol-roll__letter{
+  display:block; font-family:var(--font-mono); font-size:64px; line-height:1;
+  color:var(--blue-600); letter-spacing:-0.02em;
+}
+.aol-roll__label{
+  display:block; font-family:var(--font-mono); font-size:11px;
+  letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-600);
+  margin-top:8px;
+}
+/* A ceiling, explained. Copper because it is a caveat, not a failure — and
+   never shown when the cap did not actually bind. */
+.aol-roll__cap{
+  margin:12px 0 0; font-family:var(--font-mono); font-size:11px; line-height:1.5;
+  color:var(--copper-700, var(--ink-600)); text-align:center;
+}
+.aol-roll__rule{ border-top:1px dashed var(--ink-300); margin:16px 0; }
+.aol-roll__finding + .aol-roll__finding{
+  border-top:1px dotted var(--ink-200); margin-top:13px; padding-top:13px;
+}
+.aol-roll__fhead{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+.aol-roll__fname{
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.05em;
+  text-transform:uppercase; color:var(--ink-900);
+}
+.aol-roll__fgrade{
+  font-family:var(--font-mono); font-size:13px; color:var(--blue-600);
+  font-variant-numeric:tabular-nums; flex:none;
+}
+.aol-roll__fbody{
+  margin:6px 0 0; font-family:var(--font-serif); font-size:15px; line-height:1.5;
+  color:var(--ink-700); text-wrap:pretty;
+}
+/* The gate. These rows carry a NAME and a bar — the server never sent a body
+   or a grade for them, so there is nothing here to reveal. */
+.aol-roll__lock{ display:flex; align-items:center; gap:12px; padding:7px 0; }
+.aol-roll__lname{
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.05em;
+  text-transform:uppercase; color:var(--ink-400); flex:none;
+}
+.aol-roll__redact{
+  flex:1 1 auto; height:11px;
+  background:repeating-linear-gradient(90deg,var(--ink-200) 0 5px,var(--ink-100) 5px 9px);
+}
+/* The coupon. A receipt with a tear-off at the foot is already the shape of
+   this offer, so the CTA sits there natively. */
+.aol-roll__coupon{
+  margin:18px -24px 0; padding:20px 24px 24px;
+  border-top:2px dashed var(--ink-300); text-align:center;
+}
+.aol-roll__ctatitle{
+  font-family:var(--font-display); font-weight:400; font-size:21px;
+  line-height:1.12; margin:0 0 8px; color:var(--ink-900); text-wrap:pretty;
+}
+.aol-roll__ctabody{
+  font-size:14.5px; line-height:1.5; color:var(--ink-600); margin:0 0 16px; text-wrap:pretty;
+}
+.aol-roll__cta{
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em;
+  text-transform:uppercase; text-decoration:none;
+  padding:11px 22px; color:var(--paper-pure); background:var(--blue-600);
+  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
+  box-shadow:var(--shadow-hard-sm);
+}
+.aol-roll__cta:active{ transform:translate(2px,2px); box-shadow:none; }
+.aol-roll__note{
+  display:block; margin-top:10px; font-family:var(--font-mono); font-size:10px;
+  letter-spacing:0.08em; color:var(--ink-400);
+}
+@media (max-width:560px){
+  .aol-roll{ max-width:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .aol-roll__cta:active{ transform:none; }
+}
+
 /* ---- The hero picture and its cloud -------------------------------------
    The panorama fills the whole hero above the credibility strip, and the copy
    floats on a soft white cloud rather than a card: no border, no corner, just

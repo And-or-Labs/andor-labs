@@ -9,17 +9,6 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
 
 ---
 <section class="aol-hero" style="border-bottom:1px solid var(--ink-200);background:var(--paper)">
-  {/* The hero IS the picture. The panorama sits behind everything above the
-      credibility strip, and the copy floats on a soft white cloud rather than
-      a card — no border, no corner, just paper thickening under the words
-      until they are readable and thinning back into sky.
-
-      aria-hidden with an empty alt: decorative. Width and height are the file's
-      real dimensions so it reserves its box; a late load on a full-bleed hero
-      would otherwise repaint the whole first screen. */}
-  <div class="aol-herostage">
-    <img class="aol-hero__bg" src="/rockies.png" alt="" aria-hidden="true"
-         width="1088" height="272" decoding="async" fetchpriority="high" />
   <div class="aol-hero-inner" style="max-width:var(--container-width);width:100%;margin:0 auto">
     <div class="aol-eyebrow aol-hero__eyebrow" data-r style="--r:0">Est. 2025</div>
     <h1 class="aol-hero__headline" data-r style="font-family:var(--font-display);font-weight:400;font-size:42px;line-height:1.18;letter-spacing:0;max-width:30.5rem;--r:1">Don't just go-to-market. Win it.</h1>
@@ -89,6 +78,20 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       {/* <a class="aol-hero__alt" href="/tools/rank-my-adtech/">Get your company ranked by three AI labs <span aria-hidden="true">&rarr;</span></a> */}
     </div>
   </div>
+  {/* ── The horizon ──────────────────────────────────────────────────────
+      A pixel-art panorama along the foot of the hero, between the promise and
+      the credibility strip.
+
+      It is pixel art, which is the language the rest of the site speaks, its
+      palette is already the site's blues, and it is 4:1 — a band, not a
+      backdrop. Behind the copy it needed a scrim and fought the paper ground;
+      along the foot it is simply the horizon the page stands on.
+
+      DECORATIVE: aria-hidden, empty alt. Real dimensions so it reserves its
+      box — this is above the fold on a short viewport and a late load would
+      shove the credibility strip down. */}
+  <div class="aol-horizon" data-r aria-hidden="true" style="--r:5">
+    <img src="/rockies.png" alt="" width="1088" height="272" decoding="async" />
   </div>
   <div class="aol-grid-blue" data-r style="border-top:1px solid var(--ink-200);--r:6">
     <div style="max-width:var(--container-width);width:100%;margin:0 auto;padding:var(--space-6) var(--gutter)">
