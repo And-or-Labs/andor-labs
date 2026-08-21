@@ -1,0 +1,439 @@
+---
+/**
+ * /audit — where the grade is earned.
+ *
+ * This was an inline panel in the hero, and before that a modal. Both were the
+ * wrong container for the same reason: a run takes minutes, and minutes of
+ * waiting need somewhere to happen. A dedicated page can hold attention that a
+ * strip under a form cannot.
+ *
+ * THE SCAN IS NOT DECORATION. The wireframe assembles from what the crawler
+ * actually found — a block appears for the homepage, another for pricing,
+ * another for whatever else came back — and the scanline sweeps it once per
+ * scoring pass. Somebody watching learns what we read and roughly how far we
+ * got. A fake progress animation over a spinner would have been easier and
+ * would have been a lie.
+ *
+ * noIndex, because every one of these is one visitor's result.
+ */
+import Base from "../layouts/Base.astro";
+import SiteHeader from "../components/sections/SiteHeader.astro";
+import SiteFooter from "../components/sections/SiteFooter.astro";
+import SiteMotion from "../components/SiteMotion.astro";
+import Input from "../components/ds/Input.astro";
+import Button from "../components/ds/Button.astro";
+import { BOOKING_URL } from "../config";
+
+const title = "Your GTM audit — And/or Labs";
+const description = "23 peer-reviewed checks against your site.";
+---
+
+<Base title={title} description={description} noIndex>
+  <SiteMotion />
+  <SiteHeader />
+
+  <main class="aol-auditpage">
+    <div class="aol-auditpage__inner">
+      <div class="aol-auditpage__head">
+        <span class="aol-eyebrow">GTM scorecard</span>
+        <h1 class="aol-auditpage__title" id="audit-title">
+          Reading <span class="aol-auditpage__host">your site</span>
+        </h1>
+        <p class="aol-auditpage__meta">
+          23 checks · sections 1–2 of the published research · this takes a few minutes
+        </p>
+      </div>
+
+      {/* ── The scan stage ─────────────────────────────────────────────
+          A wireframe of the site under the beam. Blocks are added as the
+          crawler reports each page, so the shape of this is the shape of what
+          was actually readable. */}
+      <div class="aol-scan" aria-hidden="true">
+        <div class="aol-scan__frame">
+          <div class="aol-scan__chrome">
+            <span class="aol-scan__dot"></span><span class="aol-scan__dot"></span><span class="aol-scan__dot"></span>
+            <span class="aol-scan__url"></span>
+          </div>
+          <div class="aol-scan__body"></div>
+          <div class="aol-scan__beam"></div>
+        </div>
+        <p class="aol-scan__caption"></p>
+      </div>
+
+      {/* The machine's own log, beside the picture rather than instead of it. */}
+      <div class="aol-audit aol-audit--page">
+        <div class="aol-term aol-term--panel is-on is-auditing">
+          <div class="aol-term__head">
+            <span>ANDOR/OS <span class="aol-audit__host"></span></span>
+            <span class="aol-term__head-right">CRT-01 <span class="aol-term__led"></span></span>
+          </div>
+          <div class="aol-term__screen aol-audit__screen">
+            <div class="aol-term__log aol-audit__log" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Free-mail fallback — no domain could be derived from the address. */}
+      <form class="aol-audit__urlform" hidden>
+        <label class="aol-audit__urllabel" for="audit-url"></label>
+        <div class="aol-audit__urlrow">
+          <Input id="audit-url" class="aol-audit__urlinput" type="text" inputmode="url"
+                 autocomplete="url" placeholder="yoursite.com" required />
+          <button type="submit" class="aol-audit__urlgo">Run it</button>
+        </div>
+      </form>
+
+      {/* No address at all — somebody opened /audit directly. */}
+      <form class="aol-auditpage__start" hidden>
+        <label class="aol-hero__auditlabel" for="audit-email">Work email</label>
+        <div class="aol-hero__auditrow">
+          <Input id="audit-email" class="aol-hero__auditinput" type="email" name="email"
+                 inputmode="email" autocomplete="email" placeholder="you@company.com" required />
+          <Button type="submit" variant="primary" size="md" arrow>Grade my site</Button>
+        </div>
+        <p class="aol-hero__auditnote">Free · 23 peer-reviewed checks · no signup</p>
+      </form>
+
+      {/* The receipt. */}
+      <div class="aol-audit__roll" hidden>
+        <div class="aol-roll">
+          <div class="aol-roll__head">
+            <span class="aol-roll__eyebrow">GTM scorecard</span>
+            <span class="aol-roll__host"></span>
+          </div>
+          <div class="aol-roll__grade">
+            <span class="aol-roll__letter"></span>
+            <span class="aol-roll__label"></span>
+          </div>
+          <p class="aol-roll__cap" hidden></p>
+          <div class="aol-roll__rule"></div>
+          <div class="aol-roll__findings"></div>
+          <div class="aol-roll__rule"></div>
+          <div class="aol-roll__locked"></div>
+          <div class="aol-roll__coupon">
+            <h3 class="aol-roll__ctatitle">The other three, and what to do about them.</h3>
+            <p class="aol-roll__ctabody">
+              Thirty minutes, no deck. We go through the whole card and you keep the notes
+              either way.
+            </p>
+            <a class="aol-roll__cta" href={BOOKING_URL} target="_blank" rel="noopener">Book a call</a>
+            <span class="aol-roll__note">30 min · no deck</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <SiteFooter />
+</Base>
+
+<script>
+  // ── The audit page ────────────────────────────────────────────────────────
+  const page = document.querySelector<HTMLElement>(".aol-auditpage");
+  if (page) {
+    const log = page.querySelector<HTMLElement>(".aol-audit__log")!;
+    const term = page.querySelector<HTMLElement>(".aol-audit")!;
+    const rollWrap = page.querySelector<HTMLElement>(".aol-audit__roll")!;
+    const roll = page.querySelector<HTMLElement>(".aol-roll")!;
+    const scan = page.querySelector<HTMLElement>(".aol-scan")!;
+    const scanBody = page.querySelector<HTMLElement>(".aol-scan__body")!;
+    const scanUrl = page.querySelector<HTMLElement>(".aol-scan__url")!;
+    const scanCap = page.querySelector<HTMLElement>(".aol-scan__caption")!;
+    const urlForm = page.querySelector<HTMLFormElement>(".aol-audit__urlform")!;
+    const urlInput = page.querySelector<HTMLInputElement>(".aol-audit__urlinput")!;
+    const urlLabel = page.querySelector<HTMLElement>(".aol-audit__urllabel")!;
+    const startForm = page.querySelector<HTMLFormElement>(".aol-auditpage__start")!;
+    const startInput = startForm.querySelector<HTMLInputElement>(".aol-hero__auditinput")!;
+    const hostSlots = page.querySelectorAll<HTMLElement>(".aol-audit__host, .aol-auditpage__host");
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const LEADER_COL = 26;
+    const lead = (s: string) => s + " " + ".".repeat(Math.max(1, LEADER_COL - s.length)) + " ";
+
+    let pending: string | null = null;
+
+    // ── Printing ────────────────────────────────────────────────────────────
+    // A queue with a floor between lines: the server emits several steps in the
+    // same millisecond because they describe work already finished, and
+    // appending them synchronously reads as a paste rather than a machine.
+    const queue: (() => void)[] = [];
+    let draining = false;
+    const drain = async () => {
+      if (draining) return;
+      draining = true;
+      while (queue.length) {
+        queue.shift()!();
+        if (!reduce) await new Promise((r) => setTimeout(r, 110));
+      }
+      draining = false;
+    };
+    const enqueue = (fn: () => void) => { queue.push(fn); void drain(); };
+
+    const row = (text: string, status = "") => {
+      const el = document.createElement("div");
+      el.className = "aol-term__line is-in";
+      el.textContent = text;
+      if (status) {
+        const s = document.createElement("span");
+        s.className = "aol-term__ok is-in";
+        s.textContent = status;
+        el.appendChild(s);
+      }
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+    };
+    const print = (label: string, status = "") => row(lead(label), status);
+    const printPlain = (text: string) => row(text);
+
+    const fail = (message: string) => {
+      term.classList.remove("is-working");
+      scan.classList.remove("is-scanning");
+      log.querySelector(".aol-audit__tick")?.remove();
+      printPlain("");
+      printPlain(`> ${message}`);
+      scanCap.textContent = "";
+    };
+
+    // ── The scan stage ──────────────────────────────────────────────────────
+    // Each block is a page the crawler actually read. The wireframe is a
+    // drawing of real findings, not a loading animation wearing a costume.
+    const addBlock = (label: string, rows: number) => {
+      const b = document.createElement("div");
+      b.className = "aol-scan__block";
+      b.innerHTML = `<span class="aol-scan__blocklabel"></span>`;
+      b.querySelector(".aol-scan__blocklabel")!.textContent = label;
+      for (let i = 0; i < rows; i++) {
+        const line = document.createElement("span");
+        line.className = "aol-scan__blockline";
+        line.style.width = `${45 + ((i * 37) % 50)}%`;
+        b.appendChild(line);
+      }
+      scanBody.appendChild(b);
+    };
+
+    const beginScanning = () => { scan.classList.add("is-scanning"); };
+    const stopScanning = () => { scan.classList.remove("is-scanning"); };
+
+    // ── Rendering the receipt ───────────────────────────────────────────────
+    const printRoll = (d: any) => {
+      roll.querySelector<HTMLElement>(".aol-roll__host")!.textContent = d.host ?? "";
+      roll.querySelector<HTMLElement>(".aol-roll__letter")!.textContent = d.grade ?? "?";
+      roll.querySelector<HTMLElement>(".aol-roll__label")!.textContent = d.gradeLabel ?? "";
+
+      const cap = roll.querySelector<HTMLElement>(".aol-roll__cap")!;
+      if (Array.isArray(d.caps) && d.caps.length) { cap.textContent = d.caps[0]; cap.hidden = false; }
+
+      const fWrap = roll.querySelector<HTMLElement>(".aol-roll__findings")!;
+      fWrap.textContent = "";
+      for (const f of d.findings ?? []) {
+        const r = document.createElement("div");
+        r.className = "aol-roll__finding";
+        r.innerHTML = `<div class="aol-roll__fhead"><span class="aol-roll__fname"></span><span class="aol-roll__fgrade"></span></div><p class="aol-roll__fbody"></p>`;
+        r.querySelector(".aol-roll__fname")!.textContent = f.name ?? "";
+        r.querySelector(".aol-roll__fgrade")!.textContent = f.grade ?? "n/a";
+        r.querySelector(".aol-roll__fbody")!.textContent = f.body ?? "";
+        fWrap.appendChild(r);
+      }
+
+      // Names only. The server never sent bodies for these, so there is nothing
+      // here to reveal — the bars are a gate, not a blur.
+      const lWrap = roll.querySelector<HTMLElement>(".aol-roll__locked")!;
+      lWrap.textContent = "";
+      for (const name of d.lockedItems ?? []) {
+        const r = document.createElement("div");
+        r.className = "aol-roll__lock";
+        r.innerHTML = `<span class="aol-roll__lname"></span><span class="aol-roll__redact"></span>`;
+        r.querySelector(".aol-roll__lname")!.textContent = name;
+        lWrap.appendChild(r);
+      }
+
+      rollWrap.hidden = false;
+      const h = page.querySelector<HTMLElement>(".aol-auditpage__title")!;
+      h.textContent = "Your grade";
+      rollWrap.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+    };
+
+    // ── One message handler, shared by the live stream and the demo ─────────
+    const handleMsg = (msg: any) => {
+      if (msg.t === "open") {
+        hostSlots.forEach((el) => (el.textContent = msg.host ?? ""));
+        scanUrl.textContent = msg.host ?? "";
+        scanCap.textContent = "fetching…";
+      } else if (msg.t === "step") {
+        enqueue(() => print(msg.label, msg.status));
+        if (msg.key === "home") { addBlock("homepage", 4); scanCap.textContent = "read the homepage"; }
+        if (msg.key === "pricing" && msg.status !== "NOPE") { addBlock("pricing", 5); scanCap.textContent = "found a pricing page"; }
+        if (msg.key === "pricing" && msg.status === "NOPE") { scanCap.textContent = "no public pricing page"; }
+        if (msg.key === "studies") { beginScanning(); scanCap.textContent = "scoring against 23 studies…"; }
+      } else if (msg.t === "tick") {
+        let el = log.querySelector<HTMLElement>(".aol-audit__tick");
+        if (!el) {
+          el = document.createElement("div");
+          el.className = "aol-term__line is-in aol-audit__tick";
+          log.appendChild(el);
+        }
+        el.textContent = `${lead("Still reading")}${msg.seconds}s`;
+        log.scrollTop = log.scrollHeight;
+      } else if (msg.t === "need-url") {
+        stopScanning();
+        urlLabel.textContent = msg.message;
+        urlForm.hidden = false;
+        urlInput.focus();
+      } else if (msg.t === "failed") {
+        fail(msg.message);
+      } else if (msg.t === "result") {
+        stopScanning();
+        term.classList.remove("is-working");
+        log.querySelector(".aol-audit__tick")?.remove();
+        scanCap.textContent = "done";
+        enqueue(() => { printPlain(""); printPlain("> report ready"); printRoll(msg); });
+      }
+    };
+
+    // ── The live run ────────────────────────────────────────────────────────
+    const run = async (email: string, url?: string) => {
+      pending = email;
+      startForm.hidden = true;
+      term.classList.add("is-working");
+      printPlain("> connecting…");
+
+      let res: Response;
+      try {
+        res = await fetch("/api/audit", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email, url }),
+        });
+      } catch {
+        fail("Couldn't reach the scorer. Check your connection and try again.");
+        return;
+      }
+
+      // A non-OK reply must never be silent. astro dev answers 502 with an
+      // EMPTY body and fetch does not throw on it, so without this the whole
+      // page sat there showing nothing at all — no error, no clue.
+      const ctype = res.headers.get("content-type") ?? "";
+      if (!res.ok || !/ndjson|json/i.test(ctype)) {
+        fail(
+          res.status === 502 || res.status === 404
+            ? "The scorer isn't running. Locally: npx wrangler pages dev dist --port 8788"
+            : `The scorer answered ${res.status}. Try again shortly, or just book the call.`,
+        );
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) { fail("The scorer sent an empty reply."); return; }
+      const dec = new TextDecoder();
+      let buf = "";
+      const feed = (raw: string) => {
+        if (!raw.trim()) return;
+        try { handleMsg(JSON.parse(raw)); } catch { /* partial or junk line */ }
+      };
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const l of lines) feed(l);
+      }
+      // FLUSH THE TAIL: need-url and the validation failures are a single JSON
+      // object with no trailing newline, so they live entirely in `buf`.
+      buf += dec.decode();
+      feed(buf);
+    };
+
+    urlForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (pending && urlInput.value.trim()) {
+        urlForm.hidden = true;
+        run(pending, urlInput.value.trim());
+      }
+    });
+
+    startForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = startInput.value.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+        startInput.classList.add("aol-control--error");
+        startInput.focus();
+        return;
+      }
+      startInput.classList.remove("aol-control--error");
+      run(email);
+    });
+    startInput.addEventListener("input", () => startInput.classList.remove("aol-control--error"));
+
+    // ── Demo mode ───────────────────────────────────────────────────────────
+    // /audit?demo=1 replays a canned run at full fidelity.
+    //
+    // It exists because a live run takes minutes against real models, which
+    // makes the experience nearly impossible to review or iterate on — the
+    // reason this page went unseen through several rounds of changes. It drives
+    // the SAME handleMsg as the live stream, so what you watch here is what
+    // ships; only the source of the messages differs.
+    const demoScript: [number, any][] = [
+      [200, { t: "open", host: "yoursite.com" }],
+      [400, { t: "step", key: "wake", label: "Waking up the crawler", status: "OK" }],
+      [900, { t: "step", key: "home", label: "Reading your homepage", status: "OK" }],
+      [900, { t: "step", key: "pricing", label: "Finding your pricing", status: "EVENTUALLY" }],
+      [700, { t: "step", key: "studies", label: "Reading 23 studies", status: "AGAIN" }],
+      [700, { t: "step", key: "sodont", label: "So you don't have to", status: "YOU'RE" }],
+      [1400, { t: "tick", seconds: 5 }],
+      [1400, { t: "tick", seconds: 10 }],
+      [1400, { t: "tick", seconds: 15 }],
+      [900, { t: "step", key: "science", label: "Applying the science", status: "WELCOME" }],
+      [500, { t: "step", key: "math", label: "Doing the arithmetic", status: "OK" }],
+      [500, { t: "step", key: "round", label: "Rounding in your favour", status: "NO" }],
+      [600, {
+        t: "result",
+        host: "yoursite.com",
+        grade: "C",
+        gradeLabel: "leaking",
+        caps: [],
+        findings: [
+          { name: "Social proof and reviews", grade: "E",
+            body: "No rating shown anywhere, and the first testimonial is a generic one — the one people weight most." },
+          { name: "Pricing plans", grade: "D",
+            body: "Four plans, no decoy: the $49 tier is dominated by the $79 on every axis, so nothing anchors." },
+          { name: "Page design and visuals", grade: "C",
+            body: "Primary CTA sits lower-left. The upper-right quadrant, where eyes land first, is empty." },
+        ],
+        lockedItems: ["Brand and messaging", "Free trials", "Freemium"],
+      }],
+    ];
+
+    const runDemo = async () => {
+      startForm.hidden = true;
+      term.classList.add("is-working");
+      printPlain("> connecting…");
+      for (const [delay, msg] of demoScript) {
+        await new Promise((r) => setTimeout(r, reduce ? 0 : delay));
+        handleMsg(msg);
+      }
+    };
+
+    // ── Entry ───────────────────────────────────────────────────────────────
+    // The address arrives via sessionStorage, not the URL. A query string would
+    // put a work email into browser history, the referrer header on every
+    // outbound click, and any analytics that records paths.
+    const params = new URLSearchParams(location.search);
+    if (params.get("demo")) {
+      void runDemo();
+    } else {
+      const stored = sessionStorage.getItem("aol:audit-email");
+      sessionStorage.removeItem("aol:audit-email");
+      if (stored) {
+        void run(stored);
+      } else {
+        // Somebody opened /audit directly. Ask, rather than showing an empty
+        // machine that looks broken.
+        startForm.hidden = false;
+        page.querySelector<HTMLElement>(".aol-auditpage__title")!.textContent = "Grade my site";
+        scan.hidden = true;
+        term.hidden = true;
+      }
+    }
+  }
+</script>
