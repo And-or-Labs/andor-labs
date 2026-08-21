@@ -76,7 +76,31 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       {/* <a class="aol-hero__alt" href="/tools/rank-my-adtech/">Get your company ranked by three AI labs <span aria-hidden="true">&rarr;</span></a> */}
     </div>
   </div>
-  <div class="aol-grid-blue" data-r style="border-top:1px solid var(--ink-200);--r:5">
+  {/* ── The horizon ──────────────────────────────────────────────────────
+      A pixel-art panorama of the Rockies, full-bleed, sitting between the
+      promise and the credibility strip.
+
+      It earns its place three ways. It is pixel art, which is the language the
+      rest of the site already speaks — Departure Mono, the pixel icon set, the
+      dither rules — so it reads as brand furniture rather than a stock photo
+      dropped on a consultancy page. Its palette is already the site's cool
+      blues, so nothing had to be recoloured to make it fit. And it is 4:1,
+      which is a band, not a backdrop: laid behind the copy it would have needed
+      a scrim and would have fought the paper ground, but laid along the foot of
+      the hero it becomes a horizon under the words, and Canadian ground under a
+      .ca company.
+
+      DECORATIVE: aria-hidden with an empty alt. It carries no information and a
+      screen reader announcing "a serene snow-capped view" mid-hero would be
+      noise between the promise and the ask.
+
+      Not lazy, and width/height are the file's real dimensions so it reserves
+      its box — this is above the fold on a short viewport and a late load would
+      shove the credibility strip down. */}
+  <div class="aol-horizon" data-r aria-hidden="true" style="--r:5">
+    <img src="/rockies.png" alt="" width="1088" height="272" decoding="async" />
+  </div>
+  <div class="aol-grid-blue" data-r style="border-top:1px solid var(--ink-200);--r:6">
     <div style="max-width:var(--container-width);width:100%;margin:0 auto;padding:var(--space-6) var(--gutter)">
     <div class="aol-credstrip" style="border-top:0;padding-top:0">
       <div class="aol-credstrip__cell">
@@ -85,18 +109,7 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       </div>
       <div class="aol-credstrip__cell">
         <span class="aol-eyebrow">Brand partners</span>
-        {/* NVIDIA Inception joins the existing partner line rather than taking a
-            cell of its own. It used to be stamped on the hero terminal's screen
-            specifically so it would NOT add a third cell here — a third column
-            forced the strip taller and shrank the logo reel. The terminal is
-            gone, but that reason has not changed, so the lockup appends to the
-            partners it belongs with. Never recoloured or reproportioned. */}
-        <span class="aol-credstrip__val">
-          AirOps  ·  Superdesign  ·  Snitcher  ·
-          <a class="aol-credstrip__mark" href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" aria-label="NVIDIA Inception program member">
-            <img src="/partners/nvidia-inception.svg" alt="" width="79" height="34" decoding="async" />
-          </a>
-        </span>
+        <span class="aol-credstrip__val">AirOps  ·  Superdesign  ·  Snitcher</span>
       </div>
     </div>
     </div>
