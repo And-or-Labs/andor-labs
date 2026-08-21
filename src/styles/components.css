@@ -394,22 +394,28 @@
 .aol-term__screen{
   position:relative; background-color:var(--paper-pure);
   background-image:url("/texture.svg"); background-repeat:repeat;
-  /* The screen has no intrinsic height — six short log lines in a ~540px frame
-     collapse to a ~2.6:1 letterbox strip. Give it a real CRT proportion instead
-     of a fixed min-height so it tracks whatever width the hero column gets.
-     Content-driven height still wins when the log exceeds the ratio, so this
-     can never clip: on narrow screens it simply stops being the constraint.
-     Ratio is applied in the desktop two-column band only (below). */
+  /* The screen has no intrinsic height — a handful of short log lines in a
+     ~540px frame collapse to a letterbox strip. Give it a real CRT proportion
+     instead of a fixed min-height so it tracks whatever width the hero column
+     gets. Content-driven height still wins when the log exceeds the ratio, so
+     this can never clip: on narrow screens it simply stops being the
+     constraint. Ratio is applied in the desktop two-column band only (below). */
+
+  /* The containing block the log sizes itself against. See .aol-term__log. */
+  container-type: inline-size;
 }
-/* DESKTOP ONLY. Ratio is set by what sits below the log, not by taste: the log
-   runs ~177px, and 9/4 lands a ~242px screen at the desktop column width, so
-   the corner stamp breathes without opening a void.
-   It is scoped to >=881px on purpose: below that the hero stacks and the
-   terminal goes full-width, where 9/4 computes to a ~370px box around ~177px of
-   content. That is the same void this ratio exists to avoid, just on tablets.
-   Unscoped, the fix becomes the bug one breakpoint down. */
+/* DESKTOP ONLY, and derived from the content rather than chosen.
+   The log is white-space:pre with a fixed character count, so it has an
+   intrinsic ratio of its own: 38 chars x 0.6564em wide by 10 lines x 1.6 tall.
+   At the 544px desktop column that is ~474 x ~334px, i.e. 1.63 — call it 5/3.
+   Ratio and font-size are ONE decision. The previous 9/4 was picked to close a
+   vertical void back when the type was a fixed 12px, and it opened a horizontal
+   one twice the size: 304px of log in a 544px screen, 44% of it empty.
+   Scoped to >=881px on purpose: below that the hero stacks and the terminal
+   goes full-width, where a fixed ratio computes a box far taller than the
+   content. Unscoped, the fix becomes the bug one breakpoint down. */
 @media (min-width:881px){
-  .aol-term__screen{ aspect-ratio: 9 / 4; }
+  .aol-term__screen{ aspect-ratio: 5 / 3; }
 }
 /* Partner stamp — sits ON the screen's plotting paper, bottom-right, like a
    certification mark in the corner of a printout. Absolutely positioned on
@@ -427,6 +433,13 @@
 @media (hover:hover) and (pointer:fine){
   .aol-term__stamp:hover{ border-color:var(--ink-900); box-shadow:var(--shadow-hard-sm); }
 }
+/* Hidden whenever the terminal is running an audit, for two reasons. The
+   collision is the immediate one: at the corrected type scale the log reaches
+   x~476 in a 544px screen and the stamp's box starts at x~435, and a one-pixel
+   miss is not a margin. The other is editorial — an NVIDIA Inception lockup is
+   a credential for the hero, not part of somebody's scorecard. Untouched at
+   rest, where the closing lines are short enough to clear it. */
+.aol-term.is-auditing .aol-term__stamp{ display:none; }
 /* Narrow screens: the terminal goes full-bleed and the log's widest lines
    ("Buying signals .......... RECEIVING") reach far enough right to
    slide under the stamp. Reserve a strip at the foot of the screen for it instead of letting
@@ -437,42 +450,37 @@
   .aol-term__stamp img{ height:30px; }
 }
 .aol-term__log{
-  /* Left padding matches .aol-term__head's 14px so the boot log lines up with
-     the ANDOR/OS label above it, and the lines carry no leading indent of their
-     own (INDENT in Hero.astro is now empty). Dropping the old 22px padding and
-     the 2-space indent also buys ~24px of horizontal room and 2 characters off
-     every line, which is most of why the widest line was being clipped. */
-  padding:20px 14px; font-family:var(--font-mono); font-size:12px;
-  line-height:1.9; letter-spacing:0.02em; color:var(--ink-800); white-space:pre;
-}
-/* ORDER MATTERS BELOW THIS LINE. @media adds no specificity, so every rule here
-   ties with the base declaration above at (0,1,0) and source order decides.
-   All three of these blocks previously sat ABOVE the base rule and were
-   therefore dead: `font-size:12px` and the padding shorthand won every time.
-   That is why the responsive type never applied and the log kept getting cut
-   off on phones, and why the stamp clearance below never reserved its strip. */
-
-/* Narrow desktop: the two-column layout survives down to 881px, where the
-   terminal column is only ~384px. Step the type down through the tight band
-   rather than run on a hairline margin. */
-@media (min-width:881px) and (max-width:1000px){
-  .aol-term__log{ font-size:11px; }
+  /* ONE rule, and it replaced four.
+     The log is white-space:pre, so its widest line CANNOT wrap: it either fits
+     or is cut by the frame's overflow:hidden. The line is a fixed character
+     count, so the constraint is continuous and a stepped breakpoint cannot
+     satisfy it — the previous comment here said exactly that, and then sized
+     the type in vw anyway. The viewport is the wrong ruler. The log is trying
+     to fit inside the GRID COLUMN, and the two diverge the moment the hero has
+     two tracks, which is why three separate breakpoint patches (881-1000px,
+     <=560px, <=480px) still left the desktop case broken at 12px in a 544px
+     box, filling 56% of it.
+     cqw measures the box the text is actually inside. .aol-term__screen carries
+     container-type:inline-size; at 0.6564em per character (0.6364 advance +
+     0.02 tracking), 3.2cqw holds the widest 38-char line at ~87% of the screen
+     from ~300px all the way up, and caps at 17.5px so it stops growing on very
+     wide columns. The log is aria-hidden, so shrinking it costs nothing to AT.
+     Deleting those three @media blocks also retires the source-order hazard
+     they carried: @media adds no specificity, so they tied with this rule at
+     (0,1,0) and only won by sitting below it.
+     Padding is in em so it tracks the type instead of drifting from it; the
+     left inset still lands on .aol-term__head's 14px at the resting size, so
+     the log stays aligned with the ANDOR/OS label above it. */
+  padding:1.6em 1.15em; font-family:var(--font-mono);
+  font-size:clamp(9px, 3.2cqw, 17.5px);
+  line-height:1.6; letter-spacing:0.02em; color:var(--ink-800); white-space:pre;
 }
 /* Reserve a strip at the foot of the screen so the widest lines cannot slide
-   under the partner stamp once the terminal goes full-bleed. */
+   under the partner stamp once the terminal goes full-bleed. Desktop does not
+   need this: the stamp is hidden in audit state, and at rest the closing lines
+   are short and left-aligned. */
 @media (max-width:560px){
   .aol-term__log{ padding-bottom:62px; }
-}
-/* Small screens: the log is white-space:pre, so its widest line CANNOT wrap. It
-   either fits or is cut by the frame's overflow:hidden — and now that the grid
-   item carries min-width:0, it is cut rather than blowing the page out. The
-   line is a fixed character count, so the constraint is continuous and a
-   stepped breakpoint cannot satisfy it. Size the type off the viewport: at
-   0.6564em per character (0.6364 advance + 0.02 tracking), 3.4vw - 3px holds
-   the widest line inside the frame from ~300px up and caps at the design's 12px
-   by ~441px. The log is aria-hidden, so shrinking it costs nothing to AT. */
-@media (max-width:480px){
-  .aol-term__log{ font-size:clamp(8px, calc(3.4vw - 3px), 12px); padding:16px 14px 58px; }
 }
 .aol-term__ok{ color:var(--blue-600); }
 .aol-term__ok--live{ color:var(--blue-500); }
