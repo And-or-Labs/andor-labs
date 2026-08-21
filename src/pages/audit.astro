@@ -38,9 +38,6 @@ const description = "23 peer-reviewed checks against your site.";
         <h1 class="aol-auditpage__title" id="audit-title">
           Reading <span class="aol-auditpage__host">your site</span>
         </h1>
-        <p class="aol-auditpage__meta">
-          23 checks · sections 1–2 of the published research · this takes a few minutes
-        </p>
       </div>
 
       {/* ── The scan stage ─────────────────────────────────────────────
@@ -56,21 +53,25 @@ const description = "23 peer-reviewed checks against your site.";
           <div class="aol-scan__body"></div>
           <div class="aol-scan__beam"></div>
         </div>
-        <p class="aol-scan__caption"></p>
-      </div>
-
-      {/* The machine's own log, beside the picture rather than instead of it. */}
-      <div class="aol-audit aol-audit--page">
-        <div class="aol-term aol-term--panel is-on is-auditing">
-          <div class="aol-term__head">
-            <span>ANDOR/OS <span class="aol-audit__host"></span></span>
-            <span class="aol-term__head-right">CRT-01 <span class="aol-term__led"></span></span>
+        {/* Progress. Discrete while the crawl runs — each step is a real
+            milestone — then time-based through scoring, which is the long
+            opaque stretch. Capped below 100 until the result actually lands,
+            because a bar sitting full while nothing happens is worse than one
+            that is honestly still moving. */}
+        <div class="aol-scan__progress">
+          <div class="aol-scan__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <span class="aol-scan__fill"></span>
           </div>
-          <div class="aol-term__screen aol-audit__screen">
-            <div class="aol-term__log aol-audit__log" role="status" aria-live="polite"></div>
-          </div>
+          <p class="aol-scan__caption"></p>
         </div>
       </div>
+
+      {/* The log, inside the frame rather than beside it. There were two
+          scanners on this page doing the same job; this is the one. */}
+      <div class="aol-audit aol-audit--page">
+        <div class="aol-term__log aol-audit__log" role="status" aria-live="polite"></div>
+      </div>
+
 
       {/* Free-mail fallback — no domain could be derived from the address. */}
       <form class="aol-audit__urlform" hidden>

@@ -2,7 +2,6 @@
 import Badge from "../ds/Badge.astro";
 import Input from "../ds/Input.astro";
 import Button from "../ds/Button.astro";
-import AuditPanel from "../AuditPanel.astro";
 import { PROMISE } from "../../config";
 
 const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
@@ -70,11 +69,6 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
         </div>
         <p class="aol-hero__auditerr" role="alert" hidden></p>
       </form>
-      {/* The audit runs HERE, in place of the form above, at the same width.
-          Inline rather than in a dialog: nothing about a scorecard needs to
-          interrupt the page, and an overlay dropped on content someone is
-          reading is a worse gesture than the page simply changing state. */}
-      <AuditPanel />
       {/* <a class="aol-hero__alt" href="/tools/rank-my-adtech/">Get your company ranked by three AI labs <span aria-hidden="true">&rarr;</span></a> */}
     </div>
   </div>
@@ -136,8 +130,18 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       }
       auditInput.classList.remove("aol-control--error");
       if (auditErr) auditErr.hidden = true;
-      window.dispatchEvent(new CustomEvent("aol:audit", { detail: { email } }));
-      auditInput.blur();
+
+      // The address travels in sessionStorage, not the URL. A work email in a
+      // query string lands in browser history, in the referrer header on every
+      // outbound click from the results page, and in any analytics that records
+      // paths. sessionStorage is read once and cleared on arrival.
+      try {
+        sessionStorage.setItem("aol:audit-email", email);
+      } catch {
+        // Private mode or a full quota. The audit page has its own field, so
+        // arriving without the address asks rather than failing.
+      }
+      window.location.assign("/audit");
     });
     auditInput.addEventListener("input", () => {
       auditInput.classList.remove("aol-control--error");

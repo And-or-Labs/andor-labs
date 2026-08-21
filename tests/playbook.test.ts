@@ -137,6 +137,16 @@ describe("the dynamic denominator", () => {
     expect(plans.reason).toBe("No public pricing page to read.");
   });
 
+  it("says pricing was unreadable rather than absent, when that is the truth", () => {
+    // A slider or a client-side table is a different fact about a company than
+    // having no public pricing, and the report should not confuse the two.
+    const unreadable = { ...NO_PRICING, pricingUnreadable: true };
+    expect(scoreSubsection("plans", unreadable, new Map()).reason)
+      .toBe("Your pricing is there but renders client-side, so it could not be read.");
+    expect(scoreSubsection("plans", NO_PRICING, new Map()).reason)
+      .toBe("No public pricing page to read.");
+  });
+
   it("distinguishes no-trial from no-pricing in the reason it gives", () => {
     expect(scoreSubsection("trials", { ...FULL, hasTrial: false }, new Map()).reason)
       .toBe("No free trial offered.");
@@ -230,7 +240,7 @@ describe("grade ceilings", () => {
     const v = gradeFor(1, NO_PRICING);
     expect(v.uncapped).toBe("A");
     expect(v.grade).toBe("C");
-    expect(v.caps).toContain("No public pricing page — capped at C until there is one.");
+    expect(v.caps).toContain("No public pricing page we could read — capped at C until there is one.");
   });
 
   it("leaves a site with pricing ungoverned by that ceiling", () => {
@@ -283,7 +293,29 @@ describe("the scoring prompt", () => {
   it("names each rule by the id the scorer must return", () => {
     const prompt = rulesPrompt("freemium", FULL);
     for (const r of observableRules("freemium", FULL)) {
-      expect(prompt).toContain(`- ${r.id}:`);
+      expect(prompt).toContain(`### ${r.id}`);
+    }
+  });
+
+  it("ships PASS and FAIL definitions for every check it asks about", () => {
+    // Criteria are why a mid-tier model is enough here: applying a stated test
+    // to a page is a far smaller job than forming an opinion about it, and it
+    // is the difference between a repeatable answer and a different one each run.
+    for (const s of SUBSECTIONS) {
+      const prompt = rulesPrompt(s.key, FULL);
+      for (const r of observableRules(s.key, FULL)) {
+        expect(prompt, `${r.id} has no PASS`).toContain(`PASS: ${r.pass}`);
+        expect(prompt, `${r.id} has no FAIL`).toContain(`FAIL: ${r.fail}`);
+        expect(r.pass.length, `${r.id} PASS too vague`).toBeGreaterThan(25);
+        expect(r.fail.length, `${r.id} FAIL too vague`).toBeGreaterThan(25);
+      }
+    }
+  });
+
+  it("leaves the unauditable rules without criteria, since they never run", () => {
+    for (const r of RULES.filter((x) => !x.auditable)) {
+      expect(r.pass).toBe("");
+      expect(r.fail).toBe("");
     }
   });
 

@@ -9,47 +9,42 @@
 import { describe, expect, it } from "vitest";
 import { readContext } from "../functions/_lib/audit-score";
 import { SUBSECTIONS, observableRules, scoreSubsection, totals, subsectionLabel } from "../functions/_lib/playbook";
-import type { SiteRead } from "../functions/_lib/crawl";
+import type { SiteMarkdown } from "../functions/_lib/pages";
 
-const site = (pages: string, thin = false): SiteRead => ({
+const site = (pages: string, thin = false, hasPricing = /##\s*Pricing/i.test(pages)): SiteMarkdown => ({
   pages,
-  html: "",
+  read: [],
   finalUrl: "https://acme.com",
-  titles: [],
-  sitemapUrlCount: null,
   thin,
+  hasPricing,
+  pricingUnreadable: false,
 });
 
 describe("reading the crawl for what is observable", () => {
-  it("finds a pricing page from the crawler's own section heading", () => {
-    const ctx = readContext(site("## Homepage (https://acme.com)\nhi\n## Pricing (https://acme.com/pricing)\nPlans"));
-    expect(ctx.hasPricing).toBe(true);
-  });
-
-  it("finds pricing from prices on the page when there is no pricing section", () => {
-    expect(readContext(site("## Homepage\n$29 per user per month")).hasPricing).toBe(true);
-  });
-
-  it("does not invent pricing on a page that never mentions it", () => {
-    expect(readContext(site("## Homepage\nWe make software for teams. Contact sales.")).hasPricing).toBe(false);
+  it("trusts the reader on whether a pricing page was fetched", () => {
+    // hasPricing is now a FACT from the markdown reader — it knows whether the
+    // page was actually retrieved — rather than a guess from the word "pricing"
+    // appearing somewhere in a nav.
+    expect(readContext(site("## Pricing — https://acme.com/pricing\nPlans", false, true)).hasPricing).toBe(true);
+    expect(readContext(site("## Homepage\nPricing is simple. Contact sales.", false, false)).hasPricing).toBe(false);
   });
 
   it("only looks for trials and free tiers once pricing exists", () => {
     // "free trial" in a blog post is not evidence of a trial offering.
-    const ctx = readContext(site("## Blog\nHow to run a free trial"));
+    const ctx = readContext(site("## Blog\nHow to run a free trial", false, false));
     expect(ctx.hasPricing).toBe(false);
     expect(ctx.hasTrial).toBe(false);
     expect(ctx.hasFreemium).toBe(false);
   });
 
   it("detects a trial and a free tier on a real pricing page", () => {
-    const ctx = readContext(site("## Pricing\nFree forever. $19/mo. Start your free trial today."));
+    const ctx = readContext(site("## Pricing\nFree forever. $19/mo. Start your free trial today.", false, true));
     expect(ctx.hasTrial).toBe(true);
     expect(ctx.hasFreemium).toBe(true);
   });
 
   it("carries the crawler's thin flag through untouched", () => {
-    expect(readContext(site("", true)).thin).toBe(true);
+    expect(readContext(site("", true, false)).thin).toBe(true);
   });
 });
 

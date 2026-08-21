@@ -12,14 +12,16 @@
  * context, so judging them together is also the more informed call.
  */
 import { askLadder, clampInt, clampText, extractJson, type ProviderEnv } from "./providers";
-import type { SiteRead } from "./crawl";
+import type { SiteMarkdown } from "./pages";
 import {
   MAX_PER_RULE,
   SUBSECTIONS,
   observableRules,
   rulesPrompt,
+  rankChecks,
   scoreSubsection,
   totals,
+  type CheckResult,
   type AuditTotals,
   type CrawlContext,
   type SubsectionKey,
@@ -36,14 +38,14 @@ import {
 const LADDER = ["opencode", "gemini", "nvidia"] as const;
 
 /**
- * How much of the crawl to show the model.
+ * How much of the site to show the model.
  *
- * Cut from 24k after a live run took 240 seconds end to end. Prompt length is
- * the latency budget on this platform, and the pages that matter — homepage and
- * pricing — are near the front of what readSite() assembles, so the tail was
- * mostly blog and careers copy that no rule in sections 1 or 2 asks about.
+ * Raised back to 18k now that the input is context.dev MARKDOWN of the two or
+ * three pages these rules actually ask about, rather than flattened text from
+ * eight pages including careers and news. Every character now carries structure
+ * a rule can be tested against, so the budget buys evidence instead of filler.
  */
-const PROMPT_CHARS = 12_000;
+const PROMPT_CHARS = 18_000;
 
 /** How the model must answer. Ids come straight from the rule table. */
 const RESPONSE_SCHEMA = {
@@ -83,13 +85,17 @@ export interface SectionVerdict {
  * defensible thing to say, and a model's opinion about whether a pricing page
  * exists is not worth a round trip.
  */
-export function readContext(site: SiteRead): CrawlContext {
+export function readContext(site: SiteMarkdown): CrawlContext {
   const text = site.pages.toLowerCase();
-  const hasPricing = /##\s*pricing/i.test(site.pages) || /\bper (month|user|seat)\b|\$\d|\bpricing\b/.test(text);
+  // hasPricing comes from the reader, which knows whether a pricing page was
+  // actually FETCHED — far better evidence than the word "pricing" appearing
+  // somewhere in a nav.
+  const hasPricing = site.hasPricing;
   return {
     thin: site.thin,
     hasPricing,
-    hasTrial: hasPricing && /\bfree trial\b|\btrial\b|\btry (it )?free\b/.test(text),
+    pricingUnreadable: site.pricingUnreadable,
+    hasTrial: hasPricing && /\bfree trial\b|\btry (it )?free\b|\bstart (your )?trial\b/.test(text),
     hasFreemium: hasPricing && /\bfree (plan|tier|forever)\b|\bfreemium\b|\$0\b/.test(text),
   };
 }
@@ -99,7 +105,7 @@ const SECTION_BRIEF: Record<1 | 2, string> = {
   2: "pricing plans, free trials and freemium structure, judged from the pricing page",
 };
 
-function buildPrompt(section: 1 | 2, host: string, site: SiteRead, ctx: CrawlContext): string {
+function buildPrompt(section: 1 | 2, host: string, site: SiteMarkdown, ctx: CrawlContext): string {
   const keys = SUBSECTIONS.filter((s) => s.section === section).map((s) => s.key);
   const rules = keys
     .map((k) => {
@@ -116,7 +122,9 @@ function buildPrompt(section: 1 | 2, host: string, site: SiteRead, ctx: CrawlCon
     `Each rule gets an integer 0-${MAX_PER_RULE}, where 0 means the site does the`,
     `opposite of the rule and ${MAX_PER_RULE} means it follows it well.`,
     ``,
-    `Rules:`,
+    `Each check below gives the rule, then PASS and FAIL definitions. Apply the`,
+    `test. Do not weigh it up — decide which definition the page matches.`,
+    ``,
     rules,
     ``,
     `Rules for your answer, which matter as much as the scores:`,
@@ -125,16 +133,22 @@ function buildPrompt(section: 1 | 2, host: string, site: SiteRead, ctx: CrawlCon
     `- If the pages do not show you enough to judge a rule, OMIT it entirely`,
     `  rather than guessing. An omitted rule is dropped from the score; a`,
     `  guessed one is a lie with a number attached.`,
-    `- Every note must cite something concrete from the page — a count, a`,
-    `  price, a quoted phrase, a position. Never adjectives alone.`,
-    `- Notes are at most 25 words and are written to the site's owner.`,
+    `- Every note is ONE sentence. Not two. Not a sentence with a semicolon`,
+    `  doing the work of two. Twenty words at the outside.`,
+    `- State the single most important problem with that rule and stop. Do not`,
+    `  balance it with what the page does well — this is a list of what to fix.`,
+    `- Cite one concrete thing: a count, a price, a quoted phrase, a position.`,
+    `  Never adjectives alone, and never more than one piece of evidence.`,
+    `- No hedging. No "though", "however", "while", "that said". If the rule is`,
+    `  met, score it high and say so in six words.`,
+    `- Write to the site's owner, in plain English, second person.`,
     site.thin
       ? `- NOTE: this site rendered almost nothing to a plain fetch. Say so plainly rather than inventing detail.`
       : ``,
     ``,
     `Return JSON: {"scores":[{"id":"<rule id>","score":<0-${MAX_PER_RULE}>,"note":"<=25 words"}],"summary":"<one sentence>"}`,
     ``,
-    `--- PAGES ---`,
+    `--- PAGES (markdown, as published) ---`,
     site.pages.slice(0, PROMPT_CHARS),
   ]
     .filter((l) => l !== "")
@@ -157,7 +171,7 @@ function normalize(raw: unknown, valid: Set<string>): SectionVerdict {
       if (!valid.has(id) || scores.has(id)) continue;
       if (typeof r.score !== "number" && typeof r.score !== "string") continue;
       scores.set(id, clampInt(r.score, MAX_PER_RULE));
-      notes.set(id, clampText(r.note, 160));
+      notes.set(id, clampText(r.note, 150));
     }
   }
 
@@ -167,7 +181,7 @@ function normalize(raw: unknown, valid: Set<string>): SectionVerdict {
 async function scoreSection(
   section: 1 | 2,
   host: string,
-  site: SiteRead,
+  site: SiteMarkdown,
   ctx: CrawlContext,
   env: ProviderEnv,
 ): Promise<SectionVerdict> {
@@ -212,8 +226,8 @@ export interface AuditResult extends AuditTotals {
   host: string;
   /** What the crawl saw, so the caller can explain a ceiling. */
   ctx: CrawlContext;
-  /** Per-subsection prose, for the three findings that get shown. */
-  notes: Map<SubsectionKey, string>;
+  /** Every observable check, worst first. This is what the report renders. */
+  checks: CheckResult[];
 }
 
 /**
@@ -222,7 +236,7 @@ export interface AuditResult extends AuditTotals {
  */
 export async function scoreSite(
   host: string,
-  site: SiteRead,
+  site: SiteMarkdown,
   env: ProviderEnv,
 ): Promise<AuditResult> {
   const ctx = readContext(site);
@@ -249,20 +263,7 @@ export async function scoreSite(
 
   const results = SUBSECTIONS.map((s) => scoreSubsection(s.key, ctx, merged));
 
-  // Per-subsection prose: stitch the notes for the rules that scored worst,
-  // since those are what the finding is actually about.
-  const notes = new Map<SubsectionKey, string>();
-  for (const s of SUBSECTIONS) {
-    const worst = observableRules(s.key, ctx)
-      .filter((r) => merged.has(r.id))
-      .sort((a, b) => (merged.get(a.id)! - merged.get(b.id)!) || b.weight - a.weight)
-      .slice(0, 2)
-      .map((r) => allNotes.get(r.id))
-      .filter((n): n is string => Boolean(n));
-    if (worst.length) notes.set(s.key, worst.join(" "));
-  }
-
-  return { host, notes, ctx, ...totals(results, ctx) };
+  return { host, checks: rankChecks(ctx, merged, allNotes), ctx, ...totals(results, ctx) };
 }
 
 // Re-exported so audit.ts does not need to import from two places to build a

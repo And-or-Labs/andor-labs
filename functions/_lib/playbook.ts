@@ -56,6 +56,8 @@ export interface CrawlContext {
   thin: boolean;
   /** A pricing or plans page was found and read. */
   hasPricing: boolean;
+  /** Pricing was located but would not render to text — a widget or slider. */
+  pricingUnreadable?: boolean;
   /** The pricing page mentions a free trial. */
   hasTrial: boolean;
   /** The pricing page offers a free or freemium tier. */
@@ -64,9 +66,31 @@ export interface CrawlContext {
 
 export interface Rule {
   id: string;
+  /**
+   * Short display name. Every check is shown by name in the report — the whole
+   * claim is "23 peer-reviewed checks", and a claim like that is only worth
+   * anything if each one is named, evidenced and sourced individually.
+   * Written out rather than derived from the id: display names should not be
+   * de-slugified machine strings.
+   */
+  label: string;
   subsection: SubsectionKey;
   /** What good looks like. Our restatement, not the playbook's wording. */
   rule: string;
+  /**
+   * The test, stated so it can only be answered one way.
+   *
+   * Every check ships PASS and FAIL definitions into the prompt. Without them
+   * the model was being asked for an opinion and returned one — hedged,
+   * balanced, and different on every run. With them it is being asked to apply
+   * a test to a page, which is a much smaller and much more repeatable job, and
+   * it is the reason a mid-tier model is entirely capable here: the quality
+   * comes from the criteria and the context, not from the size of the model.
+   *
+   * Empty for the three unauditable rules, which never reach a prompt.
+   */
+  pass: string;
+  fail: string;
   /** The peer-reviewed study behind it, verbatim from the playbook's own citation. */
   citation: string;
   /**
@@ -103,6 +127,9 @@ export const RULES: Rule[] = [
   // ── §1 Brand and messaging ────────────────────────────────────────────────
   {
     id: "productize",
+    pass: "The page names a specific outcome and a defined scope — what it does, for whom, ideally with a price.",
+    fail: "The page sells a generic capability or category with no bounded outcome, e.g. 'analytics platform'.",
+    label: "Productised offer",
     subsection: "messaging",
     rule: "Frame the software as an end-to-end product with a specific outcome and price, not a generic capability.",
     citation:
@@ -113,6 +140,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "top-three-benefits",
+    pass: "Exactly three headline benefits lead the page.",
+    fail: "Four or more competing benefit claims lead the page, or fewer than three.",
+    label: "Three key benefits",
     subsection: "messaging",
     rule: "Lead with three key benefits. A fourth measurably weakens the set rather than adding to it.",
     citation:
@@ -125,6 +155,9 @@ export const RULES: Rule[] = [
   // ── §1 Page design and visuals ────────────────────────────────────────────
   {
     id: "perceptual-structure",
+    pass: "Type, colour and imagery hold ONE register throughout — either capable/reliable or fun/exciting.",
+    fail: "The page mixes registers, e.g. playful illustration against enterprise proof copy.",
+    label: "One visual register",
     subsection: "design",
     rule: "Commit the visual design to one register — effective and reliable, or fun and exciting — and hold it.",
     citation:
@@ -135,6 +168,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "layout-by-type",
+    pass: "Layout suits what is sold: a visual product shows itself, a technical one leads with specifics.",
+    fail: "A generic template that would fit any SaaS with the words swapped.",
+    label: "Layout matches the product",
     subsection: "design",
     rule: "Match the page layout to the kind of software being sold rather than to a generic template.",
     citation:
@@ -145,6 +181,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "rounded-cta",
+    pass: "Primary CTA buttons have rounded corners.",
+    fail: "Primary CTA buttons are square-cornered.",
+    label: "Rounded CTA buttons",
     subsection: "design",
     rule: "Give call-to-action buttons rounded corners.",
     citation:
@@ -155,6 +194,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "cta-upper-right",
+    pass: "A CTA button sits in the upper-right quadrant, typically in the nav.",
+    fail: "The upper right holds no CTA — only links, a search box, or nothing.",
+    label: "CTA in the upper right",
     subsection: "design",
     rule: "Place a call-to-action button in the upper-right quadrant of the page.",
     citation:
@@ -165,6 +207,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "before-left-after-right",
+    pass: "Any before/after or old-way/new-way comparison puts before on the LEFT.",
+    fail: "A comparison runs the other way, or the page shows none (score 3, not a failure).",
+    label: "Before left, after right",
     subsection: "design",
     rule: "In any before/after comparison, put the before on the left and the after on the right.",
     citation:
@@ -175,6 +220,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "video-for-hedonic",
+    pass: "Product video or motion is present where the product is meant to feel enjoyable.",
+    fail: "No video or motion on a product whose appeal is experiential.",
+    label: "Video for enjoyable software",
     subsection: "design",
     rule: "Use video to demonstrate software meant to feel exciting or enjoyable to use.",
     citation:
@@ -185,6 +233,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "video-pacing",
+    pass: "",
+    fail: "",
+    label: "Video pacing",
     subsection: "design",
     // Not auditable: distinguishing a slow cut from a fast one means watching
     // the video, which the crawl does not do. Present so the source stays whole.
@@ -199,6 +250,9 @@ export const RULES: Rule[] = [
   // ── §1 Social proof and reviews ───────────────────────────────────────────
   {
     id: "show-numbers",
+    pass: "A real count is shown — users, customers, sites, events, revenue processed.",
+    fail: "Popularity is claimed without a number: 'trusted by teams everywhere'.",
+    label: "Real counts shown",
     subsection: "proof",
     rule: "Show real counts — users, views, or purchases — rather than unquantified claims of popularity.",
     citation:
@@ -209,6 +263,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "imperfect-rating",
+    pass: "An average rating is shown and is strong but not perfect, e.g. 4.6–4.9.",
+    fail: "No rating shown at all, OR a flat 5.0, which reads as fabricated.",
+    label: "Strong but imperfect rating",
     subsection: "proof",
     rule: "Display a strong but imperfect average rating. A perfect score reads as fabricated and converts worse.",
     citation:
@@ -219,6 +276,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "first-review",
+    pass: "The first testimonial names a person and role and makes a specific claim.",
+    fail: "The first testimonial is generic, anonymous, or a logo wall with no words.",
+    label: "The first testimonial",
     subsection: "proof",
     rule: "Curate the first testimonial shown — it disproportionately shapes how every later one is read.",
     citation:
@@ -231,6 +291,9 @@ export const RULES: Rule[] = [
   // ── §2 The plans ──────────────────────────────────────────────────────────
   {
     id: "three-to-five-plans",
+    pass: "The pricing page shows between three and five plans inclusive.",
+    fail: "Fewer than three or more than five plans, counting a free tier.",
+    label: "Three to five plans",
     subsection: "plans",
     rule: "Offer between three and five plans.",
     citation:
@@ -241,6 +304,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "decoy-plan",
+    pass: "One middle plan is clearly dominated, making the target plan the obvious pick.",
+    fail: "Every plan is a reasonable choice on price-to-value, so nothing anchors.",
+    label: "A decoy plan",
     subsection: "plans",
     rule: "Make one middle plan a decoy that is clearly dominated, so the target plan looks obvious.",
     citation:
@@ -251,6 +317,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "price-on-left",
+    pass: "Plans read left to right and each price sits at the left or top-left of its card.",
+    fail: "Prices sit right-aligned or below the feature list.",
+    label: "Price on the left",
     subsection: "plans",
     rule: "Order plans left to right and place the price on the left of each card.",
     citation:
@@ -261,6 +330,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "price-difference-framing",
+    pass: "Upgrades are framed by the difference, e.g. 'just $15 more'.",
+    fail: "Every tier states only its full price with no comparison.",
+    label: "Priced by the difference",
     subsection: "plans",
     rule: "Frame premium tiers by the difference (“$15 more”) rather than by the full price.",
     citation:
@@ -271,6 +343,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "simpler-than-competitors",
+    pass: "Pricing is one clear axis — per seat, or per usage — legible in one read.",
+    fail: "Multiple stacked axes, add-ons and credits requiring a calculator.",
+    label: "Simpler than competitors",
     subsection: "plans",
     rule: "Keep the pricing structure simpler than competitors'. Complexity is read as unfairness.",
     citation:
@@ -281,6 +356,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "divisible-prices",
+    pass: "Prices divide and multiply easily: 10, 12, 20, 25, 50, 100.",
+    fail: "Awkward numbers such as 17, 23, 37, 47 that resist mental arithmetic.",
+    label: "Prices that divide",
     subsection: "plans",
     rule: "Choose prices that are easy to divide and multiply, so buyers can do the per-seat maths in their head.",
     citation:
@@ -291,6 +369,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "metered-hybrid",
+    pass: "Flat fee plus usage IS offered, and usage is visibly metered for the buyer.",
+    fail: "Usage-based pricing with no visible meter, so the buyer cannot predict a bill.",
+    label: "Flat plus usage",
     subsection: "plans",
     rule: "Combine a flat fee with usage-based pricing only where usage analytics are good enough to justify it.",
     citation:
@@ -301,6 +382,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "flat-rate-bias",
+    pass: "At least one straightforward flat-rate plan exists.",
+    fail: "Every plan is usage-metered with no predictable option.",
+    label: "Flat-rate default",
     subsection: "plans",
     rule: "A straightforward flat rate is a strong default — buyers pay a premium for predictability.",
     citation:
@@ -313,6 +397,9 @@ export const RULES: Rule[] = [
   // ── §2 Free trials ────────────────────────────────────────────────────────
   {
     id: "high-quality-trial",
+    pass: "The trial is full-featured, or the limits are stated plainly.",
+    fail: "The trial is crippled or its limits are unstated.",
+    label: "Trial quality",
     subsection: "trials",
     rule: "Make the free trial genuinely good. A thin trial suppresses adoption rather than seeding it.",
     citation:
@@ -323,6 +410,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "seven-day-trial",
+    pass: "The trial is about seven days.",
+    fail: "Materially longer (14, 30) or shorter, without a stated reason.",
+    label: "Seven-day trial",
     subsection: "trials",
     rule: "Seven days is the optimal trial length for most products.",
     citation:
@@ -333,6 +423,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "trial-usage",
+    pass: "",
+    fail: "",
+    label: "Usage during the trial",
     subsection: "trials",
     // Not auditable: what a company does to drive usage inside a trial happens
     // in-product and over email, where a crawler cannot follow.
@@ -345,6 +438,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "extensions-not-discounts",
+    pass: "",
+    fail: "",
+    label: "Extensions, not discounts",
     subsection: "trials",
     // Not auditable: a retention offer is made privately at the end of a trial.
     rule: "Offer trial extensions rather than discounts. A discount reprices the product; time does not.",
@@ -358,6 +454,9 @@ export const RULES: Rule[] = [
   // ── §2 Freemium ───────────────────────────────────────────────────────────
   {
     id: "limit-usage-not-features",
+    pass: "The free tier limits VOLUME — rows, events, seats — and keeps the features.",
+    fail: "The free tier removes features, so the product cannot be evaluated.",
+    label: "Limit usage, not features",
     subsection: "freemium",
     rule: "Limit the free tier by usage, not by removing features.",
     citation:
@@ -368,6 +467,9 @@ export const RULES: Rule[] = [
   },
   {
     id: "freemium-decoy",
+    pass: "A cheap paid tier sits directly above free, making the step up small.",
+    fail: "The jump from free to the first paid tier is large, so nobody steps.",
+    label: "A tier above free",
     subsection: "freemium",
     rule: "Add a decoy tier above the free plan to give free users a reason to move.",
     citation:
@@ -428,7 +530,11 @@ export interface SubsectionResult {
  */
 function missingReason(key: SubsectionKey, ctx: CrawlContext): string {
   if (ctx.thin) return "The page renders client-side, so there was nothing to read.";
-  if (!ctx.hasPricing) return "No public pricing page to read.";
+  if (!ctx.hasPricing) {
+    return ctx.pricingUnreadable
+      ? "Your pricing is there but renders client-side, so it could not be read."
+      : "No public pricing page to read.";
+  }
   if (key === "trials") return "No free trial offered.";
   if (key === "freemium") return "No free tier offered.";
   return "Not enough on the page to judge.";
@@ -580,7 +686,7 @@ export const GRADE_CAPS: GradeCap[] = [
     id: "no-pricing",
     ceiling: "C",
     when: (ctx) => !ctx.hasPricing,
-    reason: "No public pricing page — capped at C until there is one.",
+    reason: "No public pricing page we could read — capped at C until there is one.",
   },
   {
     id: "unreadable",
@@ -632,6 +738,59 @@ export function gradeFor(ratio: number, ctx: CrawlContext): GradeVerdict {
  */
 export function rulesPrompt(key: SubsectionKey, ctx: CrawlContext): string {
   return observableRules(key, ctx)
-    .map((r) => `- ${r.id}: ${r.rule}`)
-    .join("\n");
+    .map(
+      (r) =>
+        `### ${r.id}\n${r.rule}\nPASS: ${r.pass}\nFAIL: ${r.fail}`,
+    )
+    .join("\n\n");
+}
+
+/**
+ * Every observable check for this site, worst first.
+ *
+ * The report shows CHECKS, not subsection summaries. Rolling twenty-three
+ * distinct findings into six paragraphs threw away the thing that makes the
+ * claim worth anything — each check has a name, a test, a piece of evidence and
+ * a peer-reviewed paper behind it, and a summary keeps none of those.
+ */
+export interface CheckResult {
+  id: string;
+  label: string;
+  subsection: SubsectionKey;
+  subsectionLabel: string;
+  /** 0-5 as scored. */
+  score: number;
+  grade: Grade;
+  weight: 1 | 2 | 3;
+  /** The model's evidence for this check, quoting the page. */
+  evidence: string;
+  citation: string;
+}
+
+export function rankChecks(
+  ctx: CrawlContext,
+  scores: Map<string, number>,
+  notes: Map<string, string>,
+): CheckResult[] {
+  const out: CheckResult[] = [];
+  for (const s of SUBSECTIONS) {
+    for (const r of observableRules(s.key, ctx)) {
+      const score = scores.get(r.id);
+      if (typeof score !== "number") continue;
+      out.push({
+        id: r.id,
+        label: r.label,
+        subsection: r.subsection,
+        subsectionLabel: s.label,
+        score,
+        grade: rawGrade(score / MAX_PER_RULE),
+        weight: r.weight,
+        evidence: notes.get(r.id) ?? "",
+        citation: r.citation,
+      });
+    }
+  }
+  // Worst first, and heavier rules win a tie — a failed decoy-plan check is a
+  // bigger problem than a failed rounded-corners check at the same score.
+  return out.sort((a, b) => a.score - b.score || b.weight - a.weight);
 }

@@ -22,10 +22,10 @@
  *    throws instead of rendering the message. A 200 is the only way to get a
  *    sentence to the visitor.
  */
-import { readSite } from "../_lib/crawl";
+import { readSiteMarkdown } from "../_lib/pages";
 import { deriveTarget, hostFromUserUrl } from "../_lib/email-domain";
 import { readContext, scoreSite } from "../_lib/audit-score";
-import { subsectionLabel, type SubsectionKey } from "../_lib/playbook";
+
 import {
   checkRate,
   readCache,
@@ -194,7 +194,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         }
 
         send({ t: "step", ...STEPS[0] });
-        const site = await readSite(host, env.CONTEXT_DEV_API_KEY);
+        const site = await readSiteMarkdown(host, env.CONTEXT_DEV_API_KEY);
 
         send({ t: "step", ...STEPS[1], status: site.thin ? "BARELY" : "OK" });
 
@@ -284,25 +284,36 @@ const tick = (ms: number) => new Promise((r) => setTimeout(r, ms));
  * than a blur: a CSS blur ships the whole payload and loses to View Source.
  */
 function gate(result: Awaited<ReturnType<typeof scoreSite>>) {
-  const { verdict } = result;
+  const { verdict, checks } = result;
+  // Three checks open, the rest redacted BY NAME. Individual checks, not
+  // subsection summaries: the claim is twenty-three peer-reviewed checks, and
+  // that is only worth anything if each one is named, tested, evidenced and
+  // sourced on its own.
+  const open = checks.slice(0, OPEN_CHECKS);
+  const locked = checks.slice(OPEN_CHECKS);
   return {
     host: result.host,
-    // The GRADE is the result. No percentage crosses the wire: this battery is
-    // going to grow, and a number that moves when the rule set moves tells a
-    // returning visitor their site got worse when nothing about it changed.
     grade: verdict.grade,
     gradeLabel: verdict.label,
-    // Why the grade is lower than the findings suggest, when it is. Never let a
-    // ceiling go unexplained — an unexplained cap reads as a broken scorer.
     caps: verdict.caps,
-    findings: result.open.map((s) => ({
-      name: s.label,
-      grade: s.grade,
-      body: s.reason ?? result.notes.get(s.key as SubsectionKey) ?? "",
+    /** How many were run, so the redacted count is not a mystery. */
+    total: checks.length,
+    findings: open.map((c) => ({
+      name: c.label,
+      area: c.subsectionLabel,
+      grade: c.grade,
+      score: `${c.score}/5`,
+      body: c.evidence,
+      citation: c.citation,
     })),
-    lockedItems: result.locked.map((s) => subsectionLabel(s.key as SubsectionKey)),
+    // Names only. No evidence, no score, no citation for the withheld ones —
+    // the bars are a gate, not a blur, and nothing behind them is in the DOM.
+    lockedItems: locked.map((c) => c.label),
   };
 }
+
+/** How many checks are shown before the gate. */
+const OPEN_CHECKS = 3;
 
 const json = (body: unknown) =>
   new Response(JSON.stringify(body), {
