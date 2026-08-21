@@ -42,10 +42,35 @@ const NAV: [string, string][] = [
       {NAV.map(([label, href]) => (
         <a class="site-nav-link" href={href}>{label}</a>
       ))}
-      {/* One ask in the bar. The free-tool link used to hang under this button;
-          it now sits under the hero's primary CTA, where it is read in the
-          context of the promise rather than as a fifth thing in the chrome. */}
-      <Button size="sm" variant="primary" arrow href={BOOKING_URL} target="_blank" rel="noopener" class="site-header-cta">Book a call</Button>
+      {/* The ask in the bar is now a free audit rather than a booking.
+          The booking has not been removed, it has been moved one step later:
+          the audit's own CTA is "Book a call", and it arrives with a grade
+          attached instead of asking cold. The hero keeps its direct booking
+          button, so the high-intent path is still one click from the fold.
+
+          One field, on purpose. The site to crawl is derived from the address's
+          domain (see functions/_lib/email-domain.ts), so asking for a URL as
+          well would double the friction on the busiest surface of the site for
+          something we can usually infer. Free-mail addresses cannot be inferred
+          and get asked inside the modal, where the visitor is already looking.
+
+          Desktop only — see the mobile menu below, which keeps the button. */}
+      <form class="aol-header__auditform" novalidate>
+        <label class="aol-header__auditlabel" for="header-audit-email">Work email</label>
+        <input
+          id="header-audit-email"
+          class="aol-header__auditinput"
+          type="email"
+          name="email"
+          inputmode="email"
+          autocomplete="email"
+          placeholder="you@company.com"
+          required
+        />
+        <button type="submit" class="aol-header__auditgo" aria-label="Run a free audit">
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+      </form>
       <button type="button" class="site-nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
         <span></span><span></span><span></span>
       </button>
@@ -82,5 +107,32 @@ const NAV: [string, string][] = [
     });
     // Close the menu if the viewport grows past the mobile breakpoint.
     matchMedia("(min-width: 561px)").addEventListener("change", (e) => { if (e.matches) setOpen(false); });
+  }
+
+  // ── Audit field ──────────────────────────────────────────────────────────
+  // The header only validates and hands off. Everything else — the request,
+  // the stream, the report — belongs to AuditModal, which listens for this
+  // event. Keeping the two apart means the header ships no fetch logic and the
+  // modal works from any future entry point without changing here.
+  const auditForm = document.querySelector<HTMLFormElement>(".aol-header__auditform");
+  const auditInput = auditForm?.querySelector<HTMLInputElement>(".aol-header__auditinput");
+  if (auditForm && auditInput) {
+    auditForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = auditInput.value.trim();
+      // Same permissive shape used server-side: this catches typos, nothing
+      // more. The endpoint validates properly; a stricter regex here would
+      // reject addresses that genuinely deliver.
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+        auditForm.classList.add("is-invalid");
+        auditInput.focus();
+        return;
+      }
+      auditForm.classList.remove("is-invalid");
+      window.dispatchEvent(new CustomEvent("aol:audit", { detail: { email } }));
+      auditInput.blur();
+    });
+    // Clear the error the moment they start fixing it, not on the next submit.
+    auditInput.addEventListener("input", () => auditForm.classList.remove("is-invalid"));
   }
 </script>

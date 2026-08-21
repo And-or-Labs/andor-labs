@@ -1998,3 +1998,230 @@
   .aol-rt__filters{ gap:var(--space-5); }
   .aol-rt__filterset{ width:100%; }
 }
+
+/* ---- Header audit field -------------------------------------------------
+   Replaces the header's "Book a call" button. One field: the site to crawl is
+   derived from the address's domain, so a second input would double the
+   friction in the chrome for something we can usually infer.
+
+   Desktop only. A two-part form in a sticky bar at 375px is worse than the
+   button it replaces, so below 560px this is hidden and the mobile menu's
+   "Book a call" stays the ask. */
+.aol-header__auditform{
+  display:flex; align-items:stretch; gap:0;
+  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
+  background:var(--paper-pure); overflow:hidden;
+  box-shadow:var(--shadow-hard-sm);
+  transition:box-shadow var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+}
+.aol-header__auditform:focus-within{ border-color:var(--blue-600); }
+.aol-header__auditform.is-invalid{ border-color:var(--copper-600); }
+/* Visually hidden, not display:none — the input still needs a real label. */
+.aol-header__auditlabel{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+.aol-header__auditinput{
+  font-family:var(--font-mono); font-size:12.5px; letter-spacing:0.01em;
+  border:0; background:transparent; color:var(--ink-900);
+  padding:8px 4px 8px 14px; width:172px; min-width:0;
+}
+.aol-header__auditinput::placeholder{ color:var(--ink-400); }
+.aol-header__auditinput:focus{ outline:none; }
+.aol-header__auditgo{
+  display:inline-flex; align-items:center; justify-content:center;
+  border:0; cursor:pointer; padding:0 14px 0 10px;
+  background:var(--blue-600); color:var(--paper-pure);
+  font-size:14px; line-height:1;
+  transition:background var(--dur-base) var(--ease-out);
+}
+@media (hover:hover) and (pointer:fine){
+  .aol-header__auditgo:hover{ background:var(--blue-700, var(--blue-600)); }
+}
+@media (max-width:880px){ .aol-header__auditinput{ width:132px; } }
+@media (max-width:560px){ .aol-header__auditform{ display:none; } }
+
+/* ---- The audit modal ----------------------------------------------------
+   Native <dialog>: focus trap, Esc, inert background and ::backdrop are all
+   free, and each is a thing not to get subtly wrong. */
+.aol-auditmodal{
+  border:0; padding:0; background:transparent;
+  width:min(720px, calc(100vw - 32px));
+  max-height:min(86vh, 900px);
+  overflow:visible;
+}
+.aol-auditmodal::backdrop{
+  background:rgba(11,15,25,0.42);
+  backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+}
+.aol-term--modal{ display:flex; flex-direction:column; max-height:inherit; }
+/* Head strip stays put; only the screen scrolls. A report can be long and the
+   close control must never scroll out of reach. */
+.aol-term--modal .aol-term__head{ flex:none; }
+.aol-audit__screen{
+  flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  /* The 5/3 ratio is for the resting hero terminal, where the content is a
+     fixed eight lines. Here the content grows, so height is content-driven
+     inside the dialog's own cap. */
+  aspect-ratio:auto; min-height:220px;
+}
+.aol-audit__close{
+  display:inline-flex; align-items:center; gap:7px;
+  font:inherit; letter-spacing:inherit; text-transform:inherit;
+  color:var(--ink-500); background:transparent; border:0; cursor:pointer;
+  padding:2px 0;
+}
+@media (hover:hover) and (pointer:fine){
+  .aol-audit__close:hover{ color:var(--ink-900); }
+}
+.aol-audit__close:focus-visible{ outline:2px solid var(--blue-600); outline-offset:2px; }
+
+/* Free-mail fallback: ask for the URL here rather than back up in the header,
+   because by this point the visitor is looking at the terminal. */
+.aol-audit__urlform{ padding:4px 1.15em 20px; }
+.aol-audit__urllabel{
+  display:block; font-family:var(--font-mono); font-size:12px;
+  color:var(--ink-600); margin:0 0 9px;
+}
+.aol-audit__urlrow{ display:flex; gap:8px; }
+.aol-audit__urlinput{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-mono); font-size:13px;
+  padding:9px 12px; color:var(--ink-900);
+  border:1.5px solid var(--ink-900); border-radius:var(--radius-sm);
+  background:var(--paper-pure);
+}
+.aol-audit__urlinput:focus{ outline:none; border-color:var(--blue-600); }
+.aol-audit__urlgo{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em;
+  text-transform:uppercase; cursor:pointer;
+  padding:9px 16px; color:var(--paper-pure); background:var(--blue-600);
+  border:1.5px solid var(--ink-900); border-radius:var(--radius-sm);
+}
+
+/* ---- The receipt --------------------------------------------------------
+   Tractor-feed variant C3, from the design system's scorecard exploration.
+   Chosen over C1 "wide carriage" for a structural reason: C1 is min-width
+   880px and would scroll horizontally inside a 720px modal, pushing the
+   finding BODY — the prose that earns the call — off-screen first.
+
+   The roll also keeps the terminal in character. It is mono, narrow and
+   dashed, the same language the boot log is already speaking, so the machine
+   that spent forty seconds printing a progress log then prints a receipt.
+
+   ONE departure from C3: finding bodies are serif, not preformatted mono.
+   Twenty-five words of prose at 12px mono in a 430px column is the least
+   readable way to present the substance of the audit, and both the wide
+   carriage and the shipped ScorecardReport use serif here for that reason. */
+.aol-audit__roll{ padding:8px 0 26px; }
+.aol-roll{
+  position:relative; max-width:430px; margin:0 auto;
+  background:var(--paper-pure); padding:24px 24px 0;
+  border-left:1px solid var(--ink-200); border-right:1px solid var(--ink-200);
+  box-shadow:var(--shadow-hard-sm);
+}
+/* Torn edges, top and bottom. Masked scallops rather than an image so they
+   inherit the surface colour and survive a theme change. */
+.aol-roll::before,.aol-roll::after{
+  content:""; position:absolute; left:0; right:0; height:9px;
+  background:linear-gradient(to bottom,var(--ink-100) 0 7px,var(--ink-300) 7px 9px);
+  -webkit-mask-size:12px 9px; mask-size:12px 9px;
+}
+.aol-roll::before{
+  top:-9px;
+  -webkit-mask-image:radial-gradient(circle at 6px 0,transparent 5.5px,#000 5.5px);
+  mask-image:radial-gradient(circle at 6px 0,transparent 5.5px,#000 5.5px);
+}
+.aol-roll::after{
+  bottom:-9px;
+  -webkit-mask-image:radial-gradient(circle at 6px 9px,transparent 5.5px,#000 5.5px);
+  mask-image:radial-gradient(circle at 6px 9px,transparent 5.5px,#000 5.5px);
+}
+.aol-roll__head{ text-align:center; }
+.aol-roll__eyebrow{
+  display:block; font-family:var(--font-mono); font-size:10px;
+  letter-spacing:0.14em; text-transform:uppercase; color:var(--blue-600);
+}
+.aol-roll__host{
+  display:block; font-family:var(--font-mono); font-size:12px;
+  color:var(--ink-500); margin-top:6px;
+}
+/* The grade IS the result, so it gets the size a score used to get. */
+.aol-roll__grade{ text-align:center; padding:14px 0 4px; }
+.aol-roll__letter{
+  display:block; font-family:var(--font-mono); font-size:64px; line-height:1;
+  color:var(--blue-600); letter-spacing:-0.02em;
+}
+.aol-roll__label{
+  display:block; font-family:var(--font-mono); font-size:11px;
+  letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-600);
+  margin-top:8px;
+}
+/* A ceiling, explained. Copper because it is a caveat, not a failure — and
+   never shown when the cap did not actually bind. */
+.aol-roll__cap{
+  margin:12px 0 0; font-family:var(--font-mono); font-size:11px; line-height:1.5;
+  color:var(--copper-700, var(--ink-600)); text-align:center;
+}
+.aol-roll__rule{ border-top:1px dashed var(--ink-300); margin:16px 0; }
+.aol-roll__finding + .aol-roll__finding{
+  border-top:1px dotted var(--ink-200); margin-top:13px; padding-top:13px;
+}
+.aol-roll__fhead{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+.aol-roll__fname{
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.05em;
+  text-transform:uppercase; color:var(--ink-900);
+}
+.aol-roll__fgrade{
+  font-family:var(--font-mono); font-size:13px; color:var(--blue-600);
+  font-variant-numeric:tabular-nums; flex:none;
+}
+.aol-roll__fbody{
+  margin:6px 0 0; font-family:var(--font-serif); font-size:15px; line-height:1.5;
+  color:var(--ink-700); text-wrap:pretty;
+}
+/* The gate. These rows carry a NAME and a bar — the server never sent a body
+   or a grade for them, so there is nothing here to reveal. */
+.aol-roll__lock{ display:flex; align-items:center; gap:12px; padding:7px 0; }
+.aol-roll__lname{
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.05em;
+  text-transform:uppercase; color:var(--ink-400); flex:none;
+}
+.aol-roll__redact{
+  flex:1 1 auto; height:11px;
+  background:repeating-linear-gradient(90deg,var(--ink-200) 0 5px,var(--ink-100) 5px 9px);
+}
+/* The coupon. A receipt with a tear-off at the foot is already the shape of
+   this offer, so the CTA sits there natively. */
+.aol-roll__coupon{
+  margin:18px -24px 0; padding:20px 24px 24px;
+  border-top:2px dashed var(--ink-300); text-align:center;
+}
+.aol-roll__ctatitle{
+  font-family:var(--font-display); font-weight:400; font-size:21px;
+  line-height:1.12; margin:0 0 8px; color:var(--ink-900); text-wrap:pretty;
+}
+.aol-roll__ctabody{
+  font-size:14.5px; line-height:1.5; color:var(--ink-600); margin:0 0 16px; text-wrap:pretty;
+}
+.aol-roll__cta{
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em;
+  text-transform:uppercase; text-decoration:none;
+  padding:11px 22px; color:var(--paper-pure); background:var(--blue-600);
+  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
+  box-shadow:var(--shadow-hard-sm);
+}
+.aol-roll__cta:active{ transform:translate(2px,2px); box-shadow:none; }
+.aol-roll__note{
+  display:block; margin-top:10px; font-family:var(--font-mono); font-size:10px;
+  letter-spacing:0.08em; color:var(--ink-400);
+}
+@media (max-width:560px){
+  .aol-auditmodal{ width:100vw; max-height:100dvh; }
+  .aol-term--modal{ border-radius:0; min-height:100dvh; }
+  .aol-roll{ max-width:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .aol-roll__cta:active{ transform:none; }
+}

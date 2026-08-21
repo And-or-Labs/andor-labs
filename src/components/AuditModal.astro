@@ -1,0 +1,318 @@
+---
+/**
+ * The audit surface — the hero terminal, expanded.
+ *
+ * Lives in Base.astro so it is available from the header on every page, not
+ * just the homepage. On `/` it FLIPs out of the hero terminal's real position
+ * so it reads as that machine expanding; everywhere else there is no terminal
+ * to grow from, so it scales up from the header field instead.
+ *
+ * Native <dialog>, not a bespoke overlay. Focus trap, Esc, background inert and
+ * ::backdrop all come free, and every one of those is a thing not to write and
+ * not to get subtly wrong.
+ *
+ * Deliberately NOT a React island. The stream updates the DOM line by line
+ * anyway, so hydrating a component to do imperative DOM work would add a
+ * hydration boundary and a bundle for no gain. The scorecard markup below
+ * follows ScorecardReport's structure from the design system; the difference is
+ * that it is printed rather than rendered.
+ */
+import { BOOKING_URL } from "../config";
+---
+
+<dialog class="aol-auditmodal" aria-labelledby="audit-title">
+  <div class="aol-term aol-term--modal is-on is-auditing">
+    <div class="aol-term__head">
+      <span id="audit-title">ANDOR/OS <span class="aol-audit__host"></span></span>
+      <button type="button" class="aol-audit__close" aria-label="Close audit">
+        [ESC] <span class="aol-term__led"></span>
+      </button>
+    </div>
+
+    <div class="aol-term__screen aol-audit__screen">
+      <div class="aol-term__log aol-audit__log" role="status" aria-live="polite"></div>
+
+      {/* The URL prompt, shown only when a free-mail address gave us no domain
+          to read. Inside the terminal rather than back up in the header,
+          because by this point the visitor is looking here. */}
+      <form class="aol-audit__urlform" hidden>
+        <label class="aol-audit__urllabel" for="audit-url"></label>
+        <div class="aol-audit__urlrow">
+          <input
+            id="audit-url"
+            class="aol-audit__urlinput"
+            type="text"
+            inputmode="url"
+            autocomplete="url"
+            placeholder="yoursite.com"
+            required
+          />
+          <button type="submit" class="aol-audit__urlgo">Run it</button>
+        </div>
+      </form>
+
+      {/* The receipt. Printed after the log finishes. */}
+      <div class="aol-audit__roll" hidden>
+        <div class="aol-roll">
+          <div class="aol-roll__head">
+            <span class="aol-roll__eyebrow">GTM scorecard</span>
+            <span class="aol-roll__host"></span>
+          </div>
+
+          <div class="aol-roll__grade">
+            <span class="aol-roll__letter"></span>
+            <span class="aol-roll__label"></span>
+          </div>
+
+          <p class="aol-roll__cap" hidden></p>
+
+          <div class="aol-roll__rule" aria-hidden="true"></div>
+          <div class="aol-roll__findings"></div>
+
+          <div class="aol-roll__rule" aria-hidden="true"></div>
+          <div class="aol-roll__locked"></div>
+
+          <div class="aol-roll__coupon">
+            <h3 class="aol-roll__ctatitle">The other three, and what to do about them.</h3>
+            <p class="aol-roll__ctabody">
+              Thirty minutes, no deck. We go through the whole card and you keep the notes
+              either way.
+            </p>
+            <a class="aol-roll__cta" href={BOOKING_URL} target="_blank" rel="noopener">Book a call</a>
+            <span class="aol-roll__note">30 min · no deck</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  // ── The audit client ──────────────────────────────────────────────────────
+  // Reads the NDJSON stream and prints it. Everything here is deliberately
+  // small and imperative: the server decides what is shown, this decides only
+  // how fast it appears.
+  const dlg = document.querySelector<HTMLDialogElement>(".aol-auditmodal");
+  if (dlg) {
+    const log = dlg.querySelector<HTMLElement>(".aol-audit__log")!;
+    const rollWrap = dlg.querySelector<HTMLElement>(".aol-audit__roll")!;
+    const roll = dlg.querySelector<HTMLElement>(".aol-roll")!;
+    const urlForm = dlg.querySelector<HTMLFormElement>(".aol-audit__urlform")!;
+    const urlInput = dlg.querySelector<HTMLInputElement>(".aol-audit__urlinput")!;
+    const urlLabel = dlg.querySelector<HTMLElement>(".aol-audit__urllabel")!;
+    const hostSlot = dlg.querySelector<HTMLElement>(".aol-audit__host")!;
+    const closeBtn = dlg.querySelector<HTMLButtonElement>(".aol-audit__close")!;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Must match LEADER_COL in Hero.astro. Both logs share the column so the
+    // resting and working states line up in the same screen.
+    const LEADER_COL = 26;
+    const lead = (s: string) =>
+      s + " " + ".".repeat(Math.max(1, LEADER_COL - s.length)) + " ";
+
+    let pending: string | null = null;
+
+    const clear = () => {
+      log.textContent = "";
+      rollWrap.hidden = true;
+      urlForm.hidden = true;
+      roll.querySelector<HTMLElement>(".aol-roll__cap")!.hidden = true;
+    };
+
+    const print = (label: string, status = "") => {
+      const el = document.createElement("div");
+      el.className = "aol-term__line is-in";
+      el.textContent = lead(label);
+      if (status) {
+        const s = document.createElement("span");
+        s.className = "aol-term__ok is-in";
+        s.textContent = status;
+        el.appendChild(s);
+      }
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+    };
+
+    const printPlain = (text: string) => {
+      const el = document.createElement("div");
+      el.className = "aol-term__line is-in";
+      el.textContent = text;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+    };
+
+    /**
+     * Open, growing out of the hero terminal when there is one.
+     *
+     * FLIP rather than a canned transition: the point is that THIS machine got
+     * bigger, which only reads if the animation starts at the machine's real
+     * position on screen. On pages with no hero terminal it grows from the
+     * header field instead, which is where the visitor's attention already is.
+     */
+    const open = () => {
+      const origin =
+        document.querySelector<HTMLElement>(".aol-hero__term .aol-term") ??
+        document.querySelector<HTMLElement>(".aol-header__auditform");
+      const from = origin?.getBoundingClientRect();
+
+      dlg.showModal();
+
+      if (!from || reduce) return;
+      const to = dlg.getBoundingClientRect();
+      const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+      const dy = from.top + from.height / 2 - (to.top + to.height / 2);
+      dlg.animate(
+        [
+          { transform: `translate(${dx}px, ${dy}px) scale(${Math.max(0.2, from.width / to.width)})`, opacity: 0.4 },
+          { transform: "translate(0,0) scale(1)", opacity: 1 },
+        ],
+        { duration: 320, easing: "cubic-bezier(0.2, 0, 0, 1)" },
+      );
+    };
+
+    const close = () => {
+      if (!dlg.open) return;
+      if (reduce) return dlg.close();
+      dlg
+        .animate([{ opacity: 1 }, { opacity: 0, transform: "scale(0.97)" }], {
+          duration: 160,
+          easing: "ease-in",
+        })
+        .addEventListener("finish", () => dlg.close());
+    };
+
+    closeBtn.addEventListener("click", close);
+    // Backdrop click. A <dialog>'s own box is the click target for its
+    // backdrop, so compare against the content rect rather than event.target.
+    dlg.addEventListener("click", (e) => {
+      const r = dlg.getBoundingClientRect();
+      const outside =
+        e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      if (outside) close();
+    });
+
+    /** Render the receipt. */
+    const printRoll = (d: any) => {
+      roll.querySelector<HTMLElement>(".aol-roll__host")!.textContent = d.host ?? "";
+      roll.querySelector<HTMLElement>(".aol-roll__letter")!.textContent = d.grade ?? "?";
+      roll.querySelector<HTMLElement>(".aol-roll__label")!.textContent = d.gradeLabel ?? "";
+
+      const cap = roll.querySelector<HTMLElement>(".aol-roll__cap")!;
+      if (Array.isArray(d.caps) && d.caps.length) {
+        cap.textContent = d.caps[0];
+        cap.hidden = false;
+      }
+
+      const fWrap = roll.querySelector<HTMLElement>(".aol-roll__findings")!;
+      fWrap.textContent = "";
+      for (const f of d.findings ?? []) {
+        const row = document.createElement("div");
+        row.className = "aol-roll__finding";
+        row.innerHTML =
+          `<div class="aol-roll__fhead"><span class="aol-roll__fname"></span>` +
+          `<span class="aol-roll__fgrade"></span></div><p class="aol-roll__fbody"></p>`;
+        row.querySelector(".aol-roll__fname")!.textContent = f.name ?? "";
+        row.querySelector(".aol-roll__fgrade")!.textContent = f.grade ?? "n/a";
+        row.querySelector(".aol-roll__fbody")!.textContent = f.body ?? "";
+        fWrap.appendChild(row);
+      }
+
+      // The gate. These are names only — the server never sent anything else,
+      // so there is nothing here to un-hide.
+      const lWrap = roll.querySelector<HTMLElement>(".aol-roll__locked")!;
+      lWrap.textContent = "";
+      for (const name of d.lockedItems ?? []) {
+        const row = document.createElement("div");
+        row.className = "aol-roll__lock";
+        row.innerHTML = `<span class="aol-roll__lname"></span><span class="aol-roll__redact" aria-hidden="true"></span>`;
+        row.querySelector(".aol-roll__lname")!.textContent = name;
+        lWrap.appendChild(row);
+      }
+
+      rollWrap.hidden = false;
+      rollWrap.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+    };
+
+    /** POST and consume the stream. */
+    const run = async (email: string, url?: string) => {
+      clear();
+      pending = email;
+      hostSlot.textContent = "";
+
+      let res: Response;
+      try {
+        res = await fetch("/api/audit", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email, url }),
+        });
+      } catch {
+        printPlain("> couldn't reach the scorer. try again?");
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) return;
+      const dec = new TextDecoder();
+      let buf = "";
+
+      const handle = (raw: string) => {
+        if (!raw.trim()) return;
+        let msg: any;
+        try {
+          msg = JSON.parse(raw);
+        } catch {
+          return;
+        }
+        if (msg.t === "open") hostSlot.textContent = msg.host ? `· ${msg.host}` : "";
+        else if (msg.t === "step") print(msg.label, msg.status);
+        else if (msg.t === "need-url") {
+          urlLabel.textContent = msg.message;
+          urlForm.hidden = false;
+          urlInput.focus();
+        } else if (msg.t === "failed") {
+          printPlain("");
+          printPlain(`> ${msg.message}`);
+        } else if (msg.t === "result") {
+          printPlain("");
+          printPlain("> report ready");
+          printRoll(msg);
+        }
+      };
+
+      // A chunk can split a line anywhere, so hold the tail until a newline
+      // proves it complete.
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const raw of lines) handle(raw);
+      }
+
+      // FLUSH THE TAIL. The non-streamed replies — need-url and the validation
+      // failures — are a single JSON object sent with no trailing newline, so
+      // they live entirely in `buf` and never reach the loop above. Dropping
+      // this line is what silently breaks the whole free-mail path.
+      buf += dec.decode();
+      handle(buf);
+    };
+
+    urlForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (pending && urlInput.value.trim()) {
+        urlForm.hidden = true;
+        run(pending, urlInput.value.trim());
+      }
+    });
+
+    // The header form's entry point.
+    window.addEventListener("aol:audit", (e) => {
+      const email = (e as CustomEvent<{ email: string }>).detail?.email;
+      if (!email) return;
+      open();
+      run(email);
+    });
+  }
+</script>
