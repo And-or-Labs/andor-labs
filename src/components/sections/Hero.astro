@@ -68,6 +68,19 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
           <button type="submit" class="aol-hero__auditgo">Free audit</button>
         </div>
         <p class="aol-hero__auditerr" role="alert" hidden></p>
+
+        {/* Progress, under the field, appearing only once a run starts.
+            The crawl steps are real milestones so they move it in discrete
+            jumps; scoring is one long opaque wait with no internal signal, so
+            that stretch runs on elapsed time and is CAPPED BELOW 100. A bar
+            sitting full while nothing happens is worse than one honestly still
+            crawling — only the result fills it. */}
+        <div class="aol-hero__progress" hidden>
+          <div class="aol-hero__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <span class="aol-hero__fill"></span>
+          </div>
+          <p class="aol-hero__status" role="status" aria-live="polite"></p>
+        </div>
       </form>
       {/* <a class="aol-hero__alt" href="/tools/rank-my-adtech/">Get your company ranked by three AI labs <span aria-hidden="true">&rarr;</span></a> */}
     </div>
@@ -104,25 +117,169 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
 </section>
 
 <script>
-  // ── Audit field ──────────────────────────────────────────────────────────
-  // Validates and hands off, nothing more. The request, the stream and the
-  // report belong to AuditModal, which listens for this event — so the hero
-  // ships no fetch logic and the modal keeps working from any future entry
-  // point without a change here. Moving this form from the header to the hero
-  // cost exactly this listener and nothing else, which is the payoff.
+  // ── The audit, run in place ──────────────────────────────────────────────
+  // No navigation. The wait is the problem a lead magnet has to solve, and
+  // sending somebody to a loading screen makes it worse — it throws away the
+  // promise they just read. The bar fills under the field, and the answer
+  // arrives in the receipt below as the next thing to read.
   const auditForm = document.querySelector<HTMLFormElement>(".aol-hero__auditform");
   const auditInput = auditForm?.querySelector<HTMLInputElement>(".aol-hero__auditinput");
   const auditErr = auditForm?.querySelector<HTMLElement>(".aol-hero__auditerr");
-  if (auditForm && auditInput) {
+  const progress = auditForm?.querySelector<HTMLElement>(".aol-hero__progress");
+  const bar = auditForm?.querySelector<HTMLElement>(".aol-hero__bar");
+  const fill = auditForm?.querySelector<HTMLElement>(".aol-hero__fill");
+  const status = auditForm?.querySelector<HTMLElement>(".aol-hero__status");
+  const receipt = document.querySelector<HTMLElement>(".aol-receipt");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (auditForm && auditInput && progress && bar && fill && status && receipt) {
+    const roll = receipt.querySelector<HTMLElement>(".aol-roll")!;
+    const submit = auditForm.querySelector<HTMLButtonElement>(".aol-hero__auditgo")!;
+
+    // Discrete through the crawl, time-based through scoring, capped until the
+    // result actually lands.
+    const STEPS = ["wake", "home", "pricing", "studies", "sodont"];
+    const FLOOR = 34, CEILING = 94, TYPICAL_S = 120;
+    let pct = 0;
+    const setPct = (n: number) => {
+      pct = Math.max(pct, Math.min(100, n));
+      fill.style.width = `${pct}%`;
+      bar.setAttribute("aria-valuenow", String(Math.round(pct)));
+    };
+    const say = (t: string) => { status.textContent = t; };
+
+    const stop = (message?: string) => {
+      auditForm.classList.remove("is-running");
+      submit.disabled = false;
+      if (message) say(message);
+    };
+
+    const render = (d: any) => {
+      const q = (sel: string) => roll.querySelector<HTMLElement>(sel)!;
+      q(".aol-roll__host").textContent = d.host ?? "";
+      q(".aol-roll__letter").textContent = d.grade ?? "?";
+      q(".aol-roll__label").textContent = d.gradeLabel ?? "";
+
+      const shown = (d.findings ?? []).length;
+      const held = (d.lockedItems ?? []).length;
+      q(".aol-roll__meta").textContent =
+        `${d.total ?? shown + held} checks run · ${shown} shown · ${held} held back`;
+      q(".aol-roll__ctatitle").textContent = `The other ${held} checks, and what to do about them.`;
+
+      const cap = q(".aol-roll__cap");
+      if (Array.isArray(d.caps) && d.caps.length) { cap.textContent = d.caps[0]; cap.hidden = false; }
+
+      const f = q(".aol-roll__findings");
+      f.textContent = "";
+      (d.findings ?? []).forEach((x: any, i: number) => {
+        const r = document.createElement("div");
+        r.className = "aol-roll__finding";
+        r.innerHTML =
+          `<div class="aol-roll__fhead"><span class="aol-roll__fname"></span><span class="aol-roll__fgrade"></span></div>` +
+          `<p class="aol-roll__fbody"></p><p class="aol-roll__fcite"></p>`;
+        r.querySelector(".aol-roll__fname")!.textContent = `${String(i + 1).padStart(2, "0")}  ${x.name ?? ""}`;
+        r.querySelector(".aol-roll__fgrade")!.textContent = x.score ?? "";
+        r.querySelector(".aol-roll__fbody")!.textContent = x.body ?? "";
+        r.querySelector(".aol-roll__fcite")!.textContent = x.citation ?? "";
+        f.appendChild(r);
+      });
+
+      const l = q(".aol-roll__locked");
+      l.textContent = "";
+      (d.lockedItems ?? []).forEach((name: string, i: number) => {
+        const r = document.createElement("div");
+        r.className = "aol-roll__lock";
+        r.innerHTML = `<span class="aol-roll__lname"></span><span class="aol-roll__redact" aria-hidden="true"></span>`;
+        r.querySelector(".aol-roll__lname")!.textContent = `${String(shown + i + 1).padStart(2, "0")}  ${name}`;
+        l.appendChild(r);
+      });
+
+      receipt.hidden = false;
+      // Scroll only after the layout exists, or the browser scrolls to where
+      // the section was before it had any height.
+      requestAnimationFrame(() =>
+        receipt.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }),
+      );
+    };
+
+    const handle = (msg: any) => {
+      if (msg.t === "open") say(`reading ${msg.host}…`);
+      else if (msg.t === "step") {
+        say(msg.status ? `${msg.label.toLowerCase()} — ${msg.status.toLowerCase()}` : msg.label.toLowerCase());
+        const at = STEPS.indexOf(msg.key);
+        if (at >= 0) setPct(((at + 1) / STEPS.length) * FLOOR);
+      } else if (msg.t === "tick") {
+        setPct(FLOOR + Math.min(1, msg.seconds / TYPICAL_S) * (CEILING - FLOOR));
+        say(`still reading — ${msg.seconds}s`);
+      } else if (msg.t === "need-url") {
+        stop(msg.message);
+      } else if (msg.t === "failed") {
+        stop(msg.message);
+      } else if (msg.t === "result") {
+        setPct(100);
+        stop("done");
+        render(msg);
+      }
+    };
+
+    const run = async (email: string) => {
+      auditForm.classList.add("is-running");
+      submit.disabled = true;
+      progress.hidden = false;
+      setPct(2);
+      say("connecting…");
+
+      let res: Response;
+      try {
+        res = await fetch("/api/audit", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+      } catch {
+        stop("Couldn't reach the scorer. Check your connection and try again.");
+        return;
+      }
+
+      // A non-OK reply must never be silent. astro dev answers 502 with an
+      // EMPTY body and fetch does not throw on it — without this the bar sat
+      // there and nothing else ever happened.
+      const ctype = res.headers.get("content-type") ?? "";
+      if (!res.ok || !/ndjson|json/i.test(ctype)) {
+        stop(
+          res.status === 502 || res.status === 404
+            ? "The scorer isn't running. Locally: npx wrangler pages dev dist --port 8788"
+            : `The scorer answered ${res.status}. Try again shortly, or just book the call.`,
+        );
+        return;
+      }
+      const reader = res.body?.getReader();
+      if (!reader) { stop("The scorer sent an empty reply."); return; }
+
+      const dec = new TextDecoder();
+      let buf = "";
+      const feed = (raw: string) => {
+        if (!raw.trim()) return;
+        try { handle(JSON.parse(raw)); } catch { /* a partial or junk line */ }
+      };
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const l of lines) feed(l);
+      }
+      // FLUSH THE TAIL: need-url and the validation failures are a single JSON
+      // object with no trailing newline, so they live entirely in the buffer.
+      buf += dec.decode();
+      feed(buf);
+    };
+
     auditForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const email = auditInput.value.trim();
-      // The same permissive shape the server uses. A stricter regex here would
-      // reject addresses that genuinely deliver; this catches typos.
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-        // .aol-control--error is the design system's invalid state. An
-        // invented .is-invalid would have looked identical here and diverged
-        // the first time the DS restyled errors.
         auditInput.classList.add("aol-control--error");
         if (auditErr) { auditErr.textContent = "That doesn't look like an email address."; auditErr.hidden = false; }
         auditInput.focus();
@@ -130,22 +287,12 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       }
       auditInput.classList.remove("aol-control--error");
       if (auditErr) auditErr.hidden = true;
-
-      // The address travels in sessionStorage, not the URL. A work email in a
-      // query string lands in browser history, in the referrer header on every
-      // outbound click from the results page, and in any analytics that records
-      // paths. sessionStorage is read once and cleared on arrival.
-      try {
-        sessionStorage.setItem("aol:audit-email", email);
-      } catch {
-        // Private mode or a full quota. The audit page has its own field, so
-        // arriving without the address asks rather than failing.
-      }
-      window.location.assign("/audit");
+      void run(email);
     });
     auditInput.addEventListener("input", () => {
       auditInput.classList.remove("aol-control--error");
       if (auditErr) auditErr.hidden = true;
     });
   }
+
 </script>

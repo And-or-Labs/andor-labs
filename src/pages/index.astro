@@ -2,6 +2,7 @@
 import Base from "../layouts/Base.astro";
 import SiteHeader from "../components/sections/SiteHeader.astro";
 import Hero from "../components/sections/Hero.astro";
+import AuditReceipt from "../components/sections/AuditReceipt.astro";
 import FounderNote from "../components/sections/FounderNote.astro";
 import Capabilities from "../components/sections/Capabilities.astro";
 import Offers from "../components/sections/Offers.astro";
@@ -18,6 +19,8 @@ import CopyDiffer from "../components/CopyDiffer.astro";
   <SiteHeader />
   <main>
     <Hero />
+    {/* Prints below the hero when a run finishes, and the page scrolls to it. */}
+    <AuditReceipt />
     <FounderNote />
     <Capabilities />
     <Offers />
