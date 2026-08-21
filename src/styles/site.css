@@ -137,7 +137,11 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
 /* Hero fills the first screen below the sticky header and centres its content;
    the credentials bar rests at the bottom of that screen. */
 .aol-hero { display: flex; flex-direction: column; min-height: calc(100svh - var(--header-h)); }
-.aol-hero > .aol-hero-inner { flex: 1 1 auto; justify-content: center; }
+/* The stage is now the hero's flex child, not the inner — wrapping the content
+   so the picture could sit behind it re-parented the inner one level down and
+   silently killed the old `.aol-hero > .aol-hero-inner` rules. The centring
+   moves up to the stage; the inner keeps its own column layout. */
+.aol-hero > .aol-herostage { flex: 1 1 auto; align-items: center; justify-content: center; }
 .aol-grid-3 { grid-template-columns: repeat(3, 1fr); }
 .aol-grid-2 { grid-template-columns: 1.25fr 1fr; }
 
@@ -151,7 +155,8 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
      var() to an undefined token invalidates the whole shorthand (which silently
      zeroed the gutter padding). Stick to defined steps. */
   .aol-hero { min-height: auto; }
-  .aol-hero > .aol-hero-inner { justify-content: flex-start; padding: var(--space-8) var(--gutter) var(--space-10); }
+  .aol-hero > .aol-herostage { align-items: flex-start; }
+  .aol-hero-inner { padding: var(--space-8) var(--gutter) var(--space-10); }
   .aol-hero__founder  { margin-bottom: var(--space-5); }
   .aol-hero__headline { margin-bottom: var(--space-5); }
   .aol-hero__subhead  { margin-bottom: var(--space-6); }
