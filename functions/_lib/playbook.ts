@@ -488,6 +488,28 @@ export function totals(results: SubsectionResult[]): AuditTotals {
 }
 
 /**
+ * The verdict word for a score.
+ *
+ * NOT functions/_lib/bands.ts. That ladder is calibrated out of 30 — its top
+ * band starts at 24 — so handing it a percentage returns "Rare air" for every
+ * site on earth, including a broken one. Its labels are also Rank My AdTech's
+ * voice, which is a leaderboard's, not an audit's.
+ *
+ * Phrased as a position rather than a mood, same principle bands.ts argues for:
+ * a band has to be a verdict someone could disagree with.
+ */
+const AUDIT_BANDS: { min: number; label: string }[] = [
+  { min: 85, label: "band A · sharp" },
+  { min: 70, label: "band B · solid, with gaps" },
+  { min: 55, label: "band C · leaking" },
+  { min: 40, label: "band D · needs work" },
+  { min: 0, label: "band E · start here" },
+];
+
+export const auditBand = (score: number): string =>
+  (AUDIT_BANDS.find((b) => score >= b.min) ?? AUDIT_BANDS[AUDIT_BANDS.length - 1]).label;
+
+/**
  * The rules, serialised for the scoring prompt.
  *
  * Only observable rules go in. A model shown a rule it cannot check will find a

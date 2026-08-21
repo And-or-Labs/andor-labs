@@ -18,6 +18,7 @@ import {
   rulesPrompt,
   scoreSubsection,
   totals,
+  auditBand,
   type CrawlContext,
   type SubsectionKey,
 } from "../functions/_lib/playbook";
@@ -189,6 +190,26 @@ describe("the gate", () => {
       expect(serialised).toContain(r.label);
       expect(serialised).not.toContain(String(r.earned));
     }
+  });
+});
+
+describe("the verdict band", () => {
+  it("spans the whole 0-100 range instead of collapsing to one label", () => {
+    const labels = [0, 20, 45, 60, 75, 90, 100].map(auditBand);
+    expect(new Set(labels).size).toBeGreaterThan(3);
+  });
+
+  it("does not hand a broken site the top band", () => {
+    // The bug this guards: functions/_lib/bands.ts is calibrated out of 30, so
+    // bandFor(anything >= 24) returns "Rare air" — which is every percentage
+    // score above 24, including a site that scored 25/100.
+    expect(auditBand(25)).not.toBe(auditBand(95));
+    expect(auditBand(0)).toContain("band E");
+    expect(auditBand(100)).toContain("band A");
+  });
+
+  it("matches the format ScorecardReport's grade prop expects", () => {
+    for (const s of [0, 41, 56, 71, 86]) expect(auditBand(s)).toMatch(/^band [A-E] · .+/);
   });
 });
 
