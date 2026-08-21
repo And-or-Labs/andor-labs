@@ -2003,6 +2003,57 @@
   .aol-rt__filterset{ width:100%; }
 }
 
+/* ---- The horizon (hero) --------------------------------------------------
+   A pixel-art panorama along the foot of the hero, under the promise and above
+   the credibility strip.
+
+   image-rendering:pixelated is the whole thing. The source was a 1.3MB AI
+   render that only LOOKED like pixel art — 208,000 unique colours and a
+   dominant horizontal run length of one pixel, i.e. smooth. It was halved onto
+   a real grid and quantised to 64 colours, which both made it genuinely pixel
+   art and took it to 84KB. Letting the browser smooth it on the way back up
+   would undo every part of that and leave a soft, slightly wrong photograph.
+
+   Full-bleed rather than contained: a 4:1 panorama boxed inside the 1200px
+   container reads as a picture someone placed, while edge to edge it reads as
+   the horizon the page is standing on. */
+.aol-horizon{
+  position:relative;
+  width:100%;
+  line-height:0;
+  overflow:hidden;
+}
+.aol-horizon img{
+  display:block;
+  width:100%;
+  /* An EXPLICIT height, not max-height. With height:auto a max-height scales the
+     whole image down to fit — width included — so the band would have floated
+     to ~840px on a 1440px screen instead of going edge to edge, and object-fit
+     would have had no box to crop against. A real height is what makes cover
+     crop rather than shrink. */
+  height:clamp(96px, 15vw, 210px);
+  object-fit:cover;
+  /* Anchor to the mountains rather than the sky: when it crops, the sky is the
+     half worth losing. */
+  object-position:center 62%;
+  image-rendering:pixelated;
+}
+/* Fade the top edge into the paper so the band is a horizon rather than a
+   rectangle someone pasted on. The gradient is in the mask, not a scrim
+   overlay, so it works on any background without hardcoding the paper colour —
+   which matters because --paper is a token that has moved before. */
+.aol-horizon::after{
+  content:"";
+  position:absolute; inset:0;
+  background:linear-gradient(to bottom, var(--paper) 0%, transparent 38%);
+  pointer-events:none;
+}
+@media (max-width:880px){
+  /* Shorter on a phone, where vertical space above the fold is the scarce
+     thing and the hero already overflows. */
+  .aol-horizon img{ height:clamp(72px, 22vw, 120px); }
+}
+
 /* ---- Hero audit field ---------------------------------------------------
    One control: a placeholder and an integrated button, nothing else. No
    painted label, no ruled underline, no pill.
