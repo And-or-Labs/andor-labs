@@ -19,25 +19,7 @@ const SOCIALS: [string, string][] = [
   ["GitHub", "https://github.com/eclecticv"],
 ];
 ---
-<footer class="aol-footer">
-  {/* ── The foot ────────────────────────────────────────────────────────
-      Solid along the bottom, dissolving upward into the paper.
-
-      The dissolve is a MASK, not a scrim: it fades the image's own alpha, so it
-      lands on whatever is behind it and the paper colour never gets written
-      into this rule. --surface-card has been re-pointed once already, and a
-      hardcoded gradient would have survived that change looking wrong.
-
-      The footer carries bottom padding to match, so the solid part of the band
-      sits BELOW the legal line rather than under it — the same relationship the
-      hero has with its own horizon, where the picture is the ground the page
-      stands on rather than a texture behind the type.
-
-      DECORATIVE: aria-hidden, empty alt, real dimensions so it reserves its box.
-      Lazy, unlike the hero's: this one is a long way below the fold. */}
-  <div class="aol-footer__horizon" aria-hidden="true">
-    <img src="/rockies-sunset.png" alt="" width="1088" height="272" decoding="async" loading="lazy" />
-  </div>
+<footer style="border-top:1px solid var(--ink-200);background:var(--surface-card)">
   <div class="aol-footer-grid" style="max-width:var(--container-width);margin:0 auto;padding:var(--space-12) var(--gutter) var(--gutter);display:grid;gap:32px;align-items:start">
     <div>
       <Logo size="md" />
@@ -65,7 +47,7 @@ const SOCIALS: [string, string][] = [
           title="Snitcher Bronze Partner"></iframe>
     </div>
   </div>
-  <div class="aol-footer__legal">
+  <div style="border-top:1px solid var(--ink-200)">
     <div style="max-width:var(--container-width);margin:0 auto;padding:var(--space-4) var(--gutter);display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--ink-500);letter-spacing:0.04em">
       <span>© 2026 And/or Labs</span>
     </div>

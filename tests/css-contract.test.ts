@@ -9,6 +9,12 @@
  * the hero shipped a raw 1088x272 image with no height cap, no crop and no
  * pixelation. A structural edit to a stylesheet has no compiler.
  *
+ * The horizon band it was written for was removed on 2026-08-22 — the imagery
+ * was a step too far from the design system — so its four assertions are gone
+ * with it. The file stays, and so does this note: the failure it records was
+ * never about that one block, it was about structural edits to a stylesheet
+ * having no compiler.
+ *
  * Only rules that are LOAD-BEARING belong here — ones where losing the
  * declaration changes what the page does rather than how it is decorated.
  */
@@ -39,31 +45,6 @@ describe("the hero form always submits", () => {
     // The block was 31rem holding a 26rem form aligned left, which put the
     // field five rem off the centre line the headline sits on.
     expect(css).toMatch(/\.aol-hero__auditform\{[^}]*margin:0 auto/);
-  });
-});
-
-describe("the horizon band", () => {
-  it("still has its rules at all", () => {
-    expect(css).toContain(".aol-horizon{");
-    expect(css).toContain(".aol-horizon img{");
-  });
-
-  it("keeps an EXPLICIT height, which is what makes object-fit crop", () => {
-    // With height:auto the image ignores object-fit entirely and renders at its
-    // full 272px natural height. This is the single declaration whose loss most
-    // changes the hero.
-    expect(css).toMatch(/\.aol-horizon img\{[^}]*height:\s*clamp\(/);
-  });
-
-  it("keeps image-rendering:pixelated", () => {
-    // The source was quantised onto a real pixel grid specifically so this
-    // would work. Smoothing on the way back up undoes all of it and leaves a
-    // soft, slightly wrong photograph.
-    expect(css).toMatch(/\.aol-horizon img\{[^}]*image-rendering:\s*pixelated/);
-  });
-
-  it("keeps the fade that stops it reading as a pasted rectangle", () => {
-    expect(css).toMatch(/\.aol-horizon::after\{[^}]*linear-gradient/);
   });
 });
 
