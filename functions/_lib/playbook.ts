@@ -133,6 +133,23 @@ export interface Rule {
    */
   pass: string;
   fail: string;
+  /**
+   * The mechanism, in one sentence — WHY the rule works, not what it says.
+   *
+   * A verdict without a mechanism is an assertion. This is the sentence that
+   * turns "you lead with five benefits" into something somebody acts on, and
+   * the report prints it under every open finding.
+   */
+  why: string;
+  /**
+   * The study's own number, verbatim from saas-grader's reference, or EMPTY.
+   *
+   * Empty is a real value and appears on roughly half these rules. Every stat
+   * here traces to a specific paper's reported effect; none is estimated,
+   * rounded up, or inferred from a related finding. A fabricated number on a
+   * page that sells itself on peer review would be the worst thing on it.
+   */
+  stat: string;
   /** The peer-reviewed study behind it, verbatim from the playbook's own citation. */
   citation: string;
   /**
@@ -169,6 +186,8 @@ export const RULES: Rule[] = [
   // ── §1 Brand and messaging ────────────────────────────────────────────────
   {
     id: "productize",
+    why: "A buyer who cannot picture what they get treats the purchase as riskier, so they hesitate or leave.",
+    stat: "Productized offerings raise both willingness to buy and willingness to pay.",
     pass: "The page names a specific outcome and a defined scope — what it does, for whom, ideally with a price.",
     fail: "The page sells a generic capability or category with no bounded outcome, e.g. 'analytics platform'.",
     label: "Productised offer",
@@ -182,6 +201,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "top-three-benefits",
+    why: "Three claims establish a pattern a reader can act on. A fourth reads as protesting too much and invites scepticism.",
+    stat: "3 claims were 10.4% more persuasive than 4.",
     pass: "Exactly three headline benefits lead the page.",
     fail: "Four or more competing benefit claims lead the page, or fewer than three.",
     label: "Three key benefits",
@@ -197,6 +218,8 @@ export const RULES: Rule[] = [
   // ── §1 Page design and visuals ────────────────────────────────────────────
   {
     id: "perceptual-structure",
+    why: "A page that mixes registers makes the brand harder to place, and an unplaceable brand is harder to trust.",
+    stat: "",
     pass: "Type, colour and imagery hold ONE register throughout — either capable/reliable or fun/exciting.",
     fail: "The page mixes registers, e.g. playful illustration against enterprise proof copy.",
     label: "One visual register",
@@ -210,6 +233,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "layout-by-type",
+    why: "A layout borrowed from a different kind of product buries the thing this one is actually judged on.",
+    stat: "",
     pass: "Layout suits what is sold: a visual product shows itself, a technical one leads with specifics.",
     fail: "A generic template that would fit any SaaS with the words swapped.",
     label: "Layout matches the product",
@@ -223,6 +248,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "rounded-cta",
+    why: "Rounded shapes are processed more fluently, and fluency shows up as clicks.",
+    stat: "",
     pass: "Primary CTA buttons have rounded corners.",
     fail: "Primary CTA buttons are square-cornered.",
     label: "Rounded CTA buttons",
@@ -236,6 +263,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "cta-upper-right",
+    why: "Eye-tracking puts first fixation in the upper-left-to-right sweep; a CTA outside it is found later or not at all.",
+    stat: "",
     pass: "A CTA button sits in the upper-right quadrant, typically in the nav.",
     fail: "The upper right holds no CTA — only links, a search box, or nothing.",
     label: "CTA in the upper right",
@@ -249,6 +278,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "before-left-after-right",
+    why: "People read time left to right, so a reversed comparison quietly argues the wrong direction.",
+    stat: "",
     pass: "Any before/after or old-way/new-way comparison puts before on the LEFT.",
     fail: "A comparison runs the other way, or the page shows none (score 3, not a failure).",
     label: "Before left, after right",
@@ -262,6 +293,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "video-for-hedonic",
+    why: "Motion conveys what an enjoyable product feels like in a way a still cannot.",
+    stat: "",
     pass: "Product video or motion is present where the product is meant to feel enjoyable.",
     fail: "No video or motion on a product whose appeal is experiential.",
     label: "Video for enjoyable software",
@@ -275,6 +308,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "video-pacing",
+    why: "Pacing signals the claim: slow reads as craft, fast reads as capability.",
+    stat: "",
     pass: "",
     fail: "",
     label: "Video pacing",
@@ -292,6 +327,8 @@ export const RULES: Rule[] = [
   // ── §1 Social proof and reviews ───────────────────────────────────────────
   {
     id: "show-numbers",
+    why: "A specific number is checkable; 'trusted by teams everywhere' is not, and unverifiable praise is discounted.",
+    stat: "Sales numbers lift purchase intent by up to 53.5%; view counts by 30%.",
     pass: "A real count is shown — users, customers, sites, events, revenue processed.",
     fail: "Popularity is claimed without a number: 'trusted by teams everywhere'.",
     label: "Real counts shown",
@@ -305,6 +342,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "imperfect-rating",
+    why: "A perfect score reads as curated. A few imperfections are what make the rest credible.",
+    stat: "Sales peak at 4–4.5 stars, then decline.",
     pass: "An average rating is shown and is strong but not perfect, e.g. 4.6–4.9.",
     fail: "No rating shown at all, OR a flat 5.0, which reads as fabricated.",
     label: "Strong but imperfect rating",
@@ -318,6 +357,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "first-review",
+    why: "The first testimonial frames how every later one is read, so a generic one costs you all of them.",
+    stat: "The first review sets the tone for all subsequent perception.",
     pass: "The first testimonial names a person and role and makes a specific claim.",
     fail: "The first testimonial is generic, anonymous, or a logo wall with no words.",
     label: "The first testimonial",
@@ -333,6 +374,8 @@ export const RULES: Rule[] = [
   // ── §2 The plans ──────────────────────────────────────────────────────────
   {
     id: "three-to-five-plans",
+    why: "Too few plans give nothing to compare; too many stall the decision.",
+    stat: "Extremeness aversion drives most buyers to the middle plan.",
     pass: "The pricing page shows between three and five plans inclusive.",
     fail: "Fewer than three or more than five plans, counting a free tier.",
     label: "Three to five plans",
@@ -346,6 +389,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "decoy-plan",
+    why: "A dominated option makes the target plan the obvious choice without changing its price.",
+    stat: "Adding a decoy plan boosted main-plan sales by 16–23%.",
     pass: "One middle plan is clearly dominated, making the target plan the obvious pick.",
     fail: "Every plan is a reasonable choice on price-to-value, so nothing anchors.",
     label: "A decoy plan",
@@ -359,6 +404,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "price-on-left",
+    why: "A price read before the features anchors the comparison; read after, it reads as a correction.",
+    stat: "",
     pass: "Plans read left to right and each price sits at the left or top-left of its card.",
     fail: "Prices sit right-aligned or below the feature list.",
     label: "Price on the left",
@@ -372,6 +419,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "price-difference-framing",
+    why: "'$15 more' is a small number. The same upgrade shown at full price is a large one.",
+    stat: "",
     pass: "Upgrades are framed by the difference, e.g. 'just $15 more'.",
     fail: "Every tier states only its full price with no comparison.",
     label: "Priced by the difference",
@@ -385,6 +434,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "simpler-than-competitors",
+    why: "Complex pricing is read as unfair rather than as flexible, and unfairness is not something a discount fixes.",
+    stat: "",
     pass: "Pricing is one clear axis — per seat, or per usage — legible in one read.",
     fail: "Multiple stacked axes, add-ons and credits requiring a calculator.",
     label: "Simpler than competitors",
@@ -398,6 +449,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "divisible-prices",
+    why: "A buyer who can do the per-seat maths in their head reaches a number they trust.",
+    stat: "",
     pass: "Prices divide and multiply easily: 10, 12, 20, 25, 50, 100.",
     fail: "Awkward numbers such as 17, 23, 37, 47 that resist mental arithmetic.",
     label: "Prices that divide",
@@ -411,6 +464,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "metered-hybrid",
+    why: "Usage pricing without a visible meter asks the buyer to sign up for an unknown bill.",
+    stat: "",
     pass: "Flat fee plus usage IS offered, and usage is visibly metered for the buyer.",
     fail: "Usage-based pricing with no visible meter, so the buyer cannot predict a bill.",
     label: "Flat plus usage",
@@ -424,6 +479,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "flat-rate-bias",
+    why: "Buyers pay a premium for a predictable invoice, and will choose one over a cheaper metered plan.",
+    stat: "",
     pass: "At least one straightforward flat-rate plan exists.",
     fail: "Every plan is usage-metered with no predictable option.",
     label: "Flat-rate default",
@@ -439,6 +496,8 @@ export const RULES: Rule[] = [
   // ── §2 Free trials ────────────────────────────────────────────────────────
   {
     id: "high-quality-trial",
+    why: "A crippled trial demonstrates the crippled version, which is the thing the buyer then remembers.",
+    stat: "",
     pass: "The trial is full-featured, or the limits are stated plainly.",
     fail: "The trial is crippled or its limits are unstated.",
     label: "Trial quality",
@@ -452,6 +511,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "seven-day-trial",
+    why: "A shorter window concentrates evaluation instead of deferring it.",
+    stat: "7-day trials: 5.6% higher conversion, 6.4% better retention, 7.9% higher revenue than 30-day.",
     pass: "The trial is about seven days.",
     fail: "Materially longer (14, 30) or shorter, without a stated reason.",
     label: "Seven-day trial",
@@ -465,6 +526,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "trial-usage",
+    why: "Adoption follows use, not access — a trial nobody opens converts like no trial at all.",
+    stat: "Trials with 30–50% above-average usage produce more adopters.",
     pass: "",
     fail: "",
     label: "Usage during the trial",
@@ -480,6 +543,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "extensions-not-discounts",
+    why: "A discount repositions the product as cheaper. More time does not.",
+    stat: "Discounts led to 50.1% lower willingness to pay than trial extensions.",
     pass: "",
     fail: "",
     label: "Extensions, not discounts",
@@ -496,6 +561,8 @@ export const RULES: Rule[] = [
   // ── §2 Freemium ───────────────────────────────────────────────────────────
   {
     id: "limit-usage-not-features",
+    why: "A free tier that removes features never demonstrates the product; one that limits volume does, then runs out.",
+    stat: "Usage-limited freemium boosted subscriptions by up to 31%.",
     pass: "The free tier limits VOLUME — rows, events, seats — and keeps the features.",
     fail: "The free tier removes features, so the product cannot be evaluated.",
     label: "Limit usage, not features",
@@ -509,6 +576,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "freemium-decoy",
+    why: "A large jump from free to paid is a cliff. A small step is a decision.",
+    stat: "Adding a decoy plan boosted main-plan sales by 16–23%.",
     pass: "A cheap paid tier sits directly above free, making the step up small.",
     fail: "The jump from free to the first paid tier is large, so nobody steps.",
     label: "A tier above free",
@@ -808,6 +877,10 @@ export interface CheckResult {
   weight: 1 | 2 | 3;
   /** The model's evidence for this check, quoting the page. */
   evidence: string;
+  /** Why the rule works. Printed under the finding. */
+  why: string;
+  /** The study's number, or empty. Never invented. */
+  stat: string;
   citation: string;
 }
 
@@ -835,6 +908,8 @@ export function rankChecks(
       grade: rawGrade(score / MAX_PER_RULE),
       weight: r.weight,
       evidence: notes.get(r.id) ?? "",
+      why: r.why,
+      stat: r.stat,
       citation: r.citation,
     });
   }

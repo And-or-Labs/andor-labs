@@ -303,6 +303,8 @@ function gate(result: Awaited<ReturnType<typeof scoreSite>>) {
           grade: c.grade,
           score: `${c.score}/5`,
           body: c.evidence,
+          why: c.why,
+          stat: c.stat,
           citation: c.citation,
         }
       : { code: c.code, open: false as const },

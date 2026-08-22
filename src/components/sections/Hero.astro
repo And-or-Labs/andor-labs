@@ -162,40 +162,74 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       const items = d.items ?? [];
       const held = items.length - (d.shown ?? 0);
       q(".aol-report__meta").textContent =
-        `${d.total ?? items.length} checks run · ${d.shown ?? 0} shown · ${held} held back`;
-      q(".aol-report__ctatitle").textContent = `The other ${held} checks, and what to do about them.`;
+        `${d.total ?? items.length} checks · ${d.shown ?? 0} shown · ${held} withheld`;
+      q(".aol-report__foottitle").textContent = `The other ${held} checks, and what to do about them.`;
+      q(".aol-report__stamp").textContent =
+        `ANDOR/OS · sections 1–2 · scored against ${items.length} peer-reviewed checks`;
 
       const cap = q(".aol-report__cap");
       if (Array.isArray(d.caps) && d.caps.length) { cap.textContent = d.caps[0]; cap.hidden = false; }
 
-      // Source order, three windows cut into it. A masked row is a code and a
-      // pair of bars — the server sent nothing else for it, so there is nothing
-      // here to reveal.
+      // Source order, three windows cut into it.
       const rows = q(".aol-report__rows");
       rows.textContent = "";
       for (const it of items) {
         const r = document.createElement("div");
         r.className = it.open ? "aol-report__row" : "aol-report__row aol-report__row--masked";
+        const main = document.createElement("div");
+        const code = document.createElement("span");
+        code.className = "aol-report__code";
+        code.textContent = it.code;
+        main.appendChild(code);
+
         if (it.open) {
-          r.innerHTML =
-            `<div class="aol-report__check"><span class="aol-report__code"></span>` +
-            `<span class="aol-report__name"></span><span class="aol-report__area"></span></div>` +
-            `<span class="aol-report__score"></span>` +
-            `<p class="aol-report__found"></p>` +
-            `<p class="aol-report__cite"></p>`;
-          r.querySelector(".aol-report__code")!.textContent = it.code;
-          r.querySelector(".aol-report__name")!.textContent = it.name ?? "";
-          r.querySelector(".aol-report__area")!.textContent = it.area ?? "";
-          r.querySelector(".aol-report__score")!.textContent = it.score ?? "";
-          r.querySelector(".aol-report__found")!.textContent = it.body ?? "";
-          r.querySelector(".aol-report__cite")!.textContent = it.citation ?? "";
+          const name = document.createElement("h4");
+          name.className = "aol-report__name";
+          name.textContent = it.name;
+          main.appendChild(name);
+
+          const found = document.createElement("p");
+          found.className = "aol-report__found";
+          found.textContent = it.body ?? "";
+          main.appendChild(found);
+
+          if (it.why) {
+            const why = document.createElement("p");
+            why.className = "aol-report__why";
+            why.textContent = it.why;
+            main.appendChild(why);
+          }
+          // The number is printed only when the study reports one. Half these
+          // rules have none, and an empty badge beats an invented figure on a
+          // page that sells itself on peer review.
+          if (it.stat) {
+            const stat = document.createElement("span");
+            stat.className = "aol-report__stat";
+            stat.textContent = it.stat;
+            main.appendChild(stat);
+          }
+          if (it.citation) {
+            const cite = document.createElement("p");
+            cite.className = "aol-report__cite";
+            cite.textContent = it.citation;
+            main.appendChild(cite);
+          }
+        }
+
+        const sc = document.createElement("span");
+        sc.className = "aol-report__sc";
+        sc.textContent = it.open ? it.score : "—";
+
+        if (it.open) {
+          r.append(main, sc);
         } else {
-          r.innerHTML =
-            `<div class="aol-report__check"><span class="aol-report__code"></span></div>` +
-            `<span class="aol-report__score">—</span>` +
-            `<p class="aol-report__found"><span class="aol-report__redact"></span></p>` +
-            `<p class="aol-report__cite"><span class="aol-report__redact aol-report__redact--short"></span></p>`;
-          r.querySelector(".aol-report__code")!.textContent = it.code;
+          // One line: code, an unpunched strip, a dash. Nothing to read, which
+          // is the point — it marks a position without teasing a finding.
+          const holes = document.createElement("div");
+          holes.className = "aol-report__unpunched";
+          holes.setAttribute("aria-hidden", "true");
+          for (let i = 0; i < 24; i++) holes.appendChild(document.createElement("span"));
+          r.append(code, holes, sc);
         }
         rows.appendChild(r);
       }
