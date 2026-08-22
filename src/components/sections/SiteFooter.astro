@@ -19,13 +19,7 @@ const SOCIALS: [string, string][] = [
   ["GitHub", "https://github.com/eclecticv"],
 ];
 ---
-{/* The rule is SQUARE DASHES, not a hairline: 3px of --pink-200 every 6px, so
-    it reads as a pixel rule and belongs to the same grid the panoramas are on.
-    It also corrects a mismatch — the footer sits on --surface-card, which IS
-    --pink-050, and the 1px --ink-200 it used to carry is the cool hairline. The
-    warm surface has its own, and --border-warm is it. */}
 <footer class="aol-footer">
-  <div class="aol-footer__rule" role="separator" aria-hidden="true"></div>
   {/* ── The foot ────────────────────────────────────────────────────────
       Solid along the bottom, dissolving upward into the paper.
 

@@ -2506,14 +2506,6 @@
 }
 .aol-footer > *:not(.aol-footer__horizon){ position:relative; z-index:1; }
 
-/* Square dashes, 3px on a 6px pitch — a pixel rule, not a hairline, on the
-   grid the panoramas use. --pink-200 is the hairline meant for a warm surface,
-   which --surface-card is. */
-.aol-footer__rule{
-  height:3px;
-  background:repeating-linear-gradient(90deg,
-    var(--border-warm) 0 3px, transparent 3px 6px);
-}
 /* NO hairline on the legal line. It used to carry one, and over the band that
    rule reads as a line drawn ON the picture — the band is already the
    separation, and a second one competes with it. */
