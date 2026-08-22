@@ -2054,6 +2054,20 @@
   .aol-horizon img{ height:clamp(72px, 22vw, 120px); }
 }
 
+/* Screen-reader-only.
+   Used by the audit field, whose label is deliberately not painted — "no
+   visible label" is a design decision, "no label" would be a bug, since a
+   placeholder is not an accessible name and vanishes once typed over.
+
+   This class has now been lost twice to comment-anchored slice edits of this
+   file, and each time the label reappeared on the homepage as visible serif
+   text under a heading that is supposed to be a clean single control. It is
+   covered by tests/css-contract.test.ts for that reason. */
+.aol-visually-hidden{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+
 /* ---- Hero audit field ---------------------------------------------------
    One control: a placeholder and an integrated button, nothing else. No
    painted label, no ruled underline, no pill.

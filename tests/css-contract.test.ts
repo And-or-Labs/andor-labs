@@ -56,6 +56,18 @@ describe("the audit field", () => {
   });
 });
 
+describe("screen-reader-only", () => {
+  it("still exists, because a missing rule here PAINTS a label", () => {
+    // The audit field's label is deliberately unpainted. When this class goes
+    // missing the label does not disappear — it renders as visible serif text
+    // in the middle of the hero, which is the opposite of the intent. Lost
+    // twice already to comment-anchored slice edits of components.css.
+    expect(css).toContain(".aol-visually-hidden{");
+    expect(css).toMatch(/\.aol-visually-hidden\{[^}]*position:\s*absolute/);
+    expect(css).toMatch(/\.aol-visually-hidden\{[^}]*clip:\s*rect\(0 0 0 0\)/);
+  });
+});
+
 describe("the report", () => {
   it("scrolls inside its own box rather than the page", () => {
     // The carriage is deliberately wider than a phone. If this is lost the

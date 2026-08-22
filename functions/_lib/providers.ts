@@ -307,6 +307,7 @@ export async function callOpenAICompatible(
   temperature = DEFAULT_TEMPERATURE,
   system?: string,
   timeoutMs?: number,
+  maxTokens?: number,
 ): Promise<string> {
   const res = await fetchWithDeadline(`${base}/chat/completions`, {
     method: "POST",
@@ -344,7 +345,7 @@ export async function callOpenAICompatible(
        * and not a target: it costs nothing on a call that does not need it, and
        * a seat that answers is worth more than the tokens it did not spend.
        */
-      max_tokens: 16000,
+      max_tokens: maxTokens ?? 16000,
       response_format: { type: "json_object" },
       messages: [
         // Persona as a standing instruction, rubric as the turn. See callGemini.
@@ -408,6 +409,7 @@ export async function askOnce(
   temperature = DEFAULT_TEMPERATURE,
   system?: string,
   schema?: unknown,
+  maxTokens?: number,
 ) {
   // The deadline belongs to the provider, not to the call site — see
   // PROVIDER_TIMEOUT_MS. OpenCode is the slow rung and a cap sized to the fast
@@ -424,6 +426,7 @@ export async function askOnce(
     temperature,
     system,
     timeoutMs,
+    maxTokens,
   );
 }
 
@@ -464,6 +467,15 @@ export interface LadderOptions {
    * the system message is what makes them three different opinions.
    */
   system?: string;
+  /**
+   * Output ceiling for this call.
+   *
+   * Defaults to the panel's 16000, which is sized for seats that deliberate.
+   * A classification call does not: it applies a stated test and writes one
+   * sentence, so it wants a fraction of that. The ceiling is not free — a
+   * reasoning model treats headroom as permission to use it.
+   */
+  maxTokens?: number;
   /**
    * Response schema, honoured by providers that can enforce one.
    *
@@ -515,7 +527,7 @@ export async function askLadder<T>(
     for (let attempt = 1; attempt <= attempts; attempt++) {
       try {
         const value = accept(
-          await askOnce(provider, key, model, prompt, options.temperature, options.system, options.schema),
+          await askOnce(provider, key, model, prompt, options.temperature, options.system, options.schema, options.maxTokens),
           model,
         );
         // Log WHY the higher rungs failed, not just how many. A ladder that

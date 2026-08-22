@@ -91,8 +91,17 @@ async function scrape(url: string, key: string, timeoutMs = 20_000): Promise<str
     if (!res.ok) return null;
     const body = (await res.json()) as { success?: boolean; markdown?: string };
     if (!body.success || !body.markdown) return null;
+    // Returned WHOLE, not capped.
+    //
+    // This used to slice to PER_PAGE right here, and that quietly defeated
+    // everything downstream: link discovery, the pricing-heading test and the
+    // section lift all read this string, so on a long homepage the evidence was
+    // already gone before anything went looking for it. plausible.io keeps its
+    // plans past the 7,000th character — the anchor, the heading and the prices
+    // were all in the document and none of them were in the variable. The cap
+    // belongs where the prompt is assembled, not where the page is read.
     const md = tidy(stripCss(body.markdown));
-    return md ? md.slice(0, PER_PAGE) : null;
+    return md || null;
   } catch {
     return null;
   } finally {
@@ -140,6 +149,8 @@ const PRICE_EVIDENCE =
 /** Pricing on the homepage: an anchor to it, or a heading for it. */
 const PRICING_ANCHOR = /#(pricing|plans|price)$/i;
 const PRICING_HEADING = /^#{1,4}\s.*\b(pricing|plans|choose your plan)\b/im;
+/** Where the plans start, so the section can be lifted out on its own. */
+const PRICING_SECTION = /^#{1,4}\s.*\b(pricing|plans|choose your plan)\b.*$/im;
 
 function pricingOnHomepage(home: string, links: string[]): boolean {
   return links.some((l) => PRICING_ANCHOR.test(l)) || PRICING_HEADING.test(home);
@@ -168,7 +179,8 @@ export async function readSiteMarkdown(host: string, key?: string): Promise<Site
   // Under ~400 characters of markdown is a shell, not a homepage.
   if (!home || home.length < 400) return { ...empty, thin: !home || home.length < 400 };
 
-  const read: PageRead[] = [{ label: "Homepage", url: origin, markdown: home }];
+  // The prompt gets a capped homepage; detection below reads the whole thing.
+  const read: PageRead[] = [{ label: "Homepage", url: origin, markdown: home.slice(0, PER_PAGE) }];
 
   const links = linksFrom(home, origin);
   const targets: { label: string; url: string }[] = [];
@@ -190,12 +202,31 @@ export async function readSiteMarkdown(host: string, key?: string): Promise<Site
     targets.slice(0, 3).map(async (t) => ({ ...t, markdown: await scrape(t.url, key) })),
   );
   for (const f of fetched) {
-    if (f.markdown) read.push({ label: f.label, url: f.url, markdown: f.markdown });
+    if (f.markdown) read.push({ label: f.label, url: f.url, markdown: f.markdown.slice(0, PER_PAGE) });
+  }
+
+  // Inline pricing gets LIFTED OUT of the homepage into its own page.
+  //
+  // Without this it was being silently truncated away. plausible.io keeps its
+  // plans on the homepage under #pricing, but the section starts past the
+  // 7,000-character cap — so the anchor was found, the prices never were, and
+  // thirteen checks were dropped for want of evidence that was on the page all
+  // along. Cutting from the pricing heading gives those checks their own short,
+  // dense page instead of the tail of a long one.
+  if (inlinePricing) {
+    const cut = PRICING_SECTION.exec(home);
+    if (cut) {
+      read.push({
+        label: "Pricing",
+        url: `${origin}/#pricing`,
+        markdown: home.slice(cut.index, cut.index + 4_000),
+      });
+    }
   }
 
   const pages = read.map((p) => `## ${p.label} — ${p.url}\n\n${p.markdown}`).join("\n\n---\n\n");
   // Somewhere to look for pricing...
-  const pricingFound = inlinePricing || read.some((p) => p.label === "Pricing");
+  const pricingFound = read.some((p) => p.label === "Pricing");
   // ...AND something readable when we looked.
   const hasPricing = pricingFound && PRICE_EVIDENCE.test(pages);
 
