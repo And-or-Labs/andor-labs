@@ -13,6 +13,7 @@
  */
 import { askLadder, clampInt, clampText, extractJson, type ProviderEnv } from "./providers";
 import type { SiteMarkdown } from "./pages";
+import { extractSignals, signalsBlock } from "./signals";
 import {
   MAX_PER_RULE,
   SUBSECTIONS,
@@ -159,8 +160,11 @@ function buildPrompt(key: SubsectionKey, host: string, site: SiteMarkdown, ctx: 
     rulesPrompt(key, ctx),
     ``,
     `Rules for your answer, which matter as much as the scores:`,
-    `- Judge ONLY what is in the pages below. Never use anything you may know`,
-    `  about this company from elsewhere.`,
+    `- Judge ONLY what is below. Never use anything you may know about this`,
+    `  company from elsewhere.`,
+    `- The MEASURED block is counted from the rendered page. Prefer it over the`,
+    `  markdown for anything countable — ratings, trial lengths, prices, button`,
+    `  labels, radii. If it says a thing was not found, it was not there.`,
     `- If the pages do not show you enough to judge a check, OMIT it. An`,
     `  omitted check is dropped; a guessed one is a lie with a number on it.`,
     `- Every note is ONE sentence, twenty words at the outside.`,
@@ -171,6 +175,8 @@ function buildPrompt(key: SubsectionKey, host: string, site: SiteMarkdown, ctx: 
     site.thin ? `- NOTE: this page rendered almost nothing. Say so plainly.` : ``,
     ``,
     `Return JSON: {"scores":[{"id":"<check id>","score":<0-5>,"note":"<=20 words"}]}`,
+    ``,
+    site.html ? signalsBlock(extractSignals(site.html)) : "",
     ``,
     `--- PAGES (markdown, as published) ---`,
     pagesFor(key, site),

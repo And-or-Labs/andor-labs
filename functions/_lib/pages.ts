@@ -36,6 +36,8 @@ export interface PageRead {
 }
 
 export interface SiteMarkdown {
+  /** Rendered HTML of the homepage, for measured DOM signals. */
+  html: string;
   /** Every page, headed and concatenated, ready to drop into a prompt. */
   pages: string;
   /** What was actually read, for the progress log and the scan wireframe. */
@@ -79,6 +81,25 @@ const tidy = (md: string): string =>
     .replace(/^\s*\[skip to (main )?content\]\([^)]*\)\s*$/gim, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+
+/** Rendered HTML, for the measured-signals pass. */
+async function scrapeHtml(url: string, key: string, timeoutMs = 20_000): Promise<string> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(
+      `https://api.context.dev/v1/web/scrape/html?url=${encodeURIComponent(url)}`,
+      { signal: controller.signal, headers: { authorization: `Bearer ${key}` } },
+    );
+    if (!res.ok) return "";
+    const body = (await res.json()) as { success?: boolean; html?: string };
+    return body.success && body.html ? body.html : "";
+  } catch {
+    return "";
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 async function scrape(url: string, key: string, timeoutMs = 20_000): Promise<string | null> {
   const controller = new AbortController();
@@ -169,13 +190,19 @@ export async function readSiteMarkdown(host: string, key?: string): Promise<Site
     pages: "",
     read: [],
     finalUrl: origin,
+    html: "",
     thin: true,
     hasPricing: false,
     pricingUnreadable: false,
   };
   if (!key) return empty;
 
-  const home = await scrape(origin, key);
+  // Markdown for reading and HTML for measuring, fetched together. The two
+  // answer different halves of the rule set: markdown carries the argument a
+  // page makes, HTML carries the countable facts — ratings, trial lengths,
+  // price tokens, button labels, border radii — that saas-grader's procedure
+  // insists must be MEASURED rather than judged from prose.
+  const [home, html] = await Promise.all([scrape(origin, key), scrapeHtml(origin, key)]);
   // Under ~400 characters of markdown is a shell, not a homepage.
   if (!home || home.length < 400) return { ...empty, thin: !home || home.length < 400 };
 
@@ -231,6 +258,7 @@ export async function readSiteMarkdown(host: string, key?: string): Promise<Site
   const hasPricing = pricingFound && PRICE_EVIDENCE.test(pages);
 
   return {
+    html,
     pages,
     read,
     finalUrl: origin,

@@ -18,6 +18,7 @@ const site = (pages: string, thin = false, hasPricing = /##\s*Pricing/i.test(pag
   thin,
   hasPricing,
   pricingUnreadable: false,
+  html: "",
 });
 
 describe("reading the crawl for what is observable", () => {
