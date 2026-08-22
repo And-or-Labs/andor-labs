@@ -2151,156 +2151,6 @@
   border:1.5px solid var(--ink-900); border-radius:var(--radius-sm);
 }
 
-/* ---- The receipt --------------------------------------------------------
-   Tractor-feed variant C3, from the design system's scorecard exploration.
-   Chosen over C1 "wide carriage" for a structural reason: C1 is min-width
-   880px and would scroll horizontally inside a 720px modal, pushing the
-   finding BODY — the prose that earns the call — off-screen first.
-
-   The roll also keeps the terminal in character. It is mono, narrow and
-   dashed, the same language the boot log is already speaking, so the machine
-   that spent forty seconds printing a progress log then prints a receipt.
-
-   ONE departure from C3: finding bodies are serif, not preformatted mono.
-   Twenty-five words of prose at 12px mono in a 430px column is the least
-   readable way to present the substance of the audit, and both the wide
-   carriage and the shipped ScorecardReport use serif here for that reason. */
-.aol-audit__roll{ padding:8px 0 26px; }
-.aol-roll{
-  position:relative; max-width:430px; margin:0 auto;
-  background:var(--paper-pure); padding:24px 24px 0;
-  border-left:1px solid var(--ink-200); border-right:1px solid var(--ink-200);
-  box-shadow:var(--shadow-hard-sm);
-}
-/* Torn edges, top and bottom. Masked scallops rather than an image so they
-   inherit the surface colour and survive a theme change. */
-.aol-roll::before,.aol-roll::after{
-  content:""; position:absolute; left:0; right:0; height:9px;
-  background:linear-gradient(to bottom,var(--ink-100) 0 7px,var(--ink-300) 7px 9px);
-  -webkit-mask-size:12px 9px; mask-size:12px 9px;
-}
-.aol-roll::before{
-  top:-9px;
-  -webkit-mask-image:radial-gradient(circle at 6px 0,transparent 5.5px,#000 5.5px);
-  mask-image:radial-gradient(circle at 6px 0,transparent 5.5px,#000 5.5px);
-}
-.aol-roll::after{
-  bottom:-9px;
-  -webkit-mask-image:radial-gradient(circle at 6px 9px,transparent 5.5px,#000 5.5px);
-  mask-image:radial-gradient(circle at 6px 9px,transparent 5.5px,#000 5.5px);
-}
-.aol-roll__head{ text-align:center; }
-.aol-roll__eyebrow{
-  display:block; font-family:var(--font-mono); font-size:10px;
-  letter-spacing:0.14em; text-transform:uppercase; color:var(--blue-600);
-}
-.aol-roll__host{
-  display:block; font-family:var(--font-mono); font-size:12px;
-  color:var(--ink-500); margin-top:6px;
-}
-/* The grade IS the result, so it gets the size a score used to get. */
-.aol-roll__grade{ text-align:center; padding:14px 0 4px; }
-.aol-roll__letter{
-  display:block; font-family:var(--font-mono); font-size:64px; line-height:1;
-  color:var(--blue-600); letter-spacing:-0.02em;
-}
-.aol-roll__label{
-  display:block; font-family:var(--font-mono); font-size:11px;
-  letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-600);
-  margin-top:8px;
-}
-/* A ceiling, explained. Copper because it is a caveat, not a failure — and
-   never shown when the cap did not actually bind. */
-.aol-roll__cap{
-  margin:12px 0 0; font-family:var(--font-mono); font-size:11px; line-height:1.5;
-  color:var(--copper-700, var(--ink-600)); text-align:center;
-}
-.aol-roll__rule{ border-top:1px dashed var(--ink-300); margin:16px 0; }
-.aol-roll__finding + .aol-roll__finding{
-  border-top:1px dotted var(--ink-200); margin-top:13px; padding-top:13px;
-}
-.aol-roll__fhead{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
-.aol-roll__fname{
-  font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.05em;
-  text-transform:uppercase; color:var(--ink-900);
-}
-.aol-roll__fgrade{
-  font-family:var(--font-mono); font-size:13px; color:var(--blue-600);
-  font-variant-numeric:tabular-nums; flex:none;
-}
-.aol-roll__fbody{
-  margin:6px 0 0; font-family:var(--font-serif); font-size:15px; line-height:1.5;
-  color:var(--ink-700); text-wrap:pretty;
-}
-/* The gate. These rows carry a NAME and a bar — the server never sent a body
-   or a grade for them, so there is nothing here to reveal. */
-.aol-roll__lock{ display:flex; align-items:center; gap:12px; padding:7px 0; }
-.aol-roll__lname{
-  font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.05em;
-  text-transform:uppercase; color:var(--ink-400); flex:none;
-}
-.aol-roll__redact{
-  flex:1 1 auto; height:11px;
-  background:repeating-linear-gradient(90deg,var(--ink-200) 0 5px,var(--ink-100) 5px 9px);
-}
-/* The coupon. A receipt with a tear-off at the foot is already the shape of
-   this offer, so the CTA sits there natively. */
-.aol-roll__coupon{
-  margin:18px -24px 0; padding:20px 24px 24px;
-  border-top:2px dashed var(--ink-300); text-align:center;
-}
-.aol-roll__ctatitle{
-  font-family:var(--font-display); font-weight:400; font-size:21px;
-  line-height:1.12; margin:0 0 8px; color:var(--ink-900); text-wrap:pretty;
-}
-.aol-roll__ctabody{
-  font-size:14.5px; line-height:1.5; color:var(--ink-600); margin:0 0 16px; text-wrap:pretty;
-}
-.aol-roll__cta{
-  display:inline-flex; align-items:center; justify-content:center;
-  font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em;
-  text-transform:uppercase; text-decoration:none;
-  padding:11px 22px; color:var(--paper-pure); background:var(--blue-600);
-  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
-  box-shadow:var(--shadow-hard-sm);
-}
-.aol-roll__cta:active{ transform:translate(2px,2px); box-shadow:none; }
-.aol-roll__note{
-  display:block; margin-top:10px; font-family:var(--font-mono); font-size:10px;
-  letter-spacing:0.08em; color:var(--ink-400);
-}
-@media (max-width:560px){
-  .aol-roll{ max-width:none; }
-}
-@media (prefers-reduced-motion: reduce){
-  .aol-roll__cta:active{ transform:none; }
-}
-
-/* ---- The receipt section, below the hero -------------------------------- */
-.aol-receipt{
-  border-bottom:1px solid var(--ink-200); background:var(--paper);
-  padding:var(--space-12) 0 var(--space-14);
-  animation:aol-receipt-in 380ms var(--ease-out) both;
-}
-@keyframes aol-receipt-in{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:none; } }
-.aol-receipt__inner{ padding:0 var(--gutter); }
-/* Scroll lands the receipt under the sticky header rather than behind it. */
-.aol-receipt{ scroll-margin-top:calc(var(--header-h) + var(--space-4)); }
-/* Sits in the page now rather than in a terminal screen, so it carries its own
-   top and bottom tear. */
-.aol-roll{ margin-top:9px; margin-bottom:9px; }
-.aol-roll__meta{
-  margin:10px 0 0; font-family:var(--font-mono); font-size:10.5px;
-  letter-spacing:0.04em; color:var(--ink-500); text-align:center;
-}
-/* Each finding carries its paper. The claim is "23 peer-reviewed checks", and
-   that is only worth saying if every check shows the study behind it. */
-.aol-roll__fcite{
-  margin:6px 0 0; font-family:var(--font-mono); font-size:9.5px; line-height:1.5;
-  color:var(--ink-400); text-wrap:pretty;
-}
-@media (prefers-reduced-motion: reduce){ .aol-receipt{ animation:none; } }
-
 /* ---- Hero progress ------------------------------------------------------
    Under the field, and only once a run starts. */
 .aol-hero__progress{ margin-top:14px; }
@@ -2589,4 +2439,135 @@
 }
 @media (prefers-reduced-motion: reduce){
   .aol-scan__fill{ transition:none; }
+}
+
+/* ---- The report section, below the hero ---------------------------------
+   Wide carriage. A 430px till receipt in the middle of a page this wide read
+   as a novelty; this is the layout the tractor exploration built for a table
+   of findings, and this is a table of findings. */
+.aol-report{
+  border-bottom:1px solid var(--ink-200); background:var(--paper);
+  padding:var(--space-12) 0 var(--space-14);
+  scroll-margin-top:calc(var(--header-h) + var(--space-4));
+  animation:aol-report-in 380ms var(--ease-out) both;
+}
+@keyframes aol-report-in{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:none; } }
+.aol-report__inner{
+  max-width:var(--container-width); margin:0 auto; padding:0 var(--gutter);
+}
+.aol-report__masthead{
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px; align-items:end;
+  padding-bottom:18px; border-bottom:1.5px solid var(--ink-900);
+}
+.aol-report__host{
+  font-family:var(--font-display); font-weight:400; font-size:32px; line-height:1.06;
+  margin:8px 0 0; color:var(--ink-900); overflow-wrap:anywhere;
+}
+.aol-report__meta{
+  margin:9px 0 0; font-family:var(--font-mono); font-size:11px;
+  letter-spacing:0.04em; color:var(--ink-500);
+}
+.aol-report__grade{ text-align:right; line-height:1; white-space:nowrap; }
+.aol-report__letter{
+  display:block; font-family:var(--font-mono); font-size:66px;
+  color:var(--blue-600); letter-spacing:-0.02em;
+}
+.aol-report__gradelabel{
+  display:block; margin-top:8px; font-family:var(--font-mono); font-size:10px;
+  letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-600);
+}
+.aol-report__cap{
+  margin:0; padding:12px 0; border-bottom:1px solid var(--ink-200);
+  font-family:var(--font-mono); font-size:11.5px; line-height:1.5;
+  color:var(--copper-700, var(--ink-700));
+}
+/* Scrolls inside its own box, never the page. */
+.aol-report__scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.aol-report__table{ min-width:800px; }
+.aol-report__cols,
+.aol-report__row{
+  display:grid;
+  grid-template-columns:minmax(170px,1fr) 58px minmax(200px,1.5fr) minmax(190px,1.3fr);
+  gap:0 20px; align-items:baseline;
+}
+.aol-report__cols{
+  padding:10px 0; border-bottom:1px solid var(--ink-300);
+  font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.12em;
+  text-transform:uppercase; color:var(--ink-400);
+}
+.aol-report__row{ padding:13px 0; border-bottom:1px dotted var(--ink-200); }
+.aol-report__check{ display:flex; flex-direction:column; gap:3px; }
+/* The code leads every row, open or masked, so the sequence reads as one list
+   rather than as findings with gaps between them. */
+.aol-report__code{
+  font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.12em;
+  color:var(--blue-600);
+}
+.aol-report__name{
+  font-family:var(--font-mono); font-size:12.5px; letter-spacing:0.04em;
+  text-transform:uppercase; color:var(--ink-900);
+}
+.aol-report__area{
+  font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.08em;
+  text-transform:uppercase; color:var(--ink-400);
+}
+.aol-report__score{
+  font-family:var(--font-mono); font-size:13px; color:var(--blue-600);
+  font-variant-numeric:tabular-nums;
+}
+/* Evidence is serif — it is the sentence somebody actually reads, and mono at
+   this size is the least readable way to set prose. */
+.aol-report__found{
+  margin:0; font-family:var(--font-serif); font-size:15px; line-height:1.45;
+  color:var(--ink-800); text-wrap:pretty;
+}
+.aol-report__cite{
+  margin:0; font-family:var(--font-mono); font-size:10px; line-height:1.5;
+  color:var(--ink-500); text-wrap:pretty;
+}
+/* A masked row is a code and two bars. Nothing else was ever sent for it. */
+.aol-report__row--masked{ background:var(--surface-warm); }
+.aol-report__row--masked .aol-report__code{ color:var(--ink-500); }
+.aol-report__row--masked .aol-report__score{ color:var(--ink-300); }
+.aol-report__redact{
+  display:block; height:11px; margin-top:2px;
+  background:repeating-linear-gradient(90deg,var(--ink-200) 0 5px,var(--ink-100) 5px 9px);
+}
+.aol-report__redact--short{ width:58%; }
+.aol-report__cta{
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:20px 28px; align-items:center;
+  margin-top:22px; padding-top:22px; border-top:1.5px solid var(--ink-900);
+}
+.aol-report__ctatitle{
+  font-family:var(--font-display); font-weight:400; font-size:24px; line-height:1.08;
+  margin:0; color:var(--ink-900); text-wrap:pretty;
+}
+.aol-report__ctabody{
+  margin:7px 0 0; font-family:var(--font-serif); font-size:15.5px; line-height:1.5;
+  color:var(--ink-700); max-width:52ch; text-wrap:pretty;
+}
+.aol-report__ctaside{ text-align:right; }
+.aol-report__ctabtn{
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em;
+  text-transform:uppercase; text-decoration:none; white-space:nowrap;
+  padding:12px 24px; color:var(--paper-pure); background:var(--blue-600);
+  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
+  box-shadow:var(--shadow-hard-sm);
+}
+.aol-report__ctabtn:active{ transform:translate(2px,2px); box-shadow:none; }
+.aol-report__ctanote{
+  display:block; margin-top:9px; font-family:var(--font-mono); font-size:10px;
+  letter-spacing:0.08em; color:var(--ink-500);
+}
+@media (max-width:680px){
+  .aol-report__masthead{ grid-template-columns:1fr; gap:12px; align-items:start; }
+  .aol-report__grade{ text-align:left; }
+  .aol-report__letter{ font-size:52px; }
+  .aol-report__cta{ grid-template-columns:1fr; }
+  .aol-report__ctaside{ text-align:left; }
+}
+@media (prefers-reduced-motion: reduce){
+  .aol-report{ animation:none; }
+  .aol-report__ctabtn:active{ transform:none; }
 }

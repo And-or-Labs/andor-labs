@@ -129,11 +129,10 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
   const bar = auditForm?.querySelector<HTMLElement>(".aol-hero__bar");
   const fill = auditForm?.querySelector<HTMLElement>(".aol-hero__fill");
   const status = auditForm?.querySelector<HTMLElement>(".aol-hero__status");
-  const receipt = document.querySelector<HTMLElement>(".aol-receipt");
+  const report = document.querySelector<HTMLElement>(".aol-report");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  if (auditForm && auditInput && progress && bar && fill && status && receipt) {
-    const roll = receipt.querySelector<HTMLElement>(".aol-roll")!;
+  if (auditForm && auditInput && progress && bar && fill && status && report) {
     const submit = auditForm.querySelector<HTMLButtonElement>(".aol-hero__auditgo")!;
 
     // Discrete through the crawl, time-based through scoring, capped until the
@@ -155,50 +154,57 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
     };
 
     const render = (d: any) => {
-      const q = (sel: string) => roll.querySelector<HTMLElement>(sel)!;
-      q(".aol-roll__host").textContent = d.host ?? "";
-      q(".aol-roll__letter").textContent = d.grade ?? "?";
-      q(".aol-roll__label").textContent = d.gradeLabel ?? "";
+      const q = (sel: string) => report.querySelector<HTMLElement>(sel)!;
+      q(".aol-report__host").textContent = d.host ?? "";
+      q(".aol-report__letter").textContent = d.grade ?? "?";
+      q(".aol-report__gradelabel").textContent = d.gradeLabel ?? "";
 
-      const shown = (d.findings ?? []).length;
-      const held = (d.lockedItems ?? []).length;
-      q(".aol-roll__meta").textContent =
-        `${d.total ?? shown + held} checks run · ${shown} shown · ${held} held back`;
-      q(".aol-roll__ctatitle").textContent = `The other ${held} checks, and what to do about them.`;
+      const items = d.items ?? [];
+      const held = items.length - (d.shown ?? 0);
+      q(".aol-report__meta").textContent =
+        `${d.total ?? items.length} checks run · ${d.shown ?? 0} shown · ${held} held back`;
+      q(".aol-report__ctatitle").textContent = `The other ${held} checks, and what to do about them.`;
 
-      const cap = q(".aol-roll__cap");
+      const cap = q(".aol-report__cap");
       if (Array.isArray(d.caps) && d.caps.length) { cap.textContent = d.caps[0]; cap.hidden = false; }
 
-      const f = q(".aol-roll__findings");
-      f.textContent = "";
-      (d.findings ?? []).forEach((x: any, i: number) => {
+      // Source order, three windows cut into it. A masked row is a code and a
+      // pair of bars — the server sent nothing else for it, so there is nothing
+      // here to reveal.
+      const rows = q(".aol-report__rows");
+      rows.textContent = "";
+      for (const it of items) {
         const r = document.createElement("div");
-        r.className = "aol-roll__finding";
-        r.innerHTML =
-          `<div class="aol-roll__fhead"><span class="aol-roll__fname"></span><span class="aol-roll__fgrade"></span></div>` +
-          `<p class="aol-roll__fbody"></p><p class="aol-roll__fcite"></p>`;
-        r.querySelector(".aol-roll__fname")!.textContent = `${String(i + 1).padStart(2, "0")}  ${x.name ?? ""}`;
-        r.querySelector(".aol-roll__fgrade")!.textContent = x.score ?? "";
-        r.querySelector(".aol-roll__fbody")!.textContent = x.body ?? "";
-        r.querySelector(".aol-roll__fcite")!.textContent = x.citation ?? "";
-        f.appendChild(r);
-      });
+        r.className = it.open ? "aol-report__row" : "aol-report__row aol-report__row--masked";
+        if (it.open) {
+          r.innerHTML =
+            `<div class="aol-report__check"><span class="aol-report__code"></span>` +
+            `<span class="aol-report__name"></span><span class="aol-report__area"></span></div>` +
+            `<span class="aol-report__score"></span>` +
+            `<p class="aol-report__found"></p>` +
+            `<p class="aol-report__cite"></p>`;
+          r.querySelector(".aol-report__code")!.textContent = it.code;
+          r.querySelector(".aol-report__name")!.textContent = it.name ?? "";
+          r.querySelector(".aol-report__area")!.textContent = it.area ?? "";
+          r.querySelector(".aol-report__score")!.textContent = it.score ?? "";
+          r.querySelector(".aol-report__found")!.textContent = it.body ?? "";
+          r.querySelector(".aol-report__cite")!.textContent = it.citation ?? "";
+        } else {
+          r.innerHTML =
+            `<div class="aol-report__check"><span class="aol-report__code"></span></div>` +
+            `<span class="aol-report__score">—</span>` +
+            `<p class="aol-report__found"><span class="aol-report__redact"></span></p>` +
+            `<p class="aol-report__cite"><span class="aol-report__redact aol-report__redact--short"></span></p>`;
+          r.querySelector(".aol-report__code")!.textContent = it.code;
+        }
+        rows.appendChild(r);
+      }
 
-      const l = q(".aol-roll__locked");
-      l.textContent = "";
-      (d.lockedItems ?? []).forEach((name: string, i: number) => {
-        const r = document.createElement("div");
-        r.className = "aol-roll__lock";
-        r.innerHTML = `<span class="aol-roll__lname"></span><span class="aol-roll__redact" aria-hidden="true"></span>`;
-        r.querySelector(".aol-roll__lname")!.textContent = `${String(shown + i + 1).padStart(2, "0")}  ${name}`;
-        l.appendChild(r);
-      });
-
-      receipt.hidden = false;
-      // Scroll only after the layout exists, or the browser scrolls to where
-      // the section was before it had any height.
+      report.hidden = false;
+      // Wait a frame: scrollIntoView on a section that was hidden a moment ago
+      // targets where it used to be rather than where it now is.
       requestAnimationFrame(() =>
-        receipt.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }),
+        report.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }),
       );
     };
 

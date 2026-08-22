@@ -8,7 +8,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { readContext } from "../functions/_lib/audit-score";
-import { SUBSECTIONS, observableRules, scoreSubsection, totals, subsectionLabel } from "../functions/_lib/playbook";
+import { RULES, SUBSECTIONS, observableRules, scoreSubsection, totals, rankChecks, revealed, codeFor } from "../functions/_lib/playbook";
 import type { SiteMarkdown } from "../functions/_lib/pages";
 
 const site = (pages: string, thin = false, hasPricing = /##\s*Pricing/i.test(pages)): SiteMarkdown => ({
@@ -48,79 +48,84 @@ describe("reading the crawl for what is observable", () => {
   });
 });
 
+describe("check codes", () => {
+  it("numbers every check within its section, in source order", () => {
+    expect(codeFor("productize")).toBe("BRAND-1");
+    expect(codeFor("top-three-benefits")).toBe("BRAND-2");
+    expect(codeFor("price-on-left")).toBe("PRICING-3");
+    expect(codeFor("limit-usage-not-features")).toBe("FREEMIUM-1");
+  });
+
+  it("gives every rule a code, and never the same one twice", () => {
+    const codes = RULES.map((r) => codeFor(r.id));
+    expect(codes.every((c) => /^[A-Z]+-\d+$/.test(c))).toBe(true);
+    expect(new Set(codes).size).toBe(RULES.length);
+  });
+});
+
 describe("the wire payload", () => {
-  // Mirrors gate() in functions/api/audit.ts. Kept in step deliberately: this
-  // test exists to prove the SHAPE never carries withheld content.
+  const ctx = { thin: false, hasPricing: true, hasTrial: true, hasFreemium: true };
   const build = () => {
-    const ctx = { thin: false, hasPricing: true, hasTrial: true, hasFreemium: true };
-    const results = SUBSECTIONS.map((s) =>
-      scoreSubsection(s.key, ctx, new Map(observableRules(s.key, ctx).map((r, i) => [r.id, i % 5]))),
+    const scores = new Map(
+      SUBSECTIONS.flatMap((s) => observableRules(s.key, ctx)).map((r, i) => [r.id, i % 6]),
     );
-    const t = totals(results, ctx);
-    const notes = new Map(SUBSECTIONS.map((s) => [s.key, `Secret finding for ${s.label}.`]));
+    const notes = new Map([...scores.keys()].map((id) => [id, `SECRET evidence for ${id}.`]));
+    const checks = rankChecks(ctx, scores, notes);
+    const open = revealed(checks, 3);
     return {
-      host: "acme.com",
-      grade: t.verdict.grade,
-      gradeLabel: t.verdict.label,
-      caps: t.verdict.caps,
-      findings: t.open.map((s) => ({
-        name: s.label,
-        grade: s.grade,
-        body: s.reason ?? notes.get(s.key) ?? "",
-      })),
-      lockedItems: t.locked.map((s) => subsectionLabel(s.key)),
-      _locked: t.locked,
-      _notes: notes,
+      checks,
+      open,
+      items: checks.map((c) =>
+        open.has(c.id)
+          ? { code: c.code, open: true, name: c.label, area: c.subsectionLabel,
+              grade: c.grade, score: `${c.score}/5`, body: c.evidence, citation: c.citation }
+          : { code: c.code, open: false },
+      ),
     };
   };
 
-  it("ships exactly three findings and three locked names", () => {
-    const p = build();
-    expect(p.findings).toHaveLength(3);
-    expect(p.lockedItems).toHaveLength(3);
+  it("lists every scored check, in source order", () => {
+    const { checks, items } = build();
+    expect(items).toHaveLength(checks.length);
+    // RULES order is the published order, so the codes must be non-decreasing
+    // against their position in RULES.
+    const pos = (id: string) => RULES.findIndex((r) => r.id === id);
+    const positions = checks.map((c) => pos(c.id));
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
   });
 
-  it("NEVER serialises a withheld finding's body — this is the gate", () => {
-    const { _locked, _notes, ...wire } = build();
-    const json = JSON.stringify(wire);
-    for (const s of _locked) {
-      const secret = _notes.get(s.key)!;
-      expect(json, `leaked body for ${s.key}`).not.toContain(secret);
+  it("opens exactly three, wherever they fall in the sequence", () => {
+    const { items } = build();
+    expect(items.filter((i) => i.open)).toHaveLength(3);
+  });
+
+  it("MASKED ROWS CARRY A CODE AND NOTHING ELSE — this is the gate", () => {
+    const { items } = build();
+    const masked = items.filter((i) => !i.open);
+    expect(masked.length).toBeGreaterThan(0);
+    for (const m of masked) {
+      // A name is most of a finding: "no decoy plan" gives the answer away.
+      // A code gives only position. So the shape itself is the gate.
+      expect(Object.keys(m).sort()).toEqual(["code", "open"]);
     }
   });
 
-  it("never serialises a withheld finding's grade either", () => {
-    const { _locked, ...wire } = build();
-    // lockedItems must be bare labels. If a withheld grade appeared anywhere,
-    // the redaction bar would be decorative rather than a gate.
-    expect(wire.lockedItems.every((i) => typeof i === "string")).toBe(true);
-    for (const s of _locked) {
-      const entry = wire.lockedItems.find((i) => i === s.label);
-      expect(entry, `missing label for ${s.key}`).toBeDefined();
-      expect(JSON.stringify(entry)).not.toContain(String(s.grade));
+  it("never serialises a withheld check's evidence, score or citation", () => {
+    const { items, checks, open } = build();
+    const json = JSON.stringify(items);
+    for (const c of checks) {
+      if (open.has(c.id)) continue;
+      expect(json, `leaked evidence for ${c.id}`).not.toContain(c.evidence);
+      expect(json, `leaked name for ${c.id}`).not.toContain(c.label);
+      expect(json, `leaked citation for ${c.id}`).not.toContain(c.citation);
     }
   });
 
-  it("ships locked items as bare strings, so there is no object to inspect", () => {
-    const p = build();
-    for (const item of p.lockedItems) expect(typeof item).toBe("string");
-  });
-
-  it("gives every shown finding a name, a grade and a body", () => {
-    for (const f of build().findings) {
-      expect(f.name.length).toBeGreaterThan(0);
-      expect(f.grade === null || /^[A-E]$/.test(f.grade)).toBe(true);
-      expect(typeof f.body).toBe("string");
+  it("gives every open row a name, a score, evidence and its paper", () => {
+    for (const i of build().items.filter((x) => x.open) as any[]) {
+      expect(i.name.length).toBeGreaterThan(0);
+      expect(i.score).toMatch(/^\d\/5$/);
+      expect(i.citation).toMatch(/\(\w+ \d{4}\)\.$/);
     }
-  });
-
-  it("ships no percentage at all — the number never crosses the wire", () => {
-    const { _locked, _notes, ...wire } = build();
-    const json = JSON.stringify(wire);
-    // A growing rule set moves any percentage, so a returning visitor would
-    // read a changed number as a changed site. Grades absorb that; numbers do not.
-    expect(json).not.toMatch(/\/ 100/);
-    expect(wire).not.toHaveProperty("score");
-    expect(wire).not.toHaveProperty("outOf");
   });
 });

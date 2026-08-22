@@ -1,0 +1,61 @@
+---
+/**
+ * The report — the audit's result, below the hero.
+ *
+ * Hidden until there is something to show. The hero runs the audit in place
+ * and the page scrolls here when it lands.
+ *
+ * WIDE CARRIAGE, not a receipt. A 430px till receipt in the middle of a page
+ * this wide read as a novelty; the carriage is the layout the design system's
+ * tractor exploration built for a table of findings, and this is a table of
+ * findings.
+ *
+ * EVERY CHECK IS LISTED, IN THE ORDER THE RESEARCH PUBLISHES THEM. Three are
+ * open, where they actually fall in the sequence. The rest show only a code —
+ * BRAND-1, PRICING-3 — which is a stronger gate than a name: "no decoy plan"
+ * is most of the finding, while PRICING-2 says only that a check exists, where
+ * it sits, and that it has not been answered for you yet.
+ */
+import { BOOKING_URL } from "../../config";
+---
+
+<section class="aol-report" id="audit-report" aria-labelledby="audit-report-title" hidden>
+  <div class="aol-report__inner">
+    <div class="aol-report__masthead">
+      <div>
+        <span class="aol-eyebrow">GTM scorecard</span>
+        <h2 class="aol-report__host" id="audit-report-title"></h2>
+        <p class="aol-report__meta"></p>
+      </div>
+      <div class="aol-report__grade">
+        <span class="aol-report__letter"></span>
+        <span class="aol-report__gradelabel"></span>
+      </div>
+    </div>
+
+    <p class="aol-report__cap" hidden></p>
+
+    <div class="aol-report__scroll">
+      <div class="aol-report__table">
+        <div class="aol-report__cols" aria-hidden="true">
+          <span>Check</span><span>Score</span><span>What we found</span><span>Evidence base</span>
+        </div>
+        <div class="aol-report__rows"></div>
+      </div>
+    </div>
+
+    <div class="aol-report__cta">
+      <div>
+        <h3 class="aol-report__ctatitle"></h3>
+        <p class="aol-report__ctabody">
+          Thirty minutes, no deck. We go through every check on the card and you
+          keep the notes either way.
+        </p>
+      </div>
+      <div class="aol-report__ctaside">
+        <a class="aol-report__ctabtn" href={BOOKING_URL} target="_blank" rel="noopener">Book a call</a>
+        <span class="aol-report__ctanote">30 min · no deck</span>
+      </div>
+    </div>
+  </div>
+</section>

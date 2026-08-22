@@ -45,6 +45,48 @@ export const subsectionLabel = (key: SubsectionKey): string =>
   SUBSECTIONS.find((s) => s.key === key)?.label ?? key;
 
 /**
+ * The prefix a masked check is identified by.
+ *
+ * A withheld row shows ONLY its code — BRAND-1, PRICING-3 — never its name.
+ * That is a deliberately stronger gate than the names were: a name is most of
+ * the finding ("no decoy plan" tells you the problem), while a code tells you
+ * only that a check exists, where it sits, and that it has not been answered
+ * for you yet. It also reads as an index rather than a teaser.
+ */
+const CODE_PREFIX: Record<SubsectionKey, string> = {
+  messaging: "BRAND",
+  design: "DESIGN",
+  proof: "PROOF",
+  plans: "PRICING",
+  trials: "TRIAL",
+  freemium: "FREEMIUM",
+};
+
+/**
+ * Stable code per rule, numbered within its subsection in SOURCE order.
+ *
+ * Computed once from RULES rather than stored on each rule, so the numbering
+ * cannot drift out of step with the table it describes — add a rule in the
+ * middle and everything after it renumbers, which is correct, because the code
+ * names a position in the published sequence.
+ */
+let CODES: Record<string, string> | null = null;
+function codes(): Record<string, string> {
+  // Built on first use, not at module load: RULES is declared below this point
+  // and an eager table would read it inside its temporal dead zone.
+  if (CODES) return CODES;
+  const seen: Partial<Record<SubsectionKey, number>> = {};
+  const out: Record<string, string> = {};
+  for (const r of RULES) {
+    const n = (seen[r.subsection] = (seen[r.subsection] ?? 0) + 1);
+    out[r.id] = `${CODE_PREFIX[r.subsection]}-${n}`;
+  }
+  return (CODES = out);
+}
+
+export const codeFor = (id: string): string => codes()[id] ?? id;
+
+/**
  * What the crawl actually managed to see.
  *
  * This is the input to every observability predicate, and it is the reason the
@@ -755,6 +797,8 @@ export function rulesPrompt(key: SubsectionKey, ctx: CrawlContext): string {
  */
 export interface CheckResult {
   id: string;
+  /** Public identifier for a masked row, e.g. BRAND-1 or PRICING-3. */
+  code: string;
   label: string;
   subsection: SubsectionKey;
   subsectionLabel: string;
@@ -773,24 +817,46 @@ export function rankChecks(
   notes: Map<string, string>,
 ): CheckResult[] {
   const out: CheckResult[] = [];
-  for (const s of SUBSECTIONS) {
-    for (const r of observableRules(s.key, ctx)) {
-      const score = scores.get(r.id);
-      if (typeof score !== "number") continue;
-      out.push({
-        id: r.id,
-        label: r.label,
-        subsection: r.subsection,
-        subsectionLabel: s.label,
-        score,
-        grade: rawGrade(score / MAX_PER_RULE),
-        weight: r.weight,
-        evidence: notes.get(r.id) ?? "",
-        citation: r.citation,
-      });
-    }
+  // SOURCE ORDER — the published sequence of the research, not worst-first.
+  // The report is a list of the checks that were run, and its order is a fact
+  // about the playbook rather than about this site. RULES is already in that
+  // order, so walking it directly is the whole implementation.
+  for (const r of RULES) {
+    if (!r.auditable || !r.observable(ctx)) continue;
+    const score = scores.get(r.id);
+    if (typeof score !== "number") continue;
+    out.push({
+      id: r.id,
+      code: codeFor(r.id),
+      label: r.label,
+      subsection: r.subsection,
+      subsectionLabel: subsectionLabel(r.subsection),
+      score,
+      grade: rawGrade(score / MAX_PER_RULE),
+      weight: r.weight,
+      evidence: notes.get(r.id) ?? "",
+      citation: r.citation,
+    });
   }
-  // Worst first, and heavier rules win a tie — a failed decoy-plan check is a
-  // bigger problem than a failed rounded-corners check at the same score.
-  return out.sort((a, b) => a.score - b.score || b.weight - a.weight);
+  return out;
 }
+
+/**
+ * Which checks to reveal: the worst, by score then weight.
+ *
+ * Ranked separately from the ORDER they are shown in. The three worth opening
+ * are the three most worth acting on, but they are then displayed where they
+ * actually fall in the sequence — so the reader sees the shape of the whole
+ * audit with three windows cut into it, rather than a top-three chart that
+ * hides how much else was measured.
+ */
+export function revealed(checks: CheckResult[], n: number): Set<string> {
+  return new Set(
+    [...checks]
+      .sort((a, b) => a.score - b.score || b.weight - a.weight)
+      .slice(0, n)
+      .map((c) => c.id),
+  );
+}
+
+

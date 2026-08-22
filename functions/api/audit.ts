@@ -25,6 +25,7 @@
 import { readSiteMarkdown } from "../_lib/pages";
 import { deriveTarget, hostFromUserUrl } from "../_lib/email-domain";
 import { readContext, scoreSite } from "../_lib/audit-score";
+import { revealed } from "../_lib/playbook";
 
 import {
   checkRate,
@@ -285,30 +286,36 @@ const tick = (ms: number) => new Promise((r) => setTimeout(r, ms));
  */
 function gate(result: Awaited<ReturnType<typeof scoreSite>>) {
   const { verdict, checks } = result;
-  // Three checks open, the rest redacted BY NAME. Individual checks, not
-  // subsection summaries: the claim is twenty-three peer-reviewed checks, and
-  // that is only worth anything if each one is named, tested, evidenced and
-  // sourced on its own.
-  const open = checks.slice(0, OPEN_CHECKS);
-  const locked = checks.slice(OPEN_CHECKS);
+  const open = revealed(checks, OPEN_CHECKS);
+
+  // Every check that ran, IN SOURCE ORDER, three of them opened where they
+  // actually fall. A masked row carries its CODE and nothing else — no name,
+  // no score, no evidence, no citation. That is a stronger gate than the names
+  // were: "no decoy plan" is most of the finding, while PRICING-2 tells you
+  // only that a check exists and has not been answered for you yet.
+  const items = checks.map((c) =>
+    open.has(c.id)
+      ? {
+          code: c.code,
+          open: true as const,
+          name: c.label,
+          area: c.subsectionLabel,
+          grade: c.grade,
+          score: `${c.score}/5`,
+          body: c.evidence,
+          citation: c.citation,
+        }
+      : { code: c.code, open: false as const },
+  );
+
   return {
     host: result.host,
     grade: verdict.grade,
     gradeLabel: verdict.label,
     caps: verdict.caps,
-    /** How many were run, so the redacted count is not a mystery. */
     total: checks.length,
-    findings: open.map((c) => ({
-      name: c.label,
-      area: c.subsectionLabel,
-      grade: c.grade,
-      score: `${c.score}/5`,
-      body: c.evidence,
-      citation: c.citation,
-    })),
-    // Names only. No evidence, no score, no citation for the withheld ones —
-    // the bars are a gate, not a blur, and nothing behind them is in the DOM.
-    lockedItems: locked.map((c) => c.label),
+    shown: items.filter((i) => i.open).length,
+    items,
   };
 }
 
