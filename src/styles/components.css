@@ -2481,3 +2481,68 @@
   .aol-report__ctabtn:active{ transform:none; }
 }
 
+
+/* ── Footer horizon ────────────────────────────────────────────────────────
+   A second pixel panorama, at the foot of the page rather than the foot of the
+   hero. Same grid and the same quantisation as /rockies.png (1088x272, 64
+   colours) so the two read as one medium; a higher-resolution source would
+   have rendered visibly finer pixels on the same screen.
+
+   The footer is position:relative and its children are lifted above the image
+   rather than the image being pushed behind them, because z-index only applies
+   to positioned boxes — an unpositioned child would ignore it and paint in DOM
+   order regardless. */
+.aol-footer{
+  position:relative;
+  overflow:hidden;
+  /* WHITE, and said here rather than by re-pointing --surface-card. That token
+     is read by the cards, the founder note, the offer blocks and the newsletter
+     as well, and colors.css records what happened the last time it was moved to
+     suit one surface: every one of them repainted. A surface that wants a
+     different ground says so in its own rule. */
+  background:var(--paper);
+  /* Room for the solid part of the band to sit BELOW the legal line. */
+  padding-bottom:clamp(150px, 18vw, 260px);
+}
+.aol-footer > *:not(.aol-footer__horizon){ position:relative; z-index:1; }
+
+/* Square dashes, 3px on a 6px pitch — a pixel rule, not a hairline, on the
+   grid the panoramas use. --pink-200 is the hairline meant for a warm surface,
+   which --surface-card is. */
+.aol-footer__rule{
+  height:3px;
+  background:repeating-linear-gradient(90deg,
+    var(--border-warm) 0 3px, transparent 3px 6px);
+}
+/* NO hairline on the legal line. It used to carry one, and over the band that
+   rule reads as a line drawn ON the picture — the band is already the
+   separation, and a second one competes with it. */
+
+.aol-footer__horizon{
+  position:absolute; left:0; right:0; bottom:0; z-index:0;
+  line-height:0; pointer-events:none;
+}
+.aol-footer__horizon img{
+  display:block;
+  width:100%;
+  /* EXPLICIT height, not max-height — the same trap the hero horizon documents:
+     with height:auto a max-height scales the whole image down, width included,
+     and object-fit is left with no box to crop against. */
+  height:clamp(200px, 26vw, 360px);
+  object-fit:cover;
+  /* Anchor to the forest. When it crops, the sky is the half worth losing, and
+     the dark foot is what makes the band read as ground. */
+  object-position:center bottom;
+  image-rendering:pixelated;
+  /* Solid at the foot, gone by the top. In the mask so the paper colour behind
+     it is never hardcoded here. */
+  -webkit-mask-image:linear-gradient(to top, #000 0%, #000 30%, transparent 100%);
+          mask-image:linear-gradient(to top, #000 0%, #000 30%, transparent 100%);
+}
+@media (max-width:880px){
+  /* The footer stacks to one column and roughly doubles in height, so the band
+     is set shorter and the padding with it — sized against the IMAGE rather
+     than the footer, which is what keeps the two shapes from diverging. */
+  .aol-footer{ padding-bottom:clamp(110px, 30vw, 180px); }
+  .aol-footer__horizon img{ height:clamp(150px, 40vw, 240px); }
+}
