@@ -1,0 +1,200 @@
+---
+/**
+ * Hero treatments — four ways the horizon can wrap the CTA.
+ *
+ * Dev-only comparison page, same convention as the rest of /lab: it builds to a
+ * redirect stub in production and is excluded from the sitemap.
+ *
+ * The brief: the top of the hero must not be empty, and the image should wrap
+ * the ask rather than sit under it as a footer band. Each option below answers
+ * that differently, and each is a real layout rather than a mockup, so what you
+ * pick is what ships.
+ */
+import Base from "../../layouts/Base.astro";
+
+const H1 = "Don't just go-to-market. Win it.";
+const SUB =
+  "We're a boutique consultancy helping early-stage technology startups find product-market fit, accelerate revenue growth, and win their category.";
+
+const OPTIONS = [
+  {
+    id: "a",
+    name: "Channel",
+    note: "Two bands, copy in the white channel between them. The image opens the page and closes the hero, so the CTA sits in a clearing rather than on a horizon.",
+  },
+  {
+    id: "b",
+    name: "Window",
+    note: "One contained window at the top, headline overlapping its lower edge. The picture is a framed object on the page rather than a bleed, and the overlap ties it to the copy.",
+  },
+  {
+    id: "c",
+    name: "Immersed",
+    note: "Image fills the hero. Copy sits on a soft white cloud, and the field is a solid pill on the mountains — the most atmospheric, and the one that asks most of the contrast.",
+  },
+  {
+    id: "d",
+    name: "Shelf",
+    note: "The image sits directly behind the CTA only, as a shelf the ask rests on. The headline stays on paper, so nothing competes with it and the image does one job.",
+  },
+];
+---
+
+<Base title="Hero treatments — And/or Labs" noIndex>
+  <main class="lab">
+    <header class="lab__head">
+      <h1 class="lab__title">Hero treatments</h1>
+      <p class="lab__lede">
+        Four ways the horizon can wrap the CTA, with no empty top. Each is a real
+        layout, not a mockup.
+      </p>
+    </header>
+
+    {OPTIONS.map((o) => (
+      <section class="lab__opt">
+        <div class="lab__meta">
+          <span class="lab__id">{o.id.toUpperCase()}</span>
+          <span class="lab__name">{o.name}</span>
+          <p class="lab__note">{o.note}</p>
+        </div>
+
+        <div class={`hx hx--${o.id}`}>
+          {(o.id === "a" || o.id === "b") && (
+            <div class="hx__top"><img src="/rockies.png" alt="" aria-hidden="true" /></div>
+          )}
+          {o.id === "c" && <img class="hx__bg" src="/rockies.png" alt="" aria-hidden="true" />}
+
+          <div class="hx__inner">
+            <span class="hx__eyebrow">Est. 2025</span>
+            <h2 class="hx__h1">{H1}</h2>
+            <p class="hx__sub">{SUB}</p>
+
+            <div class="hx__ctawrap">
+              {o.id === "d" && <img class="hx__shelf" src="/rockies.png" alt="" aria-hidden="true" />}
+              <form class="hx__form" onsubmit="return false">
+                <div class="hx__row">
+                  <input class="hx__input" type="email" placeholder="you@company.com" aria-label="Work email" />
+                  <button class="hx__go" type="submit">Free audit</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {o.id === "a" && (
+            <div class="hx__foot"><img src="/rockies.png" alt="" aria-hidden="true" /></div>
+          )}
+        </div>
+      </section>
+    ))}
+  </main>
+</Base>
+
+<style is:global>
+  .lab { max-width: 1280px; margin: 0 auto; padding: 48px 24px 96px; }
+  .lab__head { margin-bottom: 40px; }
+  .lab__title { font-family: var(--font-display); font-weight: 400; font-size: 40px; margin: 0; }
+  .lab__lede { font-family: var(--font-serif); font-size: 17px; color: var(--ink-600); max-width: 60ch; margin: 10px 0 0; }
+  .lab__opt { margin-bottom: 72px; }
+  .lab__meta { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .lab__id { font-family: var(--font-mono); font-size: 11px; color: var(--blue-600); letter-spacing: 0.12em; }
+  .lab__name { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-900); }
+  .lab__note { font-family: var(--font-serif); font-size: 15px; line-height: 1.5; color: var(--ink-600); margin: 0; flex: 1 1 340px; }
+
+  /* ── shared hero shell ──────────────────────────────────────────────── */
+  .hx {
+    position: relative; overflow: hidden; background: var(--paper);
+    border: 1px solid var(--ink-200);
+    display: flex; flex-direction: column; min-height: 560px;
+  }
+  .hx__inner {
+    position: relative; z-index: 2; flex: 1 1 auto;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 40px 24px;
+  }
+  .hx__eyebrow {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-500);
+  }
+  .hx__h1 {
+    font-family: var(--font-display); font-weight: 400; font-size: 40px; line-height: 1.14;
+    margin: 12px 0 0; max-width: 18ch; color: var(--ink-900);
+  }
+  .hx__sub {
+    font-family: var(--font-serif); font-size: 18px; line-height: 1.5;
+    color: var(--ink-600); max-width: 42ch; margin: 16px 0 0;
+  }
+  .hx__ctawrap { position: relative; width: 100%; max-width: 26rem; margin: 28px auto 0; }
+  .hx__form { position: relative; z-index: 2; }
+  .hx__row {
+    display: flex; align-items: stretch;
+    border: 1px solid var(--ink-200); border-radius: var(--radius-pill);
+    background: var(--paper-pure); overflow: hidden;
+    box-shadow: 0 1px 2px rgba(20,21,26,.04), 0 6px 20px -6px rgba(20,21,26,.12);
+  }
+  .hx__input {
+    flex: 1 1 auto; min-width: 0; border: 0; background: transparent;
+    font-family: var(--font-mono); font-size: 16px; padding: 0 6px 0 18px; min-height: 44px;
+  }
+  .hx__input:focus { outline: none; }
+  .hx__go {
+    flex: none; border: 0; margin: 3px; padding: 0 18px; border-radius: var(--radius-pill);
+    background: var(--blue-600); color: var(--paper-pure); cursor: pointer;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .hx img { image-rendering: pixelated; display: block; }
+
+  /* ── A · channel ─────────────────────────────────────────────────────
+     Bands top and bottom; the copy sits in the clearing between them. */
+  .hx--a .hx__top, .hx--a .hx__foot { flex: none; overflow: hidden; position: relative; }
+  .hx--a .hx__top img { width: 100%; height: 132px; object-fit: cover; object-position: center top; }
+  .hx--a .hx__foot img { width: 100%; height: 132px; object-fit: cover; object-position: center bottom; }
+  .hx--a .hx__top::after, .hx--a .hx__foot::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+  }
+  .hx--a .hx__top::after { background: linear-gradient(to top, var(--paper) 0%, transparent 62%); }
+  .hx--a .hx__foot::after { background: linear-gradient(to bottom, var(--paper) 0%, transparent 62%); }
+
+  /* ── B · window ──────────────────────────────────────────────────────
+     A framed picture at the top; the headline overlaps its lower edge. */
+  .hx--b { padding-top: 28px; }
+  .hx--b .hx__top {
+    width: min(880px, calc(100% - 48px)); margin: 0 auto; border-radius: var(--radius-md);
+    overflow: hidden; border: 1.5px solid var(--ink-900); box-shadow: var(--shadow-hard);
+  }
+  .hx--b .hx__top img { width: 100%; height: 210px; object-fit: cover; object-position: center 60%; }
+  .hx--b .hx__inner { margin-top: -44px; padding-top: 0; }
+  .hx--b .hx__h1 {
+    background: var(--paper); padding: 10px 20px 0; border-radius: var(--radius-sm);
+  }
+
+  /* ── C · immersed ────────────────────────────────────────────────────
+     Image fills the hero; copy on a cloud; the field a solid pill on it. */
+  .hx--c .hx__bg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center 66%; z-index: 0;
+  }
+  .hx--c .hx__inner::before {
+    content: ""; position: absolute; inset: -8% -6%; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(54% 46% at 50% 48%,
+        rgba(255,255,255,.97) 0%, rgba(255,255,255,.93) 42%,
+        rgba(255,255,255,.5) 68%, rgba(255,255,255,0) 84%);
+    filter: blur(10px);
+  }
+  .hx--c .hx__row { box-shadow: 0 2px 4px rgba(20,21,26,.1), 0 14px 34px -10px rgba(20,21,26,.34); }
+
+  /* ── D · shelf ───────────────────────────────────────────────────────
+     The image sits behind the CTA only, as a shelf the ask rests on. */
+  .hx--d .hx__ctawrap { max-width: 34rem; padding: 26px 22px; }
+  .hx--d .hx__shelf {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center 72%;
+    border-radius: var(--radius-md); z-index: 0;
+  }
+  .hx--d .hx__ctawrap::after {
+    content: ""; position: absolute; inset: 0; border-radius: var(--radius-md);
+    border: 1.5px solid var(--ink-900); pointer-events: none; z-index: 1;
+  }
+  .hx--d .hx__form { max-width: 26rem; margin: 0 auto; }
+  .hx--d .hx__row { box-shadow: 0 2px 4px rgba(20,21,26,.12), 0 14px 34px -10px rgba(20,21,26,.4); }
+</style>

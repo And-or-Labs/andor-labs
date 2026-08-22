@@ -16,6 +16,31 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const css = readFileSync(new URL("../src/styles/components.css", import.meta.url), "utf8");
+const hero = readFileSync(new URL("../src/components/sections/Hero.astro", import.meta.url), "utf8");
+
+describe("the hero form always submits", () => {
+  it("guards on the form and input ONLY", () => {
+    // This guard once also required the progress bar, its fill, its status line
+    // and the report section. When the progress markup was deleted by accident
+    // the listener never attached, the browser did a native GET submit, and the
+    // page silently RELOADED on every attempt — a cosmetic dependency had been
+    // made a functional one.
+    expect(hero).toContain("if (auditForm && auditInput) {");
+    expect(hero).not.toMatch(/if \(auditForm && auditInput && [a-z]/);
+  });
+
+  it("still ships the progress markup it stopped depending on", () => {
+    for (const c of ["aol-hero__progress", "aol-hero__bar", "aol-hero__fill", "aol-hero__status"]) {
+      expect(hero, `${c} missing from the hero`).toContain(c);
+    }
+  });
+
+  it("centres the field on the same axis as the headline", () => {
+    // The block was 31rem holding a 26rem form aligned left, which put the
+    // field five rem off the centre line the headline sits on.
+    expect(css).toMatch(/\.aol-hero__auditform\{[^}]*margin:0 auto/);
+  });
+});
 
 describe("the horizon band", () => {
   it("still has its rules at all", () => {

@@ -98,15 +98,20 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
    a label, a ruled field and a note are read line by line, and centring a
    ragged-left stack of three different widths makes all three harder to scan.
    The BLOCK is centred; its contents are not. */
+/* CENTRED, and the block is the width of the thing inside it.
+   This was a 31rem block holding a 26rem form aligned to its left edge, which
+   put the field five rem off centre under a centred headline — the block had
+   been sized for a wider CTA that no longer exists. Matching the widths is what
+   actually centres it; `margin:0 auto` on the form alone would centre the form
+   inside a block that was itself still off-axis. */
 .aol-hero__cta {
-  margin: 0;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   gap: 14px;
-  text-align: left;
   width: 100%;
-  max-width: 31rem;
+  max-width: 26rem;
 }
 /* Quiet by design — mono, one step down from the subhead's voice, so it reads
    as an aside to the primary CTA rather than a second button. It carries a

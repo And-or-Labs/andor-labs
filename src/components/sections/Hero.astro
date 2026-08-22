@@ -70,17 +70,16 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
         <p class="aol-hero__auditerr" role="alert" hidden></p>
 
         {/* Progress, under the field, appearing only once a run starts.
-            The crawl steps are real milestones so they move it in discrete
-            jumps; scoring is one long opaque wait with no internal signal, so
-            that stretch runs on elapsed time and is CAPPED BELOW 100. A bar
-            sitting full while nothing happens is worse than one honestly still
-            crawling — only the result fills it. */}
+            Discrete jumps through the crawl, then elapsed-time through scoring,
+            capped below 100 until the result lands — a bar sitting full while
+            nothing happens is worse than one honestly still crawling. */}
         <div class="aol-hero__progress" hidden>
           <div class="aol-hero__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             <span class="aol-hero__fill"></span>
           </div>
           <p class="aol-hero__status" role="status" aria-live="polite"></p>
         </div>
+
       </form>
       {/* <a class="aol-hero__alt" href="/tools/rank-my-adtech/">Get your company ranked by three AI labs <span aria-hidden="true">&rarr;</span></a> */}
     </div>
@@ -100,20 +99,6 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
   <div class="aol-horizon" data-r aria-hidden="true" style="--r:5">
     <img src="/rockies.png" alt="" width="1088" height="272" decoding="async" />
   </div>
-  <div class="aol-grid-blue" data-r style="border-top:1px solid var(--ink-200);--r:6">
-    <div style="max-width:var(--container-width);width:100%;margin:0 auto;padding:var(--space-6) var(--gutter)">
-    <div class="aol-credstrip" style="border-top:0;padding-top:0">
-      <div class="aol-credstrip__cell">
-        <span class="aol-eyebrow">As seen on</span>
-        <span class="aol-credstrip__val">{PRESS.join("  ·  ")}</span>
-      </div>
-      <div class="aol-credstrip__cell">
-        <span class="aol-eyebrow">Brand partners</span>
-        <span class="aol-credstrip__val">AirOps  ·  Superdesign  ·  Snitcher</span>
-      </div>
-    </div>
-    </div>
-  </div>
 </section>
 
 <script>
@@ -132,7 +117,15 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
   const report = document.querySelector<HTMLElement>(".aol-report");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  if (auditForm && auditInput && progress && bar && fill && status && report) {
+  // The guard is form + input ONLY.
+  //
+  // It used to require the progress bar, its fill, its status line and the
+  // report section as well — so when the progress markup was accidentally
+  // deleted, the listener never attached, the browser did a native GET submit,
+  // and the page silently RELOADED on every attempt. A cosmetic dependency had
+  // been made a functional one. Everything below is optional and null-checked
+  // at the point of use; the form always submits.
+  if (auditForm && auditInput) {
     const submit = auditForm.querySelector<HTMLButtonElement>(".aol-hero__auditgo")!;
 
     // Discrete through the crawl, time-based through scoring, capped until the
@@ -142,10 +135,10 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
     let pct = 0;
     const setPct = (n: number) => {
       pct = Math.max(pct, Math.min(100, n));
-      fill.style.width = `${pct}%`;
-      bar.setAttribute("aria-valuenow", String(Math.round(pct)));
+      if (fill) fill.style.width = `${pct}%`;
+      bar?.setAttribute("aria-valuenow", String(Math.round(pct)));
     };
-    const say = (t: string) => { status.textContent = t; };
+    const say = (t: string) => { if (status) status.textContent = t; };
 
     const stop = (message?: string) => {
       auditForm.classList.remove("is-running");
@@ -154,6 +147,7 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
     };
 
     const render = (d: any) => {
+      if (!report) return;
       const q = (sel: string) => report.querySelector<HTMLElement>(sel)!;
       const items = d.items ?? [];
       const failed = d.failed ?? items.filter((i: any) => i.verdict === "fail").length;
@@ -268,7 +262,7 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
     const run = async (email: string) => {
       auditForm.classList.add("is-running");
       submit.disabled = true;
-      progress.hidden = false;
+      if (progress) progress.hidden = false;
       setPct(2);
       say("connecting…");
 
@@ -331,7 +325,7 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
     const runDemo = async () => {
       auditForm.classList.add("is-running");
       submit.disabled = true;
-      progress.hidden = false;
+      if (progress) progress.hidden = false;
       setPct(2);
       say("connecting…");
       let msgs: any[] = [];

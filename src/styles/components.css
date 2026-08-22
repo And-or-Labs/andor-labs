@@ -2084,44 +2084,64 @@
    THE 16px IS LOAD-BEARING and is inherited, not restated. Every .aol-control
    variant holds it — even --sm, which only trims padding — because iOS zooms
    the viewport when a focused input is under 16px. */
-.aol-hero__auditform{ width:100%; max-width:30rem; }
+/* Narrower and shorter. It was 54px tall in a 30rem field, which is a lot
+   of furniture around one short string — an email is about twenty characters. */
+.aol-hero__auditform{ width:100%; max-width:26rem; margin:0 auto; }
+/* A hairline and a real shadow, not a 1.5px blank outline.
+   The heavy ink border made this read as an empty box waiting to be filled —
+   all frame, no surface. A thin border plus a soft drop shadow gives it a
+   surface that sits ON the page instead of being drawn onto it, and the button
+   inside then supplies the contrast the border was doing badly. */
 .aol-hero__auditrow{
   display:flex; align-items:stretch;
-  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
+  border:1px solid var(--ink-200); border-radius:var(--radius-pill);
   background:var(--paper-pure); overflow:hidden;
+  box-shadow:0 1px 2px rgba(20,21,26,0.04), 0 6px 20px -6px rgba(20,21,26,0.12);
   transition:border-color var(--dur-base) var(--ease-out),
               box-shadow var(--dur-base) var(--ease-out);
+}
+@media (hover:hover) and (pointer:fine){
+  .aol-hero__auditrow:hover{
+    border-color:var(--ink-300);
+    box-shadow:0 1px 2px rgba(20,21,26,0.05), 0 10px 28px -8px rgba(20,21,26,0.16);
+  }
 }
 /* The ring goes on the WRAPPER, because the wrapper is what reads as the
    control. Same token every other focusable thing on the site uses. */
 .aol-hero__auditrow:focus-within{
-  border-color:var(--blue-500); box-shadow:var(--focus-ring);
+  border-color:var(--blue-500);
+  box-shadow:var(--focus-ring), 0 6px 20px -6px rgba(27,77,255,0.22);
 }
 .aol-hero__auditrow:has(.aol-control--error){ border-color:var(--copper-600); }
 .aol-hero__auditinput{
   flex:1 1 auto; min-width:0; width:auto;
   background:transparent; box-shadow:none;
   border:0; border-radius:0;
-  padding:0 12px 0 20px; min-height:50px;
+  padding:0 6px 0 18px; min-height:44px;
 }
 .aol-hero__auditinput:hover{ border-color:transparent; }
 .aol-hero__auditinput:focus-visible{ outline:none; box-shadow:none; }
 .aol-hero__auditgo{
   flex:none; cursor:pointer; white-space:nowrap;
-  font-family:var(--font-mono); font-size:11.5px;
-  letter-spacing:0.1em; text-transform:uppercase;
-  border:0; padding:0 24px;
+  font-family:var(--font-mono); font-size:11px;
+  letter-spacing:0.08em; text-transform:uppercase;
+  /* Inset by 3px so the button floats inside the field rather than being
+     welded to its edge — the weld was most of what made the old control look
+     like two parts bolted together. */
+  border:0; margin:3px; padding:0 18px; border-radius:var(--radius-pill);
   background:var(--blue-600); color:var(--paper-pure);
-  transition:background var(--dur-base) var(--ease-out);
+  transition:background var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
 @media (hover:hover) and (pointer:fine){
   .aol-hero__auditgo:hover{ background:var(--blue-700); }
 }
+.aol-hero__auditgo:active{ transform:scale(0.98); }
+@media (prefers-reduced-motion: reduce){ .aol-hero__auditgo{ transition:none; } .aol-hero__auditgo:active{ transform:none; } }
 .aol-hero__auditgo:focus-visible{ outline:none; box-shadow:inset 0 0 0 2px var(--paper-pure); }
 /* The error message replaces the note that used to live here, and only appears
    when there is something to say. */
 .aol-hero__auditerr{
-  margin:10px 0 0; font-family:var(--font-mono); font-size:11.5px;
+  margin:10px 0 0; text-align:center; font-family:var(--font-mono); font-size:11.5px;
   letter-spacing:0.04em; color:var(--copper-600);
 }
 /* The button keeps its words at every width. "Free audit" is the offer, and an
@@ -2460,3 +2480,4 @@
   .aol-report{ animation:none; }
   .aol-report__ctabtn:active{ transform:none; }
 }
+
