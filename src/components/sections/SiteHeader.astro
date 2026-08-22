@@ -32,7 +32,19 @@ const NAV: [string, string][] = [
   ["Blog", "/blog/"],
 ];
 ---
-<header style="position:sticky;top:0;z-index:20;background:rgba(255,255,255,0.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--ink-200)">
+{/* The bar carries a faint pink wash rather than plain white.
+    --surface-warm IS that colour (--pink-050, the FT-inspired paper), so
+    this is the tint the rest of the site already uses for set-apart bands
+    — the footer and the cards — not a new one invented for the chrome.
+
+    color-mix rather than a literal rgba: the translucency and the blur are
+    the point of a sticky bar, and hardcoding rgba(252,244,244,.88) would
+    freeze the token's value into the markup. --pink-050 has moved before.
+
+    The hairline moves with it. A warm surface takes --border-warm, which is
+    what that token exists for; --ink-200 is the neutral hairline and reads
+    faintly green against pink. */}
+<header style="position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--surface-warm) 88%, transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--border-warm)">
   <div style="max-width:var(--container-width);margin:0 auto;padding:var(--space-4) var(--gutter);display:flex;align-items:center;justify-content:space-between">
     <a href="/" style="text-decoration:none;display:inline-flex;align-items:center;gap:9px">
       <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" style="display:block;flex:none"><rect width="32" height="32" rx="4" fill="#1B4DFF"/><path d="M20.75 8 L11.25 24" stroke="#fff" stroke-width="3.25" stroke-linecap="round"/></svg>

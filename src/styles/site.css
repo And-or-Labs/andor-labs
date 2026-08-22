@@ -265,7 +265,7 @@ body.no-scroll { overflow: hidden; }
   header.nav-open .site-nav-toggle span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
 
   /* Dropdown panel under the sticky bar */
-  .site-mobilemenu { border-top: 1px solid var(--ink-200); background: var(--paper-pure); }
+  .site-mobilemenu { border-top: 1px solid var(--border-warm); background: var(--surface-warm); }
   header.nav-open .site-mobilemenu { display: block; }
   .site-mobilelink {
     display: block; padding: 15px var(--gutter);
