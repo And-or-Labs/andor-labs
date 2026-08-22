@@ -2175,118 +2175,6 @@
 @media (prefers-reduced-motion: reduce){ .aol-hero__fill{ transition:none; } }
 
 
-/* ---- The audit page -----------------------------------------------------
-   For two minutes this page has exactly one job: hold somebody's attention
-   while models think. So while a run is going it is ONE object at viewport
-   scale, not a heading plus a small browser mock plus a terminal log — which
-   is what it was, and which read as three things competing rather than one
-   machine working. */
-.aol-auditpage{ padding:var(--space-10) 0 var(--space-16); }
-.aol-auditpage__inner{
-  max-width:1100px; margin:0 auto; padding:0 var(--gutter);
-  display:flex; flex-direction:column; gap:var(--space-6);
-}
-/* While running, the scan takes the screen. 100svh minus the header and the
-   page's own top padding, so the frame ends where the fold does rather than
-   hiding a strip of itself under it. */
-.aol-auditpage.is-running .aol-auditpage__inner{
-  min-height:calc(100svh - var(--header-h) - var(--space-10));
-  justify-content:center;
-}
-.aol-auditpage__start{ max-width:30rem; margin:0 auto; width:100%; }
-
-/* ---- The scan -----------------------------------------------------------
-   A wireframe of the site under a beam, with the machine's own status running
-   along the foot the way a browser's does. The blocks are added as the crawler
-   reports each page, so the shape of this is the shape of what was readable —
-   no pricing block means no pricing page. It is a drawing of real findings,
-   which is the only reason it earns the screen while somebody waits. */
-.aol-scan{ display:flex; flex-direction:column; flex:1 1 auto; min-height:0; }
-.aol-scan__frame{
-  position:relative; display:flex; flex-direction:column; overflow:hidden;
-  flex:1 1 auto; min-height:340px;
-  border:1.5px solid var(--ink-900); border-radius:var(--radius-md);
-  background:var(--paper-pure); box-shadow:var(--shadow-hard);
-}
-.aol-scan__chrome{
-  flex:none; display:flex; align-items:center; gap:6px;
-  padding:10px 14px; border-bottom:1px solid var(--ink-200); background:var(--ink-050);
-}
-.aol-scan__dot{ width:8px; height:8px; border-radius:50%; background:var(--ink-300); flex:none; }
-.aol-scan__url{
-  margin-left:10px; font-family:var(--font-mono); font-size:11px;
-  letter-spacing:0.04em; color:var(--ink-500); overflow:hidden;
-  text-overflow:ellipsis; white-space:nowrap;
-}
-.aol-scan__body{
-  flex:1 1 auto; overflow:hidden;
-  padding:26px 28px;
-  display:flex; flex-direction:column; gap:20px;
-  /* The wireframe is a page, so it reads in a page column rather than
-     stretching blocks across 1100px of frame. */
-  max-width:720px; width:100%;
-}
-.aol-scan__block{
-  display:flex; flex-direction:column; gap:7px;
-  animation:aol-scan-block 260ms var(--ease-out) both;
-}
-@keyframes aol-scan-block{ from{ opacity:0; transform:translateY(4px); } to{ opacity:1; transform:none; } }
-.aol-scan__blocklabel{
-  font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.14em;
-  text-transform:uppercase; color:var(--blue-600); margin-bottom:2px;
-}
-.aol-scan__blockline{ display:block; height:8px; background:var(--ink-200); border-radius:1px; }
-/* The beam sweeps the whole frame while a scoring pass runs. */
-.aol-scan__beam{
-  position:absolute; left:0; right:0; top:0; height:88px;
-  pointer-events:none; opacity:0;
-  background:linear-gradient(to bottom,
-    rgba(27,77,255,0) 0%, rgba(27,77,255,0.14) 45%, rgba(27,77,255,0.26) 50%,
-    rgba(27,77,255,0.14) 55%, rgba(27,77,255,0) 100%);
-  box-shadow:0 0 26px rgba(27,77,255,0.3);
-}
-.aol-scan.is-scanning .aol-scan__beam{
-  opacity:1;
-  animation:aol-scan-sweep 3.2s cubic-bezier(0.45,0,0.55,1) infinite;
-}
-@keyframes aol-scan-sweep{
-  0%   { transform:translateY(-88px); }
-  100% { transform:translateY(100vh); }
-}
-/* The status bar, at the foot of the frame where a browser puts it. This is
-   where the log went: one live line rather than a second panel. */
-.aol-scan__status{
-  flex:none; display:flex; align-items:center; gap:16px;
-  padding:10px 14px; border-top:1px solid var(--ink-200); background:var(--ink-050);
-}
-.aol-scan__caption{
-  margin:0; flex:1 1 auto; min-width:0;
-  font-family:var(--font-mono); font-size:11px; letter-spacing:0.04em;
-  color:var(--ink-600); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.aol-scan__bar{
-  flex:none; width:180px; height:6px; overflow:hidden;
-  border:1px solid var(--ink-300); border-radius:var(--radius-pill);
-  background:var(--paper-pure);
-}
-.aol-scan__fill{
-  display:block; height:100%; width:0%;
-  background:var(--blue-600);
-  transition:width 420ms var(--ease-out);
-}
-/* Motion is the point of a scan, so reduced motion parks the beam over the
-   content rather than removing it — the state stays legible, it just holds. */
-@media (prefers-reduced-motion: reduce){
-  .aol-scan.is-scanning .aol-scan__beam{ animation:none; transform:translateY(30vh); }
-  .aol-scan__block{ animation:none; }
-  .aol-scan__fill{ transition:none; }
-}
-@media (max-width:680px){
-  .aol-scan__frame{ min-height:280px; }
-  .aol-scan__body{ padding:18px; gap:14px; }
-  .aol-scan__bar{ width:96px; }
-}
-
 /* ---- The report: wide carriage ------------------------------------------
    Variant C1 from the design system's tractor exploration, and the right one
    for a full page. The receipt roll was chosen when this lived in a 720px
@@ -2331,18 +2219,10 @@
 }
 /* The carriage. Wide by design, and it scrolls INSIDE its own box rather than
    letting the page scroll sideways. */
-.aol-report__scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
-.aol-report__table{ min-width:820px; }
-.aol-report__cols,
 .aol-report__row{
   display:grid;
   grid-template-columns:44px minmax(150px,1fr) 62px minmax(190px,1.5fr) minmax(200px,1.4fr);
   gap:0 18px; align-items:baseline;
-}
-.aol-report__cols{
-  padding:10px 24px; border-bottom:1px solid var(--ink-300);
-  font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.12em;
-  text-transform:uppercase; color:var(--ink-400);
 }
 .aol-report__row{ padding:14px 24px; border-bottom:1px dotted var(--ink-200); }
 /* Zebra, in the warm surface the ledger components already use. */
@@ -2425,27 +2305,11 @@
   .aol-report__ctabtn:active{ transform:none; }
 }
 
-/* ---- Progress ----------------------------------------------------------- */
-.aol-scan__progress{ width:100%; max-width:420px; }
-.aol-scan__bar{
-  height:6px; width:100%; overflow:hidden;
-  border:1px solid var(--ink-300); border-radius:var(--radius-pill);
-  background:var(--paper-pure);
-}
-.aol-scan__fill{
-  display:block; height:100%; width:0%;
-  background:var(--blue-600);
-  transition:width 420ms var(--ease-out);
-}
-@media (prefers-reduced-motion: reduce){
-  .aol-scan__fill{ transition:none; }
-}
-
 /* ---- The report: tractor-feed printout ----------------------------------
    Direction C from the design system's own scorecard exploration
    (explorations/scorecard-directions.html), built to its conventions rather
-   than approximated. Sprocket margins down both edges, a mono masthead, a
-   plotted meter, and rows whose bodies are serif.
+   than approximated. Sprocket margins down both edges, a mono masthead, and
+   rows whose bodies are serif.
 
    Written with the DS's SCALES — --text-2xs..--text-2xl, --tracking-label /
    tick / mono / tight, --signal, --text-strong, --text-on-warm-muted — not

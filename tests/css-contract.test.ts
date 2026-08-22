@@ -69,9 +69,24 @@ describe("screen-reader-only", () => {
 });
 
 describe("the report", () => {
-  it("scrolls inside its own box rather than the page", () => {
-    // The carriage is deliberately wider than a phone. If this is lost the
-    // whole document scrolls sideways.
-    expect(css).toMatch(/\.aol-report__scroll\{[^}]*overflow-x:\s*auto/);
+  it("keeps withheld rows to ONE line on a phone", () => {
+    // The single-column mobile override once applied to withheld rows too, and
+    // each broke into three stacked lines — code, strip, and a dash carrying
+    // nothing — so seventeen of them ate the page. The masked row keeps its own
+    // two-column track inside the mobile block.
+    const mobile = css.slice(css.indexOf("@media (max-width:680px)"));
+    expect(mobile).toMatch(/\.aol-report__row--masked\{[^}]*grid-template-columns/);
+  });
+
+  it("keeps the sprocket margins clear of the content", () => {
+    // The holes are drawn on ::before/::after at a fixed width; the paper's
+    // horizontal padding is what stops rows running underneath them.
+    expect(css).toMatch(/\.aol-report__paper\{[^}]*padding:\s*0 46px/);
+  });
+
+  it("gives the hole strip a fixed track count", () => {
+    // auto-fill lays out as many tracks as FIT rather than as many as exist, so
+    // 24 holes bunched into the first quarter of a 900px row and left a void.
+    expect(css).toMatch(/\.aol-report__unpunched\{[^}]*repeat\(24,/);
   });
 });

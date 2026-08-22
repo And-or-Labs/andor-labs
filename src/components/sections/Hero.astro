@@ -318,6 +318,39 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       feed(buf);
     };
 
+    /**
+     * Demo mode — /?demo=1 replays a real captured run at a watchable pace.
+     *
+     * It exists because a live audit is ~30 seconds against real models and a
+     * paid crawl, which makes the experience nearly impossible to review or
+     * iterate on. It drives the SAME handlers as the live stream, so what you
+     * watch here is what ships; only the source of the messages differs, and
+     * the fixture is a genuine recorded run rather than invented copy.
+     */
+    const runDemo = async () => {
+      auditForm.classList.add("is-running");
+      submit.disabled = true;
+      progress.hidden = false;
+      setPct(2);
+      say("connecting…");
+      let msgs: any[] = [];
+      try {
+        msgs = (await (await fetch("/audit-demo.json")).json()).stream ?? [];
+      } catch {
+        stop("Demo fixture missing.");
+        return;
+      }
+      for (const m of msgs) {
+        await new Promise((r) => setTimeout(r, reduce ? 0 : m.t === "result" ? 900 : 700));
+        handle(m);
+      }
+    };
+
+    if (new URLSearchParams(location.search).get("demo")) {
+      auditInput.value = "someone@plausible.io";
+      void runDemo();
+    }
+
     auditForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const email = auditInput.value.trim();
