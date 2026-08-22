@@ -245,7 +245,9 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
     const handle = (msg: any) => {
       if (msg.t === "open") say(`reading ${msg.host}…`);
       else if (msg.t === "step") {
-        say(msg.status ? `${msg.label.toLowerCase()} — ${msg.status.toLowerCase()}` : msg.label.toLowerCase());
+        // `say` is the step written for a single line. The label+status pair is
+        // the log's voice and collapses into nonsense when flattened.
+        say(msg.say ?? msg.label.toLowerCase());
         const at = STEPS.indexOf(msg.key);
         if (at >= 0) setPct(((at + 1) / STEPS.length) * FLOOR);
       } else if (msg.t === "tick") {

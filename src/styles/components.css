@@ -2565,17 +2565,25 @@
    findings. The code is the identifier; the strip is the gesture; nothing else
    belongs here. */
 .aol-report__row--masked{
-  grid-template-columns:120px minmax(0,1fr) 60px;
+  /* No score column. A dash is not information, and dropping it lets the strip
+     run to the edge of the row the way an unpunched card would. */
+  grid-template-columns:120px minmax(0,1fr);
   align-items:center; padding:7px 14px;
 }
+.aol-report__row--masked .aol-report__sc{ display:none; }
 .aol-report__row--masked .aol-report__code{ margin:0; color:var(--text-faint); }
 .aol-report__row--masked .aol-report__sc{ color:var(--ink-300); }
 /* Always exactly one row of holes. The count is fixed at 24 in markup, so on a
    narrow column they wrapped to a ragged second row; clipping to a single row
    height keeps the strip a strip at every width without the markup needing to
    know how wide it is. */
+/* 24 holes, always spanning the full width.
+   auto-fill was wrong: it lays out as many tracks as FIT, so on a 900px row it
+   made ~80 columns and the 24 spans bunched into the first quarter, leaving a
+   450px void before the dash. A fixed 24-column track divides the space the
+   strip actually has. */
 .aol-report__unpunched{
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(11px, 1fr));
+  display:grid; grid-template-columns:repeat(24, minmax(0, 1fr));
   gap:3px; max-width:none; height:9px; overflow:hidden;
 }
 .aol-report__unpunched span{

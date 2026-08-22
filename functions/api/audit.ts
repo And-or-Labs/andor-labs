@@ -47,21 +47,24 @@ interface Env extends AuditStoreEnv {
  * The progress log, in order.
  *
  * Statuses are overwritten by real values where there is one to report (the
- * pricing page either was or was not found), and left as written where the line
- * is a joke rather than a measurement. Reading DOWN the status column on lines
- * five and six gives "YOU'RE / WELCOME" — that is the gag, and it only works
- * while both labels sit at the same length in the leader column. If you change
- * either, change both.
+ * pricing page either was or was not found).
+ *
+ * TWO VOICES, deliberately. `label` + `status` is the dotted-leader log, where
+ * reading DOWN the status column on lines five and six gives "YOU'RE /
+ * WELCOME" — a gag that only works in a stacked column. `say` is the same step
+ * as one plain line, for the hero's single status readout, where that gag
+ * flattens into "so you don't have to — you're" and reads as gibberish. A joke
+ * that depends on layout needs a fallback for every layout it does not get.
  */
-const STEPS: { key: string; label: string; status: string }[] = [
-  { key: "wake", label: "Waking up the crawler", status: "OK" },
-  { key: "home", label: "Reading your homepage", status: "OK" },
-  { key: "pricing", label: "Finding your pricing", status: "EVENTUALLY" },
-  { key: "studies", label: "Reading 23 studies", status: "AGAIN" },
-  { key: "sodont", label: "So you don't have to", status: "YOU'RE" },
-  { key: "science", label: "Applying the science", status: "WELCOME" },
-  { key: "math", label: "Doing the arithmetic", status: "OK" },
-  { key: "round", label: "Rounding in your favour", status: "NO" },
+const STEPS: { key: string; label: string; status: string; say: string }[] = [
+  { key: "wake", label: "Waking up the crawler", status: "OK", say: "waking up the crawler" },
+  { key: "home", label: "Reading your homepage", status: "OK", say: "reading your homepage" },
+  { key: "pricing", label: "Finding your pricing", status: "EVENTUALLY", say: "looking for your pricing" },
+  { key: "studies", label: "Reading 23 studies", status: "AGAIN", say: "loading 23 studies" },
+  { key: "sodont", label: "So you don't have to", status: "YOU'RE", say: "so you don't have to" },
+  { key: "science", label: "Applying the science", status: "WELCOME", say: "applying the research" },
+  { key: "math", label: "Doing the arithmetic", status: "OK", say: "doing the arithmetic" },
+  { key: "round", label: "Rounding in your favour", status: "NO", say: "not rounding in your favour" },
 ];
 
 /**
