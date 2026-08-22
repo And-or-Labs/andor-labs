@@ -84,6 +84,31 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       {/* <a class="aol-hero__alt" href="/tools/rank-my-adtech/">Get your company ranked by three AI labs <span aria-hidden="true">&rarr;</span></a> */}
     </div>
   </div>
+  {/* ── Credibility strip ────────────────────────────────────────────────
+      Rests at the foot of the first screen, so the promise is what fills the
+      fold and the proof is what you meet on the way out of it.
+
+      TEXT, not logos. A wordmark row was tried here and taken out again: four
+      SVGs at four different optical weights read as a sponsor bar on a page
+      that has none of that furniture anywhere else, and the eyebrow + value
+      pairing is the vocabulary the rest of the site already uses for a stated
+      fact. The marks are still in public/partners/ if that decision changes.
+
+      --r:6 keeps it last in the staged reveal, after the field. */}
+  <div class="aol-grid-blue" data-r style="border-top:1px solid var(--ink-200);--r:6">
+    <div style="max-width:var(--container-width);width:100%;margin:0 auto;padding:var(--space-6) var(--gutter)">
+    <div class="aol-credstrip" style="border-top:0;padding-top:0">
+      <div class="aol-credstrip__cell">
+        <span class="aol-eyebrow">As seen on</span>
+        <span class="aol-credstrip__val">{PRESS.join("  ·  ")}</span>
+      </div>
+      <div class="aol-credstrip__cell">
+        <span class="aol-eyebrow">Brand partners</span>
+        <span class="aol-credstrip__val">AirOps  ·  Superdesign  ·  Snitcher</span>
+      </div>
+    </div>
+    </div>
+  </div>
 </section>
 
 <script>
