@@ -1,7 +1,9 @@
 # Lead-generation funnel — design
 
 Date: 2026-08-21
-Status: in build on `lead-gen-funnel`. Scoring model revised 08-21 (grade, not score).
+Status: BUILT on `lead-gen-funnel`. Revised through 08-22 — the sections below
+marked SUPERSEDED record decisions that were later reversed, and are kept
+because the reasons still explain why the current shape is what it is.
 Branch: `lead-gen-funnel`
 
 ## What this is
@@ -143,6 +145,33 @@ grade instead.
 for a new structural gate. Caps compose — the strictest wins — so a new one
 cannot silently loosen an existing one, and none of the scoring maths changes.
 
+## What actually shipped (08-22)
+
+The design below was substantially revised in build. The current shape:
+
+| | |
+|---|---|
+| Entry | One email field in the HERO, not the header. Header keeps `Book a call` |
+| Run | In place — progress bar under the field, no navigation, no modal |
+| Result | Tractor-feed printout below the hero, scrolled to on completion |
+| Crawl | **Firecrawl** `/v2/scrape`, one call → markdown + rawHtml + screenshot |
+| Scoring | **6 parallel groups**, one per subsection, `deepseek-v4-flash` pinned |
+| Visual checks | The `design` subsection scores from the SCREENSHOT via `deepseek-v4-flash-vision-exp` |
+| Output | Grade A–E. Every check listed in source order, 3 open, rest masked to a code |
+| Latency | ~28s (was 246s) |
+
+Three reversals worth knowing about, because each was tried and rejected for a
+reason that still holds:
+
+- **A modal, then an inline panel, then a page, then back inline.** A modal
+  lands on top of the page; a page throws away the promise the visitor just
+  read. The wait is the problem, and staying put is the answer.
+- **A receipt, then a wide carriage.** The receipt was right in a 720px modal
+  and comical on a full-width page.
+- **Subsection summaries, then individual checks.** Rolling 23 findings into
+  six paragraphs threw away the only thing that makes "23 peer-reviewed checks"
+  worth saying.
+
 ## Architecture
 
 ```
@@ -188,9 +217,12 @@ recorded in `docs/`:
 
 Taken as-is from the shelved Rank My AdTech engine, which stays shelved:
 
-- `functions/_lib/crawl.ts` — `readSite()`, multi-page fetch with a
-  context.dev JS-render fallback and a `thin` flag. Already fetches `/pricing`
-  as a first-class page, which is exactly what §2 needs.
+- ~~`functions/_lib/crawl.ts`~~ SUPERSEDED. `functions/_lib/pages.ts` reads via
+  Firecrawl instead: one `/v2/scrape` returns markdown, rawHtml and a
+  screenshot in ~2.4s. `crawl.ts` flattened markdown through `toText()`, which
+  destroys the structure half these rules ask about.
+- `functions/_lib/signals.ts` — measured DOM facts, ported from saas-grader's
+  `extract-signals.mjs`. Checks marked `dom` are scored from counts, not prose.
 - `functions/_lib/providers.ts` — `askLadder()`, provider ladder with
   per-provider timeouts, JSON extraction and retries.
 NOT `functions/_lib/bands.ts`. Its ladder is calibrated out of 30, so handing
