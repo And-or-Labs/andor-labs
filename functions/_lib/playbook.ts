@@ -609,8 +609,19 @@ export const rulesFor = (key: SubsectionKey): Rule[] =>
 export const observableRules = (key: SubsectionKey, ctx: CrawlContext): Rule[] =>
   rulesFor(key).filter((r) => r.observable(ctx));
 
-/** Each rule is judged 0-5 by the model. */
-export const MAX_PER_RULE = 5;
+/**
+ * Each check is PASS or FAIL. Not a score.
+ *
+ * The criteria are written as PASS and FAIL definitions, so asking for a 0-5
+ * against them was a mismatch — it invited the model to average two clear
+ * definitions into a number, and left the reader deciding what 3/5 meant. A
+ * check either meets the stated test or it does not, and a page of verdicts is
+ * scannable in a way a page of fractions is not.
+ */
+export type Verdict = "pass" | "fail";
+
+/** Retained for the internal ratio only: a pass is worth its weight. */
+export const MAX_PER_RULE = 1;
 
 export interface RuleScore {
   id: string;
@@ -874,8 +885,10 @@ export function rulesPrompt(key: SubsectionKey, ctx: CrawlContext): string {
  */
 export interface CheckResult {
   id: string;
-  /** Public identifier for a masked row, e.g. BRAND-1 or PRICING-3. */
+  /** Public identifier, e.g. BRAND-1 or PRICING-3. */
   code: string;
+  /** The whole verdict. */
+  verdict: Verdict;
   label: string;
   subsection: SubsectionKey;
   subsectionLabel: string;
@@ -912,6 +925,7 @@ export function rankChecks(
       label: r.label,
       subsection: r.subsection,
       subsectionLabel: subsectionLabel(r.subsection),
+      verdict: score >= 1 ? "pass" : "fail",
       score,
       grade: rawGrade(score / MAX_PER_RULE),
       weight: r.weight,
@@ -925,21 +939,20 @@ export function rankChecks(
 }
 
 /**
- * Which checks to reveal: the worst, by score then weight.
+ * Which checks to open: the heaviest FAILURES.
  *
- * Ranked separately from the ORDER they are shown in. The three worth opening
- * are the three most worth acting on, but they are then displayed where they
- * actually fall in the sequence — so the reader sees the shape of the whole
- * audit with three windows cut into it, rather than a top-three chart that
- * hides how much else was measured.
+ * Ranked separately from the ORDER they are shown in. A passing check has
+ * nothing to act on, so opening one would spend a slot on good news; the three
+ * revealed are the three failures that cost the most. They are then displayed
+ * where they fall in the sequence, so the reader sees the whole audit with
+ * three windows cut into it rather than a top-three chart.
  */
 export function revealed(checks: CheckResult[], n: number): Set<string> {
-  return new Set(
-    [...checks]
-      .sort((a, b) => a.score - b.score || b.weight - a.weight)
-      .slice(0, n)
-      .map((c) => c.id),
-  );
+  const fails = checks.filter((c) => c.verdict === "fail");
+  // If a site somehow fails fewer than n checks, fall back to the full list so
+  // the report still opens three rows rather than going strangely sparse.
+  const pool = fails.length >= n ? fails : checks;
+  return new Set([...pool].sort((a, b) => b.weight - a.weight).slice(0, n).map((c) => c.id));
 }
 
 

@@ -183,18 +183,18 @@ describe("the gate", () => {
     expect(t.open.length + t.locked.length).toBe(SUBSECTIONS.length);
   });
 
-  it("opens the worst three, because that is what earns the call", () => {
+  it("ranks the subsections that failed most", () => {
     const ctx = FULL;
+    // messaging and proof fail everything; the rest pass everything.
     const results = SUBSECTIONS.map((s) =>
-      // messaging and proof are terrible, plans is mediocre, the rest are perfect
       scoreSubsection(
         s.key,
         ctx,
-        flat(s.key, ctx, s.key === "messaging" || s.key === "proof" ? 0 : s.key === "plans" ? 2 : MAX_PER_RULE),
+        flat(s.key, ctx, s.key === "messaging" || s.key === "proof" ? 0 : MAX_PER_RULE),
       ),
     );
     const t = totals(results, ctx);
-    expect(t.open.map((r) => r.key)).toEqual(expect.arrayContaining(["messaging", "proof", "plans"]));
+    expect(t.open.map((r) => r.key)).toEqual(expect.arrayContaining(["messaging", "proof"]));
   });
 
   it("sorts unscorable subsections last, not worst", () => {

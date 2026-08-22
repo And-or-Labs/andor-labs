@@ -79,9 +79,9 @@ describe("the wire payload", () => {
       open,
       items: checks.map((c) =>
         open.has(c.id)
-          ? { code: c.code, open: true, name: c.label, area: c.subsectionLabel,
-              grade: c.grade, score: `${c.score}/5`, body: c.evidence, citation: c.citation }
-          : { code: c.code, open: false },
+          ? { code: c.code, verdict: c.verdict, open: true, name: c.label,
+              area: c.subsectionLabel, body: c.evidence, citation: c.citation }
+          : { code: c.code, verdict: c.verdict, open: false },
       ),
     };
   };
@@ -108,7 +108,7 @@ describe("the wire payload", () => {
     for (const m of masked) {
       // A name is most of a finding: "no decoy plan" gives the answer away.
       // A code gives only position. So the shape itself is the gate.
-      expect(Object.keys(m).sort()).toEqual(["code", "open"]);
+      expect(Object.keys(m).sort()).toEqual(["code", "open", "verdict"]);
     }
   });
 
@@ -123,11 +123,17 @@ describe("the wire payload", () => {
     }
   });
 
-  it("gives every open row a name, a score, evidence and its paper", () => {
+  it("gives every open row a name, a verdict, evidence and its paper", () => {
     for (const i of build().items.filter((x) => x.open) as any[]) {
       expect(i.name.length).toBeGreaterThan(0);
-      expect(i.score).toMatch(/^\d\/5$/);
+      expect(["pass", "fail"]).toContain(i.verdict);
       expect(i.citation).toMatch(/\(\w+ \d{4}\)\.$/);
     }
+  });
+
+  it("shows a verdict for EVERY check, masked or not", () => {
+    // The verdict is the scannable unit. Withholding it too left seventeen rows
+    // of dashes telling a reader nothing about their own site.
+    for (const i of build().items as any[]) expect(["pass", "fail"]).toContain(i.verdict);
   });
 });

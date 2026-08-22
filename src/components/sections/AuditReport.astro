@@ -1,65 +1,56 @@
 ---
 /**
- * The report — a tractor-feed printout, below the hero.
+ * The report.
  *
- * Direction C from the design system's own scorecard exploration
- * (explorations/scorecard-directions.html), built to its conventions rather
- * than approximated: sprocket margins down both edges, a mono masthead, a
- * mono masthead, rows whose bodies are serif, and unpunched holes where a withheld row's
- * evidence would be.
+ * Three bands, in the order a reader wants them:
  *
- * The exploration's plotted meter is deliberately NOT here. It listed all
- * twenty codes above a list of the same twenty codes — a summary is only a
- * summary if it says something the detail does not, and with most rows
- * withheld it plotted as twenty near-empty bars. The unpunched strips already
- * carry the shape.
+ *   1. THE VERDICT — host, grade, and the two numbers that matter.
+ *   2. THE BOARD   — every check as a PASS/FAIL tile, filling the width. This
+ *                    is the scannable layer: you find your failures at a glance
+ *                    rather than by reading seventeen rows of prose.
+ *   3. THE OPEN THREE — the failures worth acting on, at full size.
  *
- * EVERY CHECK IS LISTED, IN THE ORDER THE RESEARCH PUBLISHES THEM. Three are
- * open where they actually fall. The rest show only a code — BRAND-1,
- * PRICING-3 — which is a stronger gate than a name, because a name is most of
- * the finding while a code is only a position.
+ * The board and the findings are separated deliberately. They answer different
+ * questions — "how did I do" and "what do I fix" — and the previous version
+ * interleaved them, so the answer to the first was buried inside the second and
+ * neither was scannable.
  *
- * Each open row carries the finding, the MECHANISM behind the rule, the
- * study's own number where one exists, and the paper. A verdict without a
- * mechanism is an assertion; the number is what makes it worth acting on.
+ * Every check shows its verdict, including the withheld ones. Only the EVIDENCE
+ * is gated. Hiding the verdict too left a column of dashes that told a reader
+ * nothing about their own site; showing pass/fail for all of them is both the
+ * more useful page and the stronger tease.
+ *
+ * No throat-clearing. Nothing here explains what the section is, apologises for
+ * the gate, or thanks anyone for their time.
  */
 import { BOOKING_URL } from "../../config";
 ---
 
 <section class="aol-report" id="audit-report" aria-labelledby="audit-report-title" hidden>
   <div class="aol-report__inner">
-    <div class="aol-report__paper">
-      <div class="aol-report__masthead">
-        <div>
-          <span class="aol-eyebrow">GTM scorecard</span>
-          <h2 class="aol-report__host" id="audit-report-title"></h2>
-          <p class="aol-report__meta"></p>
-        </div>
-        <div class="aol-report__grade">
-          <span class="aol-report__letter"></span>
-          <span class="aol-report__gradelabel"></span>
-        </div>
+
+    <header class="aol-report__top">
+      <div>
+        <h2 class="aol-report__host" id="audit-report-title"></h2>
+        <p class="aol-report__grade"></p>
       </div>
-
-      <p class="aol-report__cap" hidden></p>
-
-      <div class="aol-report__rows"></div>
-
-      <p class="aol-report__stamp"></p>
-
-      <div class="aol-report__foot">
-        <div>
-          <h3 class="aol-report__foottitle"></h3>
-          <p>
-            Thirty minutes, no deck. We go through every check on the card and you
-            keep the notes either way.
-          </p>
-        </div>
-        <div>
-          <a class="aol-report__ctabtn" href={BOOKING_URL} target="_blank" rel="noopener">Book a call</a>
-          <span class="aol-report__ctanote">30 min · no deck</span>
-        </div>
+      <div class="aol-report__tally">
+        <span class="aol-report__tallyitem aol-report__tallyitem--pass"><b></b> passed</span>
+        <span class="aol-report__tallyitem aol-report__tallyitem--fail"><b></b> failed</span>
       </div>
+    </header>
+
+    <p class="aol-report__cap" hidden></p>
+
+    {/* The board — every check, in the order the research publishes them. */}
+    <div class="aol-report__board"></div>
+
+    {/* The failures worth acting on. */}
+    <div class="aol-report__findings"></div>
+
+    <div class="aol-report__cta">
+      <h3 class="aol-report__ctatitle"></h3>
+      <a class="aol-report__ctabtn" href={BOOKING_URL} target="_blank" rel="noopener">Book a call</a>
     </div>
   </div>
 </section>

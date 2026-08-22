@@ -69,24 +69,22 @@ describe("screen-reader-only", () => {
 });
 
 describe("the report", () => {
-  it("keeps withheld rows to ONE line on a phone", () => {
-    // The single-column mobile override once applied to withheld rows too, and
-    // each broke into three stacked lines — code, strip, and a dash carrying
-    // nothing — so seventeen of them ate the page. The masked row keeps its own
-    // two-column track inside the mobile block.
-    const mobile = css.slice(css.indexOf("@media (max-width:680px)"));
-    expect(mobile).toMatch(/\.aol-report__row--masked\{[^}]*grid-template-columns/);
+  it("has real vertical padding", () => {
+    // It had almost none, and a result somebody waited thirty seconds for
+    // should not arrive crammed against the thing above it.
+    expect(css).toMatch(/\.aol-report\{[^}]*padding:\s*var\(--space-16\)/);
   });
 
-  it("keeps the sprocket margins clear of the content", () => {
-    // The holes are drawn on ::before/::after at a fixed width; the paper's
-    // horizontal padding is what stops rows running underneath them.
-    expect(css).toMatch(/\.aol-report__paper\{[^}]*padding:\s*0 46px/);
+  it("keeps the board on an auto-filling grid", () => {
+    // The board is the scannable layer and has to use the full width at any
+    // size; a fixed column count wastes it on a wide screen.
+    expect(css).toMatch(/\.aol-report__board\{[^}]*repeat\(auto-fill/);
   });
 
-  it("gives the hole strip a fixed track count", () => {
-    // auto-fill lays out as many tracks as FIT rather than as many as exist, so
-    // 24 holes bunched into the first quarter of a 900px row and left a void.
-    expect(css).toMatch(/\.aol-report__unpunched\{[^}]*repeat\(24,/);
+  it("colours failures differently from passes", () => {
+    // The whole point of the board is that failures are pre-attentive. If these
+    // collapse to one colour it becomes a list again.
+    expect(css).toMatch(/\.aol-tile--fail\{[^}]*copper/);
+    expect(css).toMatch(/\.aol-tile--pass \.aol-tile__verdict\{[^}]*blue/);
   });
 });

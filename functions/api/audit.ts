@@ -297,21 +297,29 @@ function gate(result: Awaited<ReturnType<typeof scoreSite>>) {
   // no score, no evidence, no citation. That is a stronger gate than the names
   // were: "no decoy plan" is most of the finding, while PRICING-2 tells you
   // only that a check exists and has not been answered for you yet.
+  // EVERY check shows its verdict. Only the evidence is gated.
+  //
+  // Withholding the verdict too made the card unscannable — seventeen rows of
+  // "—" told a reader nothing about their own site. Showing pass/fail for all
+  // of them is both the more useful page and the stronger tease: you can see
+  // you failed eleven checks, and the reasons are what the call is for.
   const items = checks.map((c) =>
     open.has(c.id)
       ? {
           code: c.code,
+          verdict: c.verdict,
           open: true as const,
           name: c.label,
           area: c.subsectionLabel,
-          grade: c.grade,
-          score: `${c.score}/5`,
           body: c.evidence,
           why: c.why,
           stat: c.stat,
           citation: c.citation,
         }
-      : { code: c.code, open: false as const },
+      // Code and verdict. NOT the name — "no decoy plan" is most of the
+      // finding, while PRICING-2 FAIL says you have a problem there and nothing
+      // about what it is.
+      : { code: c.code, verdict: c.verdict, open: false as const },
   );
 
   return {
@@ -320,6 +328,8 @@ function gate(result: Awaited<ReturnType<typeof scoreSite>>) {
     gradeLabel: verdict.label,
     caps: verdict.caps,
     total: checks.length,
+    passed: checks.filter((c) => c.verdict === "pass").length,
+    failed: checks.filter((c) => c.verdict === "fail").length,
     shown: items.filter((i) => i.open).length,
     items,
   };

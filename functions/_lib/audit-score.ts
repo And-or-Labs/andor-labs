@@ -97,10 +97,10 @@ const RESPONSE_SCHEMA = {
         type: "object",
         properties: {
           id: { type: "string" },
-          score: { type: "integer" },
+          verdict: { type: "string", enum: ["pass", "fail"] },
           note: { type: "string" },
         },
-        required: ["id", "score", "note"],
+        required: ["id", "verdict", "note"],
       },
     },
     summary: { type: "string" },
@@ -185,11 +185,11 @@ function buildPrompt(key: SubsectionKey, host: string, site: SiteMarkdown, ctx: 
     `- Every note is ONE sentence, twenty words at the outside.`,
     `- Cite one concrete thing: a count, a price, a quoted phrase, a position.`,
     `- No hedging, no balancing. State the problem and stop.`,
-    `- Score 0-5. 0 means the page does the opposite of the rule, 5 means it`,
-    `  follows it well.`,
+    `- Answer PASS or FAIL. Not a score, not a maybe — the definitions above`,
+    `  are exhaustive, so decide which one the page matches.`,
     site.thin ? `- NOTE: this page rendered almost nothing. Say so plainly.` : ``,
     ``,
-    `Return JSON: {"scores":[{"id":"<check id>","score":<0-5>,"note":"<=20 words"}]}`,
+    `Return JSON: {"scores":[{"id":"<check id>","verdict":"pass"|"fail","note":"<=20 words"}]}`,
     ``,
     site.html ? signalsBlock(extractSignals(site.html)) : "",
     ``,
@@ -212,8 +212,11 @@ function normalize(raw: unknown, valid: Set<string>): SectionVerdict {
       const id = typeof r.id === "string" ? r.id.trim() : "";
       // An id we did not ask about is a hallucinated check. Drop it.
       if (!valid.has(id) || scores.has(id)) continue;
-      if (typeof r.score !== "number" && typeof r.score !== "string") continue;
-      scores.set(id, clampInt(r.score, MAX_PER_RULE));
+      // PASS or FAIL, nothing else. Anything unrecognised is an omission, not a
+      // guess — the same rule that governs a check the model declined to score.
+      const v = String((r as { verdict?: unknown }).verdict ?? "").trim().toLowerCase();
+      if (v !== "pass" && v !== "fail") continue;
+      scores.set(id, v === "pass" ? 1 : 0);
       notes.set(id, clampText(r.note, 150));
     }
   }
@@ -254,10 +257,9 @@ async function scoreVisualGroup(
     `- If the screenshot does not show enough to judge a check, OMIT it.`,
     `- Every note is ONE sentence, twenty words at the outside, citing what is`,
     `  visible and where it sits.`,
-    `- Score 0-5. 0 means the page does the opposite of the rule, 5 means it`,
-    `  follows it well.`,
+    `- Answer PASS or FAIL. Not a score, not a maybe.`,
     ``,
-    `Return JSON: {"scores":[{"id":"<check id>","score":<0-5>,"note":"<=20 words"}]}`,
+    `Return JSON: {"scores":[{"id":"<check id>","verdict":"pass"|"fail","note":"<=20 words"}]}`,
   ].join("\n");
 
   const t0 = Date.now();
