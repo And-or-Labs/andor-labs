@@ -16,8 +16,16 @@
  * sentences and the model is left guessing — which is exactly what the guessing
  * looked like in the output.
  *
- * So context.dev is the PRIMARY source here rather than a fallback, and its
- * markdown is preserved rather than parsed away.
+ * FIRECRAWL, one call rather than two. /v2/scrape returns markdown, rawHtml and
+ * a screenshot together in ~2.4s, where two context.dev calls took 3.3s and
+ * could not produce a screenshot at all.
+ *
+ * The screenshot is the point. Six checks are POSITIONAL — is the CTA in the
+ * upper-right quadrant, are its corners rounded, does the comparison run
+ * before-on-left — and markdown has no coordinates while HTML has classes but
+ * no layout. Scored from text, "CTA in the upper right" came back 0/5 for
+ * plausible.io, which has "Start free trial" in its upper-right nav. Not a gap:
+ * a measured falsehood, penalising a site for doing the right thing.
  */
 
 /** The pages these rules can actually be answered from. */
@@ -38,6 +46,8 @@ export interface PageRead {
 export interface SiteMarkdown {
   /** Rendered HTML of the homepage, for measured DOM signals. */
   html: string;
+  /** Signed screenshot URL of the homepage, for the positional checks. */
+  screenshot: string;
   /** Every page, headed and concatenated, ready to drop into a prompt. */
   pages: string;
   /** What was actually read, for the progress log and the scan wireframe. */
@@ -56,7 +66,7 @@ export interface SiteMarkdown {
 }
 
 /**
- * Strip CSS that context.dev's converter sometimes leaves behind as prose.
+ * Strip CSS that a markdown converter sometimes leaves behind as prose.
  *
  * Found live on a Gatsby build: the converter removed the <style> tags but left
  * ten thousand characters of `.styles-module--title{...}` in the body, where it
@@ -82,47 +92,52 @@ const tidy = (md: string): string =>
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
-/** Rendered HTML, for the measured-signals pass. */
-async function scrapeHtml(url: string, key: string, timeoutMs = 20_000): Promise<string> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(
-      `https://api.context.dev/v1/web/scrape/html?url=${encodeURIComponent(url)}`,
-      { signal: controller.signal, headers: { authorization: `Bearer ${key}` } },
-    );
-    if (!res.ok) return "";
-    const body = (await res.json()) as { success?: boolean; html?: string };
-    return body.success && body.html ? body.html : "";
-  } catch {
-    return "";
-  } finally {
-    clearTimeout(timer);
-  }
+interface Scraped {
+  markdown: string;
+  html: string;
+  /** Signed URL, valid ~24h — far longer than one audit lives. */
+  screenshot: string;
 }
 
-async function scrape(url: string, key: string, timeoutMs = 20_000): Promise<string | null> {
+/**
+ * One call, three formats.
+ *
+ * Markdown is returned WHOLE, not capped. Slicing here quietly defeated
+ * everything downstream — link discovery, the pricing-heading test and the
+ * section lift all read this string, so on a long homepage the evidence was
+ * gone before anything went looking for it. plausible.io keeps its plans past
+ * the 7,000th character. The cap belongs where the prompt is assembled.
+ */
+async function scrape(
+  url: string,
+  key: string,
+  shot: boolean,
+  timeoutMs = 30_000,
+): Promise<Scraped | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(
-      `https://api.context.dev/v1/web/scrape/markdown?url=${encodeURIComponent(url)}`,
-      { signal: controller.signal, headers: { authorization: `Bearer ${key}` } },
-    );
+    const formats: unknown[] = ["markdown", "rawHtml"];
+    // Only the homepage needs a picture. Every positional check is about the
+    // page a visitor lands on, and a second screenshot is latency for nothing.
+    if (shot) {
+      formats.push({ type: "screenshot", fullPage: false, viewport: { width: 1280, height: 900 } });
+    }
+    const res = await fetch("https://api.firecrawl.dev/v2/scrape", {
+      method: "POST",
+      signal: controller.signal,
+      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
+      body: JSON.stringify({ url, formats, onlyMainContent: false }),
+    });
     if (!res.ok) return null;
-    const body = (await res.json()) as { success?: boolean; markdown?: string };
-    if (!body.success || !body.markdown) return null;
-    // Returned WHOLE, not capped.
-    //
-    // This used to slice to PER_PAGE right here, and that quietly defeated
-    // everything downstream: link discovery, the pricing-heading test and the
-    // section lift all read this string, so on a long homepage the evidence was
-    // already gone before anything went looking for it. plausible.io keeps its
-    // plans past the 7,000th character — the anchor, the heading and the prices
-    // were all in the document and none of them were in the variable. The cap
-    // belongs where the prompt is assembled, not where the page is read.
-    const md = tidy(stripCss(body.markdown));
-    return md || null;
+    const body = (await res.json()) as {
+      success?: boolean;
+      data?: { markdown?: string; rawHtml?: string; screenshot?: string };
+    };
+    if (!body.success || !body.data) return null;
+    const md = tidy(stripCss(body.data.markdown ?? ""));
+    if (!md) return null;
+    return { markdown: md, html: body.data.rawHtml ?? "", screenshot: body.data.screenshot ?? "" };
   } catch {
     return null;
   } finally {
@@ -191,6 +206,7 @@ export async function readSiteMarkdown(host: string, key?: string): Promise<Site
     read: [],
     finalUrl: origin,
     html: "",
+    screenshot: "",
     thin: true,
     hasPricing: false,
     pricingUnreadable: false,
@@ -202,7 +218,10 @@ export async function readSiteMarkdown(host: string, key?: string): Promise<Site
   // page makes, HTML carries the countable facts — ratings, trial lengths,
   // price tokens, button labels, border radii — that saas-grader's procedure
   // insists must be MEASURED rather than judged from prose.
-  const [home, html] = await Promise.all([scrape(origin, key), scrapeHtml(origin, key)]);
+  const first = await scrape(origin, key, true);
+  const home = first?.markdown ?? null;
+  const html = first?.html ?? "";
+  const screenshot = first?.screenshot ?? "";
   // Under ~400 characters of markdown is a shell, not a homepage.
   if (!home || home.length < 400) return { ...empty, thin: !home || home.length < 400 };
 
@@ -226,10 +245,10 @@ export async function readSiteMarkdown(host: string, key?: string): Promise<Site
   }
 
   const fetched = await Promise.all(
-    targets.slice(0, 3).map(async (t) => ({ ...t, markdown: await scrape(t.url, key) })),
+    targets.slice(0, 2).map(async (t) => ({ ...t, got: await scrape(t.url, key, false) })),
   );
   for (const f of fetched) {
-    if (f.markdown) read.push({ label: f.label, url: f.url, markdown: f.markdown.slice(0, PER_PAGE) });
+    if (f.got) read.push({ label: f.label, url: f.url, markdown: f.got.markdown.slice(0, PER_PAGE) });
   }
 
   // Inline pricing gets LIFTED OUT of the homepage into its own page.
@@ -259,6 +278,7 @@ export async function readSiteMarkdown(host: string, key?: string): Promise<Site
 
   return {
     html,
+    screenshot,
     pages,
     read,
     finalUrl: origin,

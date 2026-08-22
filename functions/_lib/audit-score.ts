@@ -17,6 +17,7 @@ import { extractSignals, signalsBlock } from "./signals";
 import {
   MAX_PER_RULE,
   SUBSECTIONS,
+  isVisual,
   observableRules,
   rulesPrompt,
   rankChecks,
@@ -53,6 +54,20 @@ import {
  */
 const PROVIDER = "opencode" as const;
 const MODEL = "deepseek-v4-flash";
+
+/**
+ * The same family, with eyes, for the checks that are about where things are.
+ *
+ * Measured on plausible.io against the three positional rules: the text pass
+ * scored "CTA in the upper right" 0/5 — a confident falsehood about a page with
+ * "Start free trial" in its upper-right nav — and the vision pass scored it 5/5
+ * and said where it was. Rounded corners likewise went from an inference over
+ * class attributes to something seen.
+ *
+ * It costs no wall clock: the visual group runs alongside the five text groups,
+ * and at ~7.5s it is not the slowest of them.
+ */
+const VISION_MODEL = "deepseek-v4-flash-vision-exp";
 
 /**
  * Output ceiling. The panel's is 16000, sized for seats that think out loud.
@@ -205,6 +220,70 @@ function normalize(raw: unknown, valid: Set<string>): SectionVerdict {
   return { scores, notes, summary: "" };
 }
 
+/**
+ * A group scored from the SCREENSHOT.
+ *
+ * Same criteria, same output shape — only the evidence differs. The prompt
+ * carries no markdown at all: handing a vision model the text as well invites
+ * it to answer from the text, which is the failure this pass exists to fix.
+ */
+async function scoreVisualGroup(
+  key: SubsectionKey,
+  host: string,
+  site: SiteMarkdown,
+  ctx: CrawlContext,
+  env: ProviderEnv,
+): Promise<SectionVerdict> {
+  const rules = observableRules(key, ctx);
+  const valid = new Set(rules.map((r) => r.id));
+  if (valid.size === 0 || !site.screenshot) {
+    return { scores: new Map(), notes: new Map(), summary: "" };
+  }
+
+  const prompt = [
+    `You are auditing a screenshot of ${host} against published design research.`,
+    ``,
+    `Apply the test in each check. Decide which definition the page matches.`,
+    `DO NOT DELIBERATE — these are stated tests, not open questions.`,
+    ``,
+    rulesPrompt(key, ctx),
+    ``,
+    `Rules for your answer:`,
+    `- Judge ONLY what you can SEE. Do not infer from what a page like this`,
+    `  usually does.`,
+    `- If the screenshot does not show enough to judge a check, OMIT it.`,
+    `- Every note is ONE sentence, twenty words at the outside, citing what is`,
+    `  visible and where it sits.`,
+    `- Score 0-5. 0 means the page does the opposite of the rule, 5 means it`,
+    `  follows it well.`,
+    ``,
+    `Return JSON: {"scores":[{"id":"<check id>","score":<0-5>,"note":"<=20 words"}]}`,
+  ].join("\n");
+
+  const t0 = Date.now();
+  const { value } = await askLadder(
+    PROVIDER,
+    env,
+    prompt,
+    (text) => {
+      const parsed = normalize(extractJson(text), valid);
+      if (parsed.scores.size === 0) throw new Error("no usable scores");
+      return parsed;
+    },
+    {
+      preferred: VISION_MODEL,
+      only: [VISION_MODEL],
+      attempts: 1,
+      temperature: 0.2,
+      schema: RESPONSE_SCHEMA,
+      maxTokens: MAX_TOKENS,
+      imageUrl: site.screenshot,
+    },
+  );
+  console.log(`[audit] ${key} (visual): ${rules.length} checks, ${Date.now() - t0}ms, ${value.scores.size} scored`);
+  return value;
+}
+
 /** One group of checks. Small prompt, pinned light model, small ceiling. */
 async function scoreGroup(
   key: SubsectionKey,
@@ -281,7 +360,11 @@ export async function scoreSite(
   // Measured: 10.3s wall against 16.7s of summed work, on a run that used to
   // take four minutes.
   const settled = await Promise.allSettled(
-    SUBSECTIONS.map((s) => scoreGroup(s.key, host, site, ctx, env)),
+    SUBSECTIONS.map((s) =>
+      isVisual(s.key)
+        ? scoreVisualGroup(s.key, host, site, ctx, env)
+        : scoreGroup(s.key, host, site, ctx, env),
+    ),
   );
 
   // A group failing is survivable — its checks simply do not appear, exactly

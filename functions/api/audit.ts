@@ -40,6 +40,7 @@ interface Env extends AuditStoreEnv {
   NVIDIA_API_KEY?: string;
   OPENCODE_API_KEY?: string;
   CONTEXT_DEV_API_KEY?: string;
+  FIRECRAWL_API_KEY?: string;
   LOOPS_API_KEY?: string;
 }
 
@@ -198,7 +199,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         }
 
         send({ t: "step", ...STEPS[0] });
-        const site = await readSiteMarkdown(host, env.CONTEXT_DEV_API_KEY);
+        const site = await readSiteMarkdown(host, env.FIRECRAWL_API_KEY);
 
         send({ t: "step", ...STEPS[1], status: site.thin ? "BARELY" : "OK" });
 

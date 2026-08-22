@@ -308,6 +308,7 @@ export async function callOpenAICompatible(
   system?: string,
   timeoutMs?: number,
   maxTokens?: number,
+  imageUrl?: string,
 ): Promise<string> {
   const res = await fetchWithDeadline(`${base}/chat/completions`, {
     method: "POST",
@@ -350,7 +351,17 @@ export async function callOpenAICompatible(
       messages: [
         // Persona as a standing instruction, rubric as the turn. See callGemini.
         ...(system ? [{ role: "system", content: system }] : []),
-        { role: "user", content: prompt },
+        // A content array only when there is an image; a bare string otherwise,
+        // because some text endpoints reject the array form outright.
+        imageUrl
+          ? {
+              role: "user",
+              content: [
+                { type: "text", text: prompt },
+                { type: "image_url", image_url: { url: imageUrl } },
+              ],
+            }
+          : { role: "user", content: prompt },
       ],
     }),
   }, model, timeoutMs);
@@ -410,6 +421,7 @@ export async function askOnce(
   system?: string,
   schema?: unknown,
   maxTokens?: number,
+  imageUrl?: string,
 ) {
   // The deadline belongs to the provider, not to the call site — see
   // PROVIDER_TIMEOUT_MS. OpenCode is the slow rung and a cap sized to the fast
@@ -427,6 +439,7 @@ export async function askOnce(
     system,
     timeoutMs,
     maxTokens,
+    imageUrl,
   );
 }
 
@@ -476,6 +489,14 @@ export interface LadderOptions {
    * reasoning model treats headroom as permission to use it.
    */
   maxTokens?: number;
+  /**
+   * An image to judge, as a URL, for vision-capable models.
+   *
+   * When set the user turn becomes a content ARRAY — text plus image_url — the
+   * shape OpenAI-compatible vision endpoints expect. Text-only models never see
+   * this field, so it is safe to leave unset everywhere else.
+   */
+  imageUrl?: string;
   /**
    * Response schema, honoured by providers that can enforce one.
    *
@@ -527,7 +548,7 @@ export async function askLadder<T>(
     for (let attempt = 1; attempt <= attempts; attempt++) {
       try {
         const value = accept(
-          await askOnce(provider, key, model, prompt, options.temperature, options.system, options.schema, options.maxTokens),
+          await askOnce(provider, key, model, prompt, options.temperature, options.system, options.schema, options.maxTokens, options.imageUrl),
           model,
         );
         // Log WHY the higher rungs failed, not just how many. A ladder that

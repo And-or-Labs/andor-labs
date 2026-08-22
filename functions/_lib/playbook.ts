@@ -32,14 +32,22 @@ export type SubsectionKey =
   | "trials"
   | "freemium";
 
-export const SUBSECTIONS: { key: SubsectionKey; label: string; section: 1 | 2 }[] = [
+export const SUBSECTIONS: { key: SubsectionKey; label: string; section: 1 | 2; visual?: true }[] = [
   { key: "messaging", label: "Brand and messaging", section: 1 },
-  { key: "design", label: "Page design and visuals", section: 1 },
+  // Scored from the SCREENSHOT, not the text. Every rule in this subsection is
+  // positional or aesthetic — corner radius, quadrant, left-versus-right, does
+  // the page hold one register — and none of that survives being turned into
+  // markdown. The playbook calls it "Page design and visuals"; taking that
+  // literally is what fixed it.
+  { key: "design", label: "Page design and visuals", section: 1, visual: true },
   { key: "proof", label: "Social proof and reviews", section: 1 },
   { key: "plans", label: "Pricing plans", section: 2 },
   { key: "trials", label: "Free trials", section: 2 },
   { key: "freemium", label: "Freemium", section: 2 },
 ];
+
+export const isVisual = (key: SubsectionKey): boolean =>
+  SUBSECTIONS.find((s) => s.key === key)?.visual === true;
 
 export const subsectionLabel = (key: SubsectionKey): string =>
   SUBSECTIONS.find((s) => s.key === key)?.label ?? key;
