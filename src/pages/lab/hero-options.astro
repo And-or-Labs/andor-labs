@@ -1,6 +1,6 @@
 ---
 /**
- * Hero treatments — four ways the horizon can wrap the CTA.
+ * Hero treatments — one image, three ways the channel can lie on it.
  *
  * Dev-only comparison page, same convention as the rest of /lab: it builds to a
  * redirect stub in production and is excluded from the sitemap.
@@ -16,26 +16,32 @@ const H1 = "Don't just go-to-market. Win it.";
 const SUB =
   "We're a boutique consultancy helping early-stage technology startups find product-market fit, accelerate revenue growth, and win their category.";
 
+/**
+ * Three tunings of the dissolve.
+ *
+ * The band is gone in all of them: the image is ONE element at full bleed and
+ * the copy sits in a clearing burned through it, so there is no edge anywhere
+ * for the eye to read as a cut, and no second crop to disagree with the first.
+ *
+ * What differs is the SHAPE of the clearing. A linear clearing still banks the
+ * page horizontally — softly, but it is still a horizon that isn't in the
+ * picture. A radial one has no direction at all.
+ */
 const OPTIONS = [
   {
-    id: "a",
-    name: "Channel",
-    note: "Two bands, copy in the white channel between them. The image opens the page and closes the hero, so the CTA sits in a clearing rather than on a horizon.",
+    id: "d1",
+    name: "Dissolve · tightened",
+    note: "The fade from A3, pulled in at both ends so the sky and the lake keep their colour. Shortest change from what you liked.",
   },
   {
-    id: "b",
-    name: "Window",
-    note: "One contained window at the top, headline overlapping its lower edge. The picture is a framed object on the page rather than a bleed, and the overlap ties it to the copy.",
+    id: "d2",
+    name: "Dissolve · low copy",
+    note: "Same fade, but the clearing sits below centre — the mountain and cloud bank stay legible above the headline instead of bleaching out.",
   },
   {
-    id: "c",
-    name: "Immersed",
-    note: "Image fills the hero. Copy sits on a soft white cloud, and the field is a solid pill on the mountains — the most atmospheric, and the one that asks most of the contrast.",
-  },
-  {
-    id: "d",
-    name: "Shelf",
-    note: "The image sits directly behind the CTA only, as a shelf the ask rests on. The headline stays on paper, so nothing competes with it and the image does one job.",
+    id: "d3",
+    name: "Clearing",
+    note: "No horizontal fade at all. An oval of paper burned behind the copy, so the picture runs unbroken to all four edges and the only soft edge is the one around the words.",
   },
 ];
 ---
@@ -45,7 +51,7 @@ const OPTIONS = [
     <header class="lab__head">
       <h1 class="lab__title">Hero treatments</h1>
       <p class="lab__lede">
-        Four ways the horizon can wrap the CTA, with no empty top. Each is a real
+        Three tunings of the dissolve. Each is a real
         layout, not a mockup.
       </p>
     </header>
@@ -59,30 +65,22 @@ const OPTIONS = [
         </div>
 
         <div class={`hx hx--${o.id}`}>
-          {(o.id === "a" || o.id === "b") && (
-            <div class="hx__top"><img src="/rockies.png" alt="" aria-hidden="true" /></div>
-          )}
-          {o.id === "c" && <img class="hx__bg" src="/rockies.png" alt="" aria-hidden="true" />}
+          {/* ONE image, always. The channel is an overlay on top of it, never a
+              gap between two crops. */}
+          <img class="hx__bg" src="/rockies.png" alt="" aria-hidden="true" />
+          <div class="hx__channel"></div>
 
           <div class="hx__inner">
             <span class="hx__eyebrow">Est. 2025</span>
             <h2 class="hx__h1">{H1}</h2>
             <p class="hx__sub">{SUB}</p>
-
-            <div class="hx__ctawrap">
-              {o.id === "d" && <img class="hx__shelf" src="/rockies.png" alt="" aria-hidden="true" />}
-              <form class="hx__form" onsubmit="return false">
-                <div class="hx__row">
-                  <input class="hx__input" type="email" placeholder="you@company.com" aria-label="Work email" />
-                  <button class="hx__go" type="submit">Free audit</button>
-                </div>
-              </form>
-            </div>
+            <form class="hx__form" onsubmit="return false">
+              <div class="hx__row">
+                <input class="hx__input" type="email" placeholder="you@company.com" aria-label="Work email" />
+                <button class="hx__go" type="submit">Free audit</button>
+              </div>
+            </form>
           </div>
-
-          {o.id === "a" && (
-            <div class="hx__foot"><img src="/rockies.png" alt="" aria-hidden="true" /></div>
-          )}
         </div>
       </section>
     ))}
@@ -143,58 +141,46 @@ const OPTIONS = [
   }
   .hx img { image-rendering: pixelated; display: block; }
 
-  /* ── A · channel ─────────────────────────────────────────────────────
-     Bands top and bottom; the copy sits in the clearing between them. */
-  .hx--a .hx__top, .hx--a .hx__foot { flex: none; overflow: hidden; position: relative; }
-  .hx--a .hx__top img { width: 100%; height: 132px; object-fit: cover; object-position: center top; }
-  .hx--a .hx__foot img { width: 100%; height: 132px; object-fit: cover; object-position: center bottom; }
-  .hx--a .hx__top::after, .hx--a .hx__foot::after {
-    content: ""; position: absolute; inset: 0; pointer-events: none;
-  }
-  .hx--a .hx__top::after { background: linear-gradient(to top, var(--paper) 0%, transparent 62%); }
-  .hx--a .hx__foot::after { background: linear-gradient(to bottom, var(--paper) 0%, transparent 62%); }
+  /* ── shared: one image, one channel ─────────────────────────────────── */
+  .hx__bg { position: absolute; left: 0; right: 0; width: 100%; z-index: 0; }
+  .hx__channel { position: absolute; left: 0; right: 0; z-index: 1; pointer-events: none; }
+  .hx__inner { justify-content: center; }
 
-  /* ── B · window ──────────────────────────────────────────────────────
-     A framed picture at the top; the headline overlaps its lower edge. */
-  .hx--b { padding-top: 28px; }
-  .hx--b .hx__top {
-    width: min(880px, calc(100% - 48px)); margin: 0 auto; border-radius: var(--radius-md);
-    overflow: hidden; border: 1.5px solid var(--ink-900); box-shadow: var(--shadow-hard);
+  /* Shared: one full-bleed image, cover, 620 tall. `cover` on a 4:1 source in a
+     2:1 box scales by HEIGHT — the whole picture survives vertically and the
+     sides crop, which is why nothing here looks squashed. */
+  .hx--d1, .hx--d2, .hx--d3 { min-height: 620px; }
+  .hx--d1 .hx__bg, .hx--d2 .hx__bg, .hx--d3 .hx__bg {
+    top: 0; height: 100%; object-fit: cover; object-position: center;
   }
-  .hx--b .hx__top img { width: 100%; height: 210px; object-fit: cover; object-position: center 60%; }
-  .hx--b .hx__inner { margin-top: -44px; padding-top: 0; }
-  .hx--b .hx__h1 {
-    background: var(--paper); padding: 10px 20px 0; border-radius: var(--radius-sm);
+  .hx--d1 .hx__channel, .hx--d2 .hx__channel, .hx--d3 .hx__channel { top: 0; bottom: 0; }
+
+  /* ── D1 · tightened ─────────────────────────────────────────────────── */
+  .hx--d1 .hx__channel {
+    background: linear-gradient(to bottom,
+      transparent 0%, rgba(255,255,255,.30) 16%, rgba(255,255,255,.93) 32%,
+      #fff 42%, #fff 60%,
+      rgba(255,255,255,.93) 70%, rgba(255,255,255,.30) 86%, transparent 100%);
   }
 
-  /* ── C · immersed ────────────────────────────────────────────────────
-     Image fills the hero; copy on a cloud; the field a solid pill on it. */
-  .hx--c .hx__bg {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; object-position: center 66%; z-index: 0;
+  /* ── D2 · low copy ──────────────────────────────────────────────────
+     The clearing is pushed down, and the content with it, so the top third of
+     the frame — where the peak and the cloud bank are — stays a picture. */
+  .hx--d2 .hx__channel {
+    background: linear-gradient(to bottom,
+      transparent 0%, transparent 22%, rgba(255,255,255,.55) 38%,
+      #fff 52%, #fff 72%,
+      rgba(255,255,255,.80) 84%, transparent 100%);
   }
-  .hx--c .hx__inner::before {
-    content: ""; position: absolute; inset: -8% -6%; z-index: -1; pointer-events: none;
-    background:
-      radial-gradient(54% 46% at 50% 48%,
-        rgba(255,255,255,.97) 0%, rgba(255,255,255,.93) 42%,
-        rgba(255,255,255,.5) 68%, rgba(255,255,255,0) 84%);
-    filter: blur(10px);
-  }
-  .hx--c .hx__row { box-shadow: 0 2px 4px rgba(20,21,26,.1), 0 14px 34px -10px rgba(20,21,26,.34); }
+  .hx--d2 .hx__inner { justify-content: flex-end; padding-bottom: 96px; }
 
-  /* ── D · shelf ───────────────────────────────────────────────────────
-     The image sits behind the CTA only, as a shelf the ask rests on. */
-  .hx--d .hx__ctawrap { max-width: 34rem; padding: 26px 22px; }
-  .hx--d .hx__shelf {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; object-position: center 72%;
-    border-radius: var(--radius-md); z-index: 0;
+  /* ── D3 · clearing ──────────────────────────────────────────────────
+     A radial burn rather than a band. There is no horizon in the overlay, so
+     the picture reads as continuous to all four edges and the only soft edge
+     anywhere is the halo around the words. */
+  .hx--d3 .hx__channel {
+    background: radial-gradient(58% 46% at 50% 52%,
+      #fff 0%, #fff 42%, rgba(255,255,255,.88) 62%,
+      rgba(255,255,255,.45) 80%, transparent 100%);
   }
-  .hx--d .hx__ctawrap::after {
-    content: ""; position: absolute; inset: 0; border-radius: var(--radius-md);
-    border: 1.5px solid var(--ink-900); pointer-events: none; z-index: 1;
-  }
-  .hx--d .hx__form { max-width: 26rem; margin: 0 auto; }
-  .hx--d .hx__row { box-shadow: 0 2px 4px rgba(20,21,26,.12), 0 14px 34px -10px rgba(20,21,26,.4); }
 </style>
