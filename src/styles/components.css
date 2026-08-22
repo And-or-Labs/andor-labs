@@ -2570,8 +2570,13 @@
 }
 .aol-report__row--masked .aol-report__code{ margin:0; color:var(--text-faint); }
 .aol-report__row--masked .aol-report__sc{ color:var(--ink-300); }
+/* Always exactly one row of holes. The count is fixed at 24 in markup, so on a
+   narrow column they wrapped to a ragged second row; clipping to a single row
+   height keeps the strip a strip at every width without the markup needing to
+   know how wide it is. */
 .aol-report__unpunched{
-  display:grid; grid-template-columns:repeat(24,1fr); gap:3px; max-width:none;
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(11px, 1fr));
+  gap:3px; max-width:none; height:9px; overflow:hidden;
 }
 .aol-report__unpunched span{
   height:9px; border:1px solid var(--ink-200); border-radius:1px;
@@ -2614,8 +2619,15 @@
   .aol-report__paper::before, .aol-report__paper::after{ width:18px; background-size:18px 26px; }
   .aol-report__masthead{ grid-template-columns:1fr; align-items:start; gap:10px; }
   .aol-report__grade{ text-align:left; }
+  /* Open rows stack — the finding, mechanism and citation each want the full
+     measure. Withheld rows must NOT: the single-column override broke them
+     into three stacked lines (code, strip, and a dash carrying nothing), so
+     seventeen of them ate the page. They stay one line, and the dash goes,
+     since "—" is not information anywhere and least of all on a phone. */
   .aol-report__row{ grid-template-columns:1fr; }
-  .aol-report__sc{ text-align:left; margin-top:6px; }
+  .aol-report__row .aol-report__sc{ text-align:left; margin-top:6px; }
+  .aol-report__row--masked{ grid-template-columns:88px minmax(0,1fr); gap:0 12px; }
+  .aol-report__row--masked .aol-report__sc{ display:none; }
   .aol-report__foot{ margin:6px -26px 0; padding:20px 26px 24px; grid-template-columns:1fr; }
 }
 @media (prefers-reduced-motion: reduce){
