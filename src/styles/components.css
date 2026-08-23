@@ -2238,32 +2238,54 @@
 }
 
 /* ---- The hero horizon ----------------------------------------------------
-   The picture, full bleed along the foot of the hero, dissolving upward into
-   the paper.
+   The picture is the hero's GROUND: solid along the bottom edge and dissolving
+   upward across the whole first screen, gone by the time it reaches the header.
 
-   `cover` on a 3:1 source in a shorter box scales by HEIGHT, so the whole frame
-   survives vertically and only the sides crop — nothing is squashed, and there
-   is no second crop to disagree with the first.
+   That long dissolve is the point. A short band at the foot reads as a strip
+   someone applied; a fade that runs the full height reads as the page standing
+   on a landscape. The stops are weighted low — most of the travel happens in
+   the top two-thirds — so the picture holds its detail near the ground and
+   thins out slowly rather than banding.
 
-   The dissolve is in the MASK rather than a gradient overlay, so it works on
-   whatever is behind it without the paper colour being written down here. */
+   The dissolve is in the MASK, not a scrim, so it lands on whatever is behind
+   it and the paper colour is never written down here.
+
+   `cover` on a 3:1 source in a tall box scales by HEIGHT, so the sides crop and
+   nothing is squashed. Anchored to the BOTTOM: the lower half is the shoreline,
+   the ridge and the figure, and that is the half worth keeping — the sky above
+   it is what the fade is eating anyway. */
+.aol-hero{ overflow:hidden; }
+/* The positioning context is the INNER, not the section. Against the section
+   the ground ran the full height and painted over the credibility strip, whose
+   labels sat unreadable on the dark ridge — a positioned box paints above a
+   non-positioned one whatever the DOM order says, so the strip could not win by
+   coming later. Bounded to the inner, the ground stops exactly where the strip
+   begins. */
+.aol-hero-inner{ position:relative; }
 .aol-hero__horizon{
-  width:100%; line-height:0; overflow:hidden;
+  position:absolute; inset:0; z-index:0;
+  /* Full bleed from inside a capped container. The hero clips overflow, so
+     100vw cannot open a horizontal scrollbar on a page with one vertically. */
+  left:50%; width:100vw; transform:translateX(-50%);
+  pointer-events:none; line-height:0;
 }
+/* Everything the reader is actually here for sits above it. z-index only
+   applies to positioned boxes, so these need `relative` as well as the index —
+   without it they paint in DOM order and the ground covers the promise. */
+.aol-hero-inner > *:not(.aol-hero__horizon){ position:relative; z-index:1; }
 .aol-hero__horizon img{
-  display:block; width:100%;
-  /* An EXPLICIT height, not max-height: with height:auto a max-height scales
-     the whole image down, width included, and object-fit is left with no box to
-     crop against. A real height is what makes cover crop rather than shrink. */
-  height:clamp(150px, 21vw, 320px);
-  object-fit:cover;
-  /* Hold the star and the figure. The very bottom is unlit ground and the very
-     top is empty sky; the picture lives in between. */
-  object-position:center 42%;
+  display:block; width:100%; height:100%;
+  object-fit:cover; object-position:center bottom;
   image-rendering:pixelated;
-  -webkit-mask-image:linear-gradient(to top, #000 0%, #000 34%, transparent 100%);
-          mask-image:linear-gradient(to top, #000 0%, #000 34%, transparent 100%);
-}
-@media (max-width:880px){
-  .aol-hero__horizon img{ height:clamp(120px, 30vw, 200px); }
+  /* Weighted hard to the bottom. The copy sits in the middle of this box, so
+     the mask has to be nearly spent by the time it gets there — the first
+     attempt was still at 68% opacity behind the headline and the promise was
+     competing with a cloud bank. Solid along the ground, thin by a third of the
+     way up, gone before the header. */
+  -webkit-mask-image:linear-gradient(to top,
+    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
+    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
+          mask-image:linear-gradient(to top,
+    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
+    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
 }

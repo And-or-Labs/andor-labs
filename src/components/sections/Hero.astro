@@ -9,6 +9,9 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
 ---
 <section class="aol-hero" style="border-bottom:1px solid var(--ink-200);background:var(--paper)">
   <div class="aol-hero-inner" style="max-width:var(--container-width);width:100%;margin:0 auto">
+    <div class="aol-hero__horizon" aria-hidden="true">
+      <img src="/northstar.png" alt="" width="952" height="320" decoding="async" />
+    </div>
     <div class="aol-eyebrow aol-hero__eyebrow" data-r style="--r:0">Est. 2025</div>
     <h1 class="aol-hero__headline" data-r style="font-family:var(--font-display);font-weight:400;font-size:42px;line-height:1.18;letter-spacing:0;max-width:30.5rem;--r:1">Don't just go-to-market. Win it.</h1>
     <p class="aol-hero__subhead" data-r style="font-size:21px;line-height:1.5;color:var(--ink-600);max-width:42ch;--r:2">
@@ -99,16 +102,18 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
         would want a scrim and fight the paper ground; along the foot it is the
         ground the promise stands on.
 
-        A SIBLING of .aol-hero-inner, not a child. The inner caps at
-        --container-width, so inside it the band stopped at 1152px on a 1440
-        screen and read as a picture someone placed rather than the horizon the
-        page stands on. Full bleed is the whole difference.
+        It fills .aol-hero-inner — the region between the header and the
+        credibility strip — and bleeds past the container's 1200px cap with a
+        100vw child, because inside the cap it stopped at 1152px on a 1440
+        screen and read as a picture someone placed rather than as the ground
+        the page stands on.
+
+        NO data-r. The staged reveal is for the things a reader arrives at in
+        order; the ground is simply there, and sliding it up behind the copy
+        drew the eye to the one element that should not ask for it.
 
         DECORATIVE: aria-hidden, empty alt, real dimensions so it reserves its
         box — this is above the fold on a short viewport. */}
-  </div>
-  <div class="aol-hero__horizon" data-r aria-hidden="true" style="--r:5">
-    <img src="/northstar.png" alt="" width="952" height="320" decoding="async" />
   </div>
   {/* ── Credibility strip ────────────────────────────────────────────────
       Rests at the foot of the first screen, so the promise is what fills the
