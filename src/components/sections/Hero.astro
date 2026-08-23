@@ -83,6 +83,32 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       </form>
       {/* <a class="aol-hero__alt" href="/tools/rank-my-adtech/">Get your company ranked by three AI labs <span aria-hidden="true">&rarr;</span></a> */}
     </div>
+
+    {/* ── The horizon ──────────────────────────────────────────────────────
+        A researcher taking a bearing off the north star, full bleed along the
+        foot of the hero: solid at the bottom, dissolving upward into the paper.
+
+        The dissolve is a MASK, not a scrim. It fades the image's own alpha, so
+        it lands on whatever is behind it and the paper colour is never written
+        into the rule — which matters, because the tokens under this page have
+        moved before and a hardcoded gradient survives that change looking
+        wrong.
+
+        It sits BETWEEN the copy and the credibility strip rather than behind
+        the whole hero. This picture is a night scene, and behind the copy it
+        would want a scrim and fight the paper ground; along the foot it is the
+        ground the promise stands on.
+
+        A SIBLING of .aol-hero-inner, not a child. The inner caps at
+        --container-width, so inside it the band stopped at 1152px on a 1440
+        screen and read as a picture someone placed rather than the horizon the
+        page stands on. Full bleed is the whole difference.
+
+        DECORATIVE: aria-hidden, empty alt, real dimensions so it reserves its
+        box — this is above the fold on a short viewport. */}
+  </div>
+  <div class="aol-hero__horizon" data-r aria-hidden="true" style="--r:5">
+    <img src="/northstar.png" alt="" width="952" height="320" decoding="async" />
   </div>
   {/* ── Credibility strip ────────────────────────────────────────────────
       Rests at the foot of the first screen, so the promise is what fills the

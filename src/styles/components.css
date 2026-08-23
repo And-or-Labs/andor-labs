@@ -2236,3 +2236,34 @@
 @media (prefers-reduced-motion:reduce){
   .aol-report{ animation:none; }
 }
+
+/* ---- The hero horizon ----------------------------------------------------
+   The picture, full bleed along the foot of the hero, dissolving upward into
+   the paper.
+
+   `cover` on a 3:1 source in a shorter box scales by HEIGHT, so the whole frame
+   survives vertically and only the sides crop — nothing is squashed, and there
+   is no second crop to disagree with the first.
+
+   The dissolve is in the MASK rather than a gradient overlay, so it works on
+   whatever is behind it without the paper colour being written down here. */
+.aol-hero__horizon{
+  width:100%; line-height:0; overflow:hidden;
+}
+.aol-hero__horizon img{
+  display:block; width:100%;
+  /* An EXPLICIT height, not max-height: with height:auto a max-height scales
+     the whole image down, width included, and object-fit is left with no box to
+     crop against. A real height is what makes cover crop rather than shrink. */
+  height:clamp(150px, 21vw, 320px);
+  object-fit:cover;
+  /* Hold the star and the figure. The very bottom is unlit ground and the very
+     top is empty sky; the picture lives in between. */
+  object-position:center 42%;
+  image-rendering:pixelated;
+  -webkit-mask-image:linear-gradient(to top, #000 0%, #000 34%, transparent 100%);
+          mask-image:linear-gradient(to top, #000 0%, #000 34%, transparent 100%);
+}
+@media (max-width:880px){
+  .aol-hero__horizon img{ height:clamp(120px, 30vw, 200px); }
+}
