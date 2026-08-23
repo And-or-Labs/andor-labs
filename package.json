@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "dev:api": "wrangler pages dev dist --port 8788 --compatibility-date=2026-07-08 --d1 RANKINGS=662a14cc-7ed7-47d0-9dbb-a0e10d95ff43",
+    "dev:api": "npx wrangler pages dev dist --port 8788 --compatibility-date=2026-07-08 --d1 RANKINGS=662a14cc-7ed7-47d0-9dbb-a0e10d95ff43",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",

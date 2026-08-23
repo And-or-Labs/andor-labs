@@ -866,8 +866,18 @@ export function gradeFor(ratio: number, ctx: CrawlContext): GradeVerdict {
  * Only observable rules go in. A model shown a rule it cannot check will find a
  * way to check it, and the answer will be invented.
  */
-export function rulesPrompt(key: SubsectionKey, ctx: CrawlContext): string {
+export function rulesPrompt(
+  key: SubsectionKey,
+  ctx: CrawlContext,
+  /**
+   * Narrow to these ids. Used by the completion pass, which re-asks only for
+   * the checks the first round left unanswered — sending the whole group again
+   * would re-litigate answers we already have and cost the tokens twice.
+   */
+  only?: Set<string>,
+): string {
   return observableRules(key, ctx)
+    .filter((r) => !only || only.has(r.id))
     .map(
       (r) =>
         `### ${r.id}\n${r.rule}\nPASS: ${r.pass}\nFAIL: ${r.fail}`,
@@ -904,6 +914,15 @@ export interface CheckResult {
   stat: string;
   citation: string;
 }
+
+/**
+ * How many checks the research actually contains.
+ *
+ * The report needs BOTH this and the number that were scored. A site where six
+ * checks could not be observed has been audited against 23 rules and answered
+ * on 17, and saying only "17" reads as though the tool is small.
+ */
+export const AUDITABLE_TOTAL = RULES.filter((r) => r.auditable).length;
 
 export function rankChecks(
   ctx: CrawlContext,

@@ -25,7 +25,7 @@
 import { readSiteMarkdown } from "../_lib/pages";
 import { deriveTarget, hostFromUserUrl } from "../_lib/email-domain";
 import { readContext, scoreSite } from "../_lib/audit-score";
-import { revealed } from "../_lib/playbook";
+import { AUDITABLE_TOTAL, revealed } from "../_lib/playbook";
 
 import {
   checkRate,
@@ -328,6 +328,8 @@ function gate(result: Awaited<ReturnType<typeof scoreSite>>) {
     gradeLabel: verdict.label,
     caps: verdict.caps,
     total: checks.length,
+    // The full rule set, so the page can say "17 of 23" rather than just "17".
+    auditable: AUDITABLE_TOTAL,
     passed: checks.filter((c) => c.verdict === "pass").length,
     failed: checks.filter((c) => c.verdict === "fail").length,
     shown: items.filter((i) => i.open).length,

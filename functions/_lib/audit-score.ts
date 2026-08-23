@@ -165,14 +165,14 @@ function pagesFor(key: SubsectionKey, site: SiteMarkdown): string {
     .slice(0, PROMPT_CHARS);
 }
 
-function buildPrompt(key: SubsectionKey, host: string, site: SiteMarkdown, ctx: CrawlContext): string {
+function buildPrompt(key: SubsectionKey, host: string, site: SiteMarkdown, ctx: CrawlContext, only?: Set<string>): string {
   return [
     `You are auditing ${host} against published marketing research.`,
     ``,
     `Apply the test in each check below. Decide which definition the page`,
     `matches. DO NOT DELIBERATE — these are stated tests, not open questions.`,
     ``,
-    rulesPrompt(key, ctx),
+    rulesPrompt(key, ctx, only),
     ``,
     `Rules for your answer, which matter as much as the scores:`,
     `- Judge ONLY what is below. Never use anything you may know about this`,
@@ -236,8 +236,9 @@ async function scoreVisualGroup(
   site: SiteMarkdown,
   ctx: CrawlContext,
   env: ProviderEnv,
+  only?: Set<string>,
 ): Promise<SectionVerdict> {
-  const rules = observableRules(key, ctx);
+  const rules = observableRules(key, ctx).filter((r) => !only || only.has(r.id));
   const valid = new Set(rules.map((r) => r.id));
   if (valid.size === 0 || !site.screenshot) {
     return { scores: new Map(), notes: new Map(), summary: "" };
@@ -249,7 +250,7 @@ async function scoreVisualGroup(
     `Apply the test in each check. Decide which definition the page matches.`,
     `DO NOT DELIBERATE — these are stated tests, not open questions.`,
     ``,
-    rulesPrompt(key, ctx),
+    rulesPrompt(key, ctx, only),
     ``,
     `Rules for your answer:`,
     `- Judge ONLY what you can SEE. Do not infer from what a page like this`,
@@ -293,8 +294,9 @@ async function scoreGroup(
   site: SiteMarkdown,
   ctx: CrawlContext,
   env: ProviderEnv,
+  only?: Set<string>,
 ): Promise<SectionVerdict> {
-  const rules = observableRules(key, ctx);
+  const rules = observableRules(key, ctx).filter((r) => !only || only.has(r.id));
   const valid = new Set(rules.map((r) => r.id));
   if (valid.size === 0) return { scores: new Map(), notes: new Map(), summary: "" };
 
@@ -302,7 +304,7 @@ async function scoreGroup(
   const { value } = await askLadder(
     PROVIDER,
     env,
-    buildPrompt(key, host, site, ctx),
+    buildPrompt(key, host, site, ctx, only),
     (text) => {
       const parsed = normalize(extractJson(text), valid);
       // A response that scored nothing is a failed call, not an answer.
@@ -392,6 +394,50 @@ export async function scoreSite(
   // nothing was measured is worse than a page that says it failed.
   if (merged.size === 0) {
     throw new Error("no check was scored");
+  }
+
+  // ONE COMPLETION ROUND, for the checks the first pass simply did not answer.
+  //
+  // A model that omits a rule is not the same as a rule that cannot be
+  // observed, and until now the two were indistinguishable downstream:
+  // rankChecks drops any observable rule with no verdict, so the denominator
+  // was whatever the model happened to return. Measured on plausible.io that
+  // was 8, 15, 18 and 19 checks out of 23 across four runs of the same site —
+  // and a report that says "5 more checks" when the research has 23 undersells
+  // the audit and reads as though most of it was skipped.
+  //
+  // Only the gaps are re-asked, per group, in parallel. That is one extra round
+  // and only when something is missing; the prompt carries a handful of rules
+  // rather than the whole group, so it is the cheapest call in the run. A rule
+  // still unanswered after this is genuinely unjudgeable from what we fetched,
+  // and it leaves the run as before.
+  const gaps = new Map<SubsectionKey, Set<string>>();
+  for (const s of SUBSECTIONS) {
+    const missing = observableRules(s.key, ctx)
+      .filter((r) => !merged.has(r.id))
+      .map((r) => r.id);
+    if (missing.length) gaps.set(s.key, new Set(missing));
+  }
+
+  if (gaps.size) {
+    console.log(
+      `[audit] completion round: ${[...gaps].map(([k, v]) => `${k}:${v.size}`).join(" ")}`,
+    );
+    const second = await Promise.allSettled(
+      [...gaps].map(([key, ids]) =>
+        isVisual(key)
+          ? scoreVisualGroup(key, host, site, ctx, env, ids)
+          : scoreGroup(key, host, site, ctx, env, ids),
+      ),
+    );
+    for (const r of second) {
+      if (r.status !== "fulfilled") continue;
+      // First answer wins. The completion round only fills holes; it must never
+      // overwrite a verdict the first pass already gave, or the same site would
+      // score differently depending on which round happened to be slower.
+      for (const [k, v] of r.value.scores) if (!merged.has(k)) merged.set(k, v);
+      for (const [k, v] of r.value.notes) if (!allNotes.has(k)) allNotes.set(k, v);
+    }
   }
 
   const results = SUBSECTIONS.map((s) => scoreSubsection(s.key, ctx, merged));
