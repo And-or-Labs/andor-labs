@@ -2144,288 +2144,95 @@
 @media (prefers-reduced-motion: reduce){ .aol-hero__fill{ transition:none; } }
 
 
-/* ---- The report: wide carriage ------------------------------------------
-   Variant C1 from the design system's tractor exploration, and the right one
-   for a full page. The receipt roll was chosen when this lived in a 720px
-   modal, where C1's 880px minimum would have scrolled sideways and pushed the
-   evidence off screen. On a page that constraint inverts: a 430px till receipt
-   in the middle of a browser window looks like a joke.
 
-   ONE ROW PER CHECK, because that is what a check is. Twenty-three distinct
-   findings summarised into six paragraphs threw away the only thing that makes
-   "23 peer-reviewed checks" worth saying — each row carries its own score, its
-   own evidence quoting the page, and the paper it rests on. */
-.aol-report{
-  border:1.5px solid var(--ink-900); background:var(--paper-pure);
-  box-shadow:var(--shadow-hard);
-  animation:aol-audit-roll 320ms var(--ease-out) both;
-}
-.aol-report__masthead{
-  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px; align-items:end;
-  padding:22px 24px 20px; border-bottom:1.5px solid var(--ink-900);
-}
-.aol-report__host{
-  font-family:var(--font-display); font-weight:400; font-size:30px; line-height:1.06;
-  margin:8px 0 0; color:var(--ink-900); overflow-wrap:anywhere;
-}
-.aol-report__meta{
-  margin:9px 0 0; font-family:var(--font-mono); font-size:11px;
-  letter-spacing:0.04em; color:var(--ink-500);
-}
-.aol-report__grade{ text-align:right; line-height:1; white-space:nowrap; }
-.aol-report__letter{
-  display:block; font-family:var(--font-mono); font-size:64px;
-  color:var(--blue-600); letter-spacing:-0.02em;
-}
-.aol-report__gradelabel{
-  display:block; margin-top:8px; font-family:var(--font-mono); font-size:10px;
-  letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-600);
-}
-.aol-report__cap{
-  margin:0; padding:12px 24px; border-bottom:1px solid var(--border-hairline, var(--ink-200));
-  background:var(--surface-warm); font-family:var(--font-mono); font-size:11.5px;
-  line-height:1.5; color:var(--copper-700, var(--ink-700));
-}
-/* The carriage. Wide by design, and it scrolls INSIDE its own box rather than
-   letting the page scroll sideways. */
-.aol-report__row{
-  display:grid;
-  grid-template-columns:44px minmax(150px,1fr) 62px minmax(190px,1.5fr) minmax(200px,1.4fr);
-  gap:0 18px; align-items:baseline;
-}
-.aol-report__row{ padding:14px 24px; border-bottom:1px dotted var(--ink-200); }
-/* Zebra, in the warm surface the ledger components already use. */
-.aol-report__rows .aol-report__row:nth-child(odd),
-.aol-report__locked .aol-report__row:nth-child(even){ background:var(--surface-warm); }
-.aol-report__n{
-  font-family:var(--font-mono); font-size:11px; color:var(--ink-400);
-  font-variant-numeric:tabular-nums;
-}
-.aol-report__check{ display:flex; flex-direction:column; gap:3px; }
-.aol-report__name{
-  font-family:var(--font-mono); font-size:12.5px; letter-spacing:0.04em;
-  text-transform:uppercase; color:var(--ink-900);
-}
-.aol-report__area{
-  font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.08em;
-  text-transform:uppercase; color:var(--ink-400);
-}
-.aol-report__score{
-  font-family:var(--font-mono); font-size:13px; color:var(--blue-600);
-  font-variant-numeric:tabular-nums;
-}
-/* Evidence is serif, and deliberately. It is the sentence somebody actually
-   reads, and mono at this size is the least readable way to present prose —
-   the same reason the wide carriage and ScorecardReport both set bodies in
-   serif rather than carrying the mono all the way down. */
-.aol-report__found{
-  margin:0; font-family:var(--font-serif); font-size:15px; line-height:1.45;
-  color:var(--ink-800); text-wrap:pretty;
-}
-/* The paper. Small, quiet, and always present — it is the whole claim. */
-.aol-report__cite{
-  margin:0; font-family:var(--font-mono); font-size:10px; line-height:1.5;
-  color:var(--ink-500); text-wrap:pretty;
-}
-/* Withheld rows carry a NAME and two bars. No evidence, no score, no citation
-   was ever sent for them, so the bars are a gate rather than a blur. */
-.aol-report__row--locked .aol-report__name{ color:var(--ink-400); }
-.aol-report__row--locked .aol-report__score{ color:var(--ink-300); }
-.aol-report__redact{
-  display:block; height:11px; margin-top:3px;
-  background:repeating-linear-gradient(90deg,var(--ink-200) 0 5px,var(--ink-100) 5px 9px);
-}
-.aol-report__redact--short{ width:62%; }
-.aol-report__cta{
-  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:20px 28px; align-items:center;
-  padding:22px 24px 24px; border-top:1.5px solid var(--ink-900); background:var(--surface-warm);
-}
-.aol-report__ctatitle{
-  font-family:var(--font-display); font-weight:400; font-size:23px; line-height:1.08;
-  margin:0; color:var(--ink-900); text-wrap:pretty;
-}
-.aol-report__ctabody{
-  margin:7px 0 0; font-family:var(--font-serif); font-size:15.5px; line-height:1.5;
-  color:var(--ink-700); max-width:52ch; text-wrap:pretty;
-}
-.aol-report__ctaside{ text-align:right; }
-.aol-report__ctabtn{
-  display:inline-flex; align-items:center; justify-content:center;
-  font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em;
-  text-transform:uppercase; text-decoration:none; white-space:nowrap;
-  padding:12px 24px; color:var(--paper-pure); background:var(--blue-600);
-  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
-  box-shadow:var(--shadow-hard-sm);
-}
-.aol-report__ctabtn:active{ transform:translate(2px,2px); box-shadow:none; }
-.aol-report__ctanote{
-  display:block; margin-top:9px; font-family:var(--font-mono); font-size:10px;
-  letter-spacing:0.08em; color:var(--ink-500);
-}
-@media (max-width:680px){
-  .aol-report__masthead{ grid-template-columns:1fr; gap:12px; align-items:start; }
-  .aol-report__grade{ text-align:left; }
-  .aol-report__letter{ font-size:52px; }
-  .aol-report__cta{ grid-template-columns:1fr; }
-  .aol-report__ctaside{ text-align:left; }
-}
-@media (prefers-reduced-motion: reduce){
-  .aol-report{ animation:none; }
-  .aol-report__ctabtn:active{ transform:none; }
-}
+/* ---- The audit report ----------------------------------------------------
+   POSITIONING ONLY. Every visual decision below this line already belongs to a
+   component: the grade is a Badge, the checks are a SpecGrid, each finding is a
+   Card, the CTA is a Card holding a Button. What is left here is where those
+   sit and how much air is between them.
 
-/* ---- The report -----------------------------------------------------------
-   Three bands: the verdict, the board, the findings.
+   The block this replaced was 285 lines and drew its own tiles, its own
+   masthead, its own 2px rules and its own button — a second design system
+   living next to the real one. If something below starts describing a border,
+   a radius or a type ramp again, the component should be carrying it.
 
-   THE BOARD IS THE POINT. Seventeen checks read as prose is not a report, it is
-   an essay — the previous version made a reader scan seventeen rows of text to
-   learn how they did. As tiles, the answer is pre-attentive: red is a failure,
-   and you count them without reading a word.
-
-   Generous vertical space, deliberately. The section had almost none, and a
-   result somebody waited thirty seconds for should not arrive crammed against
-   the thing above it. */
+   Two separators were called out and both are gone: the 2px black rule over
+   every finding, and the heavy divider above the CTA. A Card already has an
+   edge; a second one drawn on top of it is not emphasis, it is noise. */
 .aol-report{
   background:var(--paper);
-  border-top:1px solid var(--ink-200);
-  border-bottom:1px solid var(--ink-200);
-  padding:var(--space-16) 0 var(--space-16);
+  padding:var(--space-16) 0;
   scroll-margin-top:var(--header-h);
   animation:aol-report-in 420ms var(--ease-out) both;
 }
 @keyframes aol-report-in{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
 .aol-report__inner{
   max-width:var(--container-width); margin:0 auto; padding:0 var(--gutter);
+  display:flex; flex-direction:column; gap:var(--space-8);
 }
 
-/* ── 1 · the verdict ─────────────────────────────────────────────────────── */
+/* Host, then the grade beside it, then the count underneath. `baseline` rather
+   than `center`: the Badge is a label ON the name, and aligning their baselines
+   is what makes it read as one line instead of two stacked objects. */
 .aol-report__top{
-  display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end;
-  gap:var(--space-5);
-  padding-bottom:var(--space-5); border-bottom:2px solid var(--ink-900);
+  display:flex; align-items:baseline; flex-wrap:wrap; gap:var(--space-3) var(--space-4);
 }
 .aol-report__host{
-  font-family:var(--font-display); font-weight:400; font-size:clamp(34px, 5vw, 56px);
-  line-height:1; letter-spacing:var(--tracking-tight); color:var(--ink-900);
-  margin:0; overflow-wrap:anywhere;
+  margin:0; font-family:var(--font-display); font-weight:400;
+  font-size:var(--text-2xl); line-height:1.1; letter-spacing:-0.01em; color:var(--ink-900);
 }
-.aol-report__grade{
-  margin:10px 0 0; font-family:var(--font-mono); font-size:12px;
-  letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--ink-600);
-}
-/* The two numbers a reader actually wants, at a size that finds them. */
-.aol-report__tally{ display:flex; gap:var(--space-6); }
-.aol-report__tallyitem{
-  font-family:var(--font-mono); font-size:11px; letter-spacing:var(--tracking-label);
-  text-transform:uppercase; color:var(--ink-500);
-  display:flex; align-items:baseline; gap:8px;
-}
-.aol-report__tallyitem b{ font-weight:400; font-size:40px; line-height:1; letter-spacing:-0.02em; }
-.aol-report__tallyitem--pass b{ color:var(--blue-600); }
-.aol-report__tallyitem--fail b{ color:var(--copper-600); }
-.aol-report__cap{
-  margin:var(--space-4) 0 0; font-family:var(--font-mono); font-size:12px;
-  line-height:1.5; color:var(--copper-700);
-}
-
-/* ── 2 · the board ───────────────────────────────────────────────────────── */
-.aol-report__board{
-  margin:var(--space-6) 0 0;
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(148px, 1fr));
-  gap:8px;
-}
-.aol-tile{
-  display:flex; align-items:center; justify-content:space-between; gap:10px;
-  padding:12px 14px; border:1.5px solid var(--ink-200);
-  background:var(--paper-pure);
-}
-.aol-tile__verdict{
-  font-family:var(--font-mono); font-size:11px; letter-spacing:var(--tracking-label);
-}
-.aol-tile__code{
-  font-family:var(--font-mono); font-size:10px; letter-spacing:var(--tracking-tick);
-  color:var(--ink-400);
-}
-.aol-tile--pass .aol-tile__verdict{ color:var(--blue-600); }
-.aol-tile--fail{ border-color:var(--copper-400); background:var(--pink-050); }
-.aol-tile--fail .aol-tile__verdict{ color:var(--copper-700); }
-/* The three that are open below get a solid edge, so the board doubles as a
-   key to the findings rather than repeating them. */
-.aol-tile.is-open{ border-color:var(--ink-900); border-width:1.5px; }
-.aol-tile.is-open .aol-tile__code{ color:var(--ink-900); }
-
-/* ── 3 · the findings ────────────────────────────────────────────────────── */
-.aol-report__findings{
-  margin:var(--space-10) 0 0;
-  display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
-  gap:var(--space-8) var(--space-10);
-}
-.aol-finding{ border-top:2px solid var(--ink-900); padding-top:var(--space-4); }
-.aol-finding__head{ display:flex; align-items:center; gap:10px; }
-.aol-finding__code{
-  font-family:var(--font-mono); font-size:10px; letter-spacing:var(--tracking-tick);
+.aol-report__count{
+  flex-basis:100%; margin:0;
+  font-family:var(--font-mono); font-size:var(--text-2xs); letter-spacing:var(--tracking-mono);
   color:var(--ink-500);
 }
-.aol-finding__verdict{
-  font-family:var(--font-mono); font-size:10px; letter-spacing:var(--tracking-label);
-  padding:2px 7px; border:1px solid currentColor;
-}
-.aol-finding__verdict--fail{ color:var(--copper-700); }
-.aol-finding__verdict--pass{ color:var(--blue-600); }
-.aol-finding__name{
-  font-family:var(--font-display); font-weight:400; font-size:24px; line-height:1.14;
-  letter-spacing:var(--tracking-tight); color:var(--ink-900); margin:12px 0 0;
-  text-wrap:balance;
-}
-.aol-finding__body{
-  font-family:var(--font-serif); font-size:17px; line-height:1.45;
-  color:var(--ink-800); margin:10px 0 0; text-wrap:pretty;
-}
-.aol-finding__why{
-  font-family:var(--font-serif); font-size:15px; line-height:1.5;
-  color:var(--ink-600); margin:10px 0 0; text-wrap:pretty;
-}
-/* The study's own number, given the weight of a pull quote — it is the line
-   that turns a verdict into something worth acting on. */
-.aol-finding__stat{
-  font-family:var(--font-mono); font-size:12px; line-height:1.45;
-  color:var(--copper-700); margin:14px 0 0;
-  padding-left:12px; border-left:2px solid var(--copper-400);
-}
-.aol-finding__cite{
-  font-family:var(--font-mono); font-size:10px; line-height:1.5;
-  color:var(--ink-400); margin:12px 0 0; text-wrap:pretty;
+.aol-report__cap{
+  margin:0; font-family:var(--font-serif); font-size:var(--text-sm); color:var(--ink-600);
 }
 
-/* ── the ask ─────────────────────────────────────────────────────────────── */
+/* The checks. The SpecGrid carries the row, the leader and the type; the only
+   thing added is which of two verdicts a row holds, and that is a data
+   attribute rather than a class so the row stays the component's. */
+.aol-report__checks .aol-specsheet__val{ font-family:var(--font-mono); font-size:var(--text-2xs); letter-spacing:var(--tracking-mono); }
+.aol-specsheet__row[data-verdict="pass"] .aol-specsheet__val{ color:var(--blue-600); }
+.aol-specsheet__row[data-verdict="fail"] .aol-specsheet__val{ color:var(--copper-700); }
+.aol-specsheet__row[data-open="true"] .aol-specsheet__label{ color:var(--ink-900); }
+
+.aol-report__findings{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:var(--space-5);
+}
+.aol-finding__top{ display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-3); }
+.aol-finding__title{
+  margin:0; font-family:var(--font-display); font-weight:400;
+  font-size:var(--text-lg); line-height:1.2; color:var(--ink-900);
+}
+.aol-finding__why,
+.aol-finding__found{
+  margin:var(--space-3) 0 0;
+  font-family:var(--font-serif); font-size:var(--text-sm); line-height:1.55; color:var(--ink-600);
+}
+/* The finding about THIS site is the sentence the visitor came for, so it is
+   the one in full ink. Everything else on the card is context for it. */
+.aol-finding__found{ color:var(--ink-900); }
+.aol-finding__cite{
+  margin:var(--space-4) 0 0;
+  font-family:var(--font-mono); font-size:var(--text-2xs); line-height:1.5;
+  color:var(--ink-400);
+}
+
 .aol-report__cta{
-  margin:var(--space-12) 0 0; padding-top:var(--space-6);
-  border-top:2px solid var(--ink-900);
-  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
-  gap:var(--space-5);
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:var(--space-4);
 }
 .aol-report__ctatitle{
-  font-family:var(--font-display); font-weight:400; font-size:clamp(24px, 3vw, 34px);
-  line-height:1.1; letter-spacing:var(--tracking-tight); color:var(--ink-900);
-  margin:0; text-wrap:balance;
+  margin:0; font-family:var(--font-display); font-weight:400;
+  font-size:var(--text-xl); line-height:1.15; color:var(--ink-900);
 }
-.aol-report__ctabtn{
-  display:inline-flex; align-items:center; justify-content:center; white-space:nowrap;
-  font-family:var(--font-mono); font-size:12px; letter-spacing:var(--tracking-label);
-  text-transform:uppercase; text-decoration:none;
-  padding:14px 28px; color:var(--paper-pure); background:var(--blue-600);
-  border:1.5px solid var(--ink-900); border-radius:var(--radius-pill);
-  box-shadow:var(--shadow-hard-sm);
-}
-.aol-report__ctabtn:active{ transform:translate(2px,2px); box-shadow:none; }
 
-@media (max-width:680px){
+@media (max-width:640px){
   .aol-report{ padding:var(--space-10) 0; }
-  .aol-report__top{ flex-direction:column; align-items:flex-start; }
-  .aol-report__board{ grid-template-columns:repeat(auto-fill, minmax(124px, 1fr)); }
-  .aol-report__tallyitem b{ font-size:32px; }
+  .aol-report__findings{ grid-template-columns:1fr; }
 }
-@media (prefers-reduced-motion: reduce){
+@media (prefers-reduced-motion:reduce){
   .aol-report{ animation:none; }
-  .aol-report__ctabtn:active{ transform:none; }
 }

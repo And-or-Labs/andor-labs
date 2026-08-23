@@ -81,16 +81,14 @@ describe("the report", () => {
     expect(css).toMatch(/\.aol-report\{[^}]*padding:\s*var\(--space-16\)/);
   });
 
-  it("keeps the board on an auto-filling grid", () => {
-    // The board is the scannable layer and has to use the full width at any
-    // size; a fixed column count wastes it on a wide screen.
-    expect(css).toMatch(/\.aol-report__board\{[^}]*repeat\(auto-fill/);
-  });
-
   it("colours failures differently from passes", () => {
-    // The whole point of the board is that failures are pre-attentive. If these
-    // collapse to one colour it becomes a list again.
-    expect(css).toMatch(/\.aol-tile--fail\{[^}]*copper/);
-    expect(css).toMatch(/\.aol-tile--pass \.aol-tile__verdict\{[^}]*blue/);
+    // A verdict has to be pre-attentive — if pass and fail collapse to one
+    // colour the check list stops being scannable and becomes prose again.
+    //
+    // These hang off data-verdict, not off a class, because the row belongs to
+    // SpecGrid. Adding `.aol-tile--fail` back would mean the report had started
+    // growing its own components again.
+    expect(css).toMatch(/\[data-verdict="fail"\][^{]*\{[^}]*copper/);
+    expect(css).toMatch(/\[data-verdict="pass"\][^{]*\{[^}]*blue/);
   });
 });

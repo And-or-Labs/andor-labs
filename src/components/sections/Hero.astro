@@ -156,87 +156,114 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       if (message) say(message);
     };
 
+    /**
+     * Paint the report by CLONING DESIGN-SYSTEM MARKUP.
+     *
+     * The two <template> elements in AuditReport.astro hold real <SpecGrid> and
+     * <Card> output, rendered by Astro at build time. Cloning them is what
+     * keeps this in the system: the previous version wrote its own markup here
+     * and invented `.aol-tile` and a bespoke masthead to style it, which is
+     * exactly the drift that gets a report looking nothing like the site.
+     *
+     * Nothing below constructs a class name that a component does not already
+     * emit.
+     */
     const render = (d: any) => {
       if (!report) return;
-      const q = (sel: string) => report.querySelector<HTMLElement>(sel)!;
+      const q = (sel: string) => report.querySelector<HTMLElement>(sel);
       const items = d.items ?? [];
-      const failed = d.failed ?? items.filter((i: any) => i.verdict === "fail").length;
+      const scored = items.length;
+      const auditable = d.auditable ?? scored;
 
-      q(".aol-report__host").textContent = d.host ?? "";
-      q(".aol-report__grade").textContent = `Grade ${d.grade ?? "?"} · ${d.gradeLabel ?? ""}`;
-      q(".aol-report__tallyitem--pass").querySelector("b")!.textContent = String(d.passed ?? 0);
-      q(".aol-report__tallyitem--fail").querySelector("b")!.textContent = String(failed);
-      q(".aol-report__ctatitle").textContent =
-        `${items.length - (d.shown ?? 0)} more checks, and how to fix them.`;
+      const host = q(".aol-report__host");
+      if (host) host.textContent = d.host ?? "";
 
-      const cap = q(".aol-report__cap");
-      if (Array.isArray(d.caps) && d.caps.length) { cap.textContent = d.caps[0]; cap.hidden = false; }
-
-      // THE BOARD. Every check as a tile: verdict, code. The scannable layer.
-      const board = q(".aol-report__board");
-      board.textContent = "";
-      for (const it of items) {
-        const t = document.createElement("div");
-        t.className = `aol-tile aol-tile--${it.verdict}${it.open ? " is-open" : ""}`;
-        const v = document.createElement("span");
-        v.className = "aol-tile__verdict";
-        v.textContent = it.verdict === "pass" ? "PASS" : "FAIL";
-        const c = document.createElement("span");
-        c.className = "aol-tile__code";
-        c.textContent = it.code;
-        t.append(v, c);
-        board.appendChild(t);
+      // The grade is a Badge — a label beside the name. Its variant carries the
+      // verdict, so the colour comes from the system's own scale rather than
+      // from a rule written here: A/B pass, C is the warning, D/E is the
+      // failure.
+      const grade = q(".aol-report__grade");
+      if (grade) {
+        const letter = String(d.grade ?? "?");
+        const tone =
+          letter === "A" || letter === "B" ? "positive" : letter === "C" ? "warning" : "danger";
+        grade.className = `aol-badge aol-badge--${tone} aol-report__grade`;
+        grade.textContent = `Grade ${letter} · ${d.gradeLabel ?? ""}`;
       }
 
-      // THE FINDINGS. Only the opened ones, at full size.
+      // BOTH numbers, always. "20 checks" reads as a small tool; "20 of 23"
+      // says the other three could not be observed on this site, which is a
+      // fact about the site rather than about the audit.
+      const count = q(".aol-report__count");
+      if (count) {
+        count.textContent =
+          scored === auditable
+            ? `${scored} checks · ${d.passed ?? 0} passed, ${d.failed ?? 0} failed`
+            : `${scored} of ${auditable} checks could be scored · ${d.passed ?? 0} passed, ${d.failed ?? 0} failed`;
+      }
+
+      // FAILURES held back, not checks held back. The opened three are always
+      // failures — revealed() picks the heaviest ones — so counting every
+      // unopened check here promised seventeen things to fix on a site with
+      // nine problems, and called six passes a finding.
+      const ctaTitle = q(".aol-report__ctatitle");
+      if (ctaTitle) {
+        const held = Math.max(0, (d.failed ?? 0) - (d.shown ?? 0));
+        ctaTitle.textContent =
+          held === 1
+            ? "One more failure, and how to fix it."
+            : `${held} more failures, and how to fix them.`;
+      }
+
+      const cap = q(".aol-report__cap");
+      if (cap && Array.isArray(d.caps) && d.caps.length) {
+        cap.textContent = d.caps[0];
+        cap.hidden = false;
+      }
+
+      // THE CHECKS, as a spec sheet. Code on the left, verdict on the right,
+      // leader dots between — the datasheet idiom the design system already
+      // uses for rows of facts.
+      const board = q(".aol-report__board");
+      const rowTpl = document.querySelector<HTMLTemplateElement>("#tpl-audit-checks");
+      if (board && rowTpl) {
+        board.textContent = "";
+        const sheet = rowTpl.content.querySelector(".aol-specsheet")!.cloneNode(false) as HTMLElement;
+        const proto = rowTpl.content.querySelector(".aol-specsheet__row")!;
+        for (const it of items) {
+          const row = proto.cloneNode(true) as HTMLElement;
+          row.querySelector(".aol-specsheet__label")!.textContent = it.open
+            ? `${it.code} · ${it.name}`
+            : it.code;
+          const val = row.querySelector(".aol-specsheet__val")!;
+          val.textContent = it.verdict === "pass" ? "PASS" : "FAIL";
+          // A data attribute, not a new class: the row is the component's, and
+          // this only says which of the two verdicts it carries.
+          row.dataset.verdict = it.verdict;
+          if (it.open) row.dataset.open = "true";
+          sheet.appendChild(row);
+        }
+        board.appendChild(sheet);
+      }
+
+      // THE FINDINGS, as cards. Four things each and no more: what was checked,
+      // why it matters, what we found here, and where the rule comes from.
       const wrap = q(".aol-report__findings");
-      wrap.textContent = "";
-      for (const it of items.filter((x: any) => x.open)) {
-        const f = document.createElement("article");
-        f.className = "aol-finding";
-
-        const head = document.createElement("div");
-        head.className = "aol-finding__head";
-        const code = document.createElement("span");
-        code.className = "aol-finding__code";
-        code.textContent = it.code;
-        const verdict = document.createElement("span");
-        verdict.className = `aol-finding__verdict aol-finding__verdict--${it.verdict}`;
-        verdict.textContent = it.verdict === "pass" ? "PASS" : "FAIL";
-        head.append(code, verdict);
-
-        const name = document.createElement("h3");
-        name.className = "aol-finding__name";
-        name.textContent = it.name ?? "";
-
-        const body = document.createElement("p");
-        body.className = "aol-finding__body";
-        body.textContent = it.body ?? "";
-
-        f.append(head, name, body);
-
-        if (it.why) {
-          const why = document.createElement("p");
-          why.className = "aol-finding__why";
-          why.textContent = it.why;
-          f.appendChild(why);
+      const cardTpl = document.querySelector<HTMLTemplateElement>("#tpl-audit-finding");
+      if (wrap && cardTpl) {
+        wrap.textContent = "";
+        for (const it of items.filter((x: any) => x.open)) {
+          const card = cardTpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
+          const slot = (n: string) => card.querySelector<HTMLElement>(`[data-slot="${n}"]`);
+          slot("title")!.textContent = it.name ?? "";
+          const v = slot("verdict")!;
+          v.textContent = it.verdict === "pass" ? "PASS" : "FAIL";
+          v.className = `aol-badge aol-badge--${it.verdict === "pass" ? "positive" : "danger"} aol-finding__verdict`;
+          slot("why")!.textContent = it.why ?? "";
+          slot("found")!.textContent = it.body ?? "";
+          slot("cite")!.textContent = it.citation ?? "";
+          wrap.appendChild(card);
         }
-        // The number prints only when the study reports one. Half these rules
-        // have none, and an empty badge beats an invented figure on a page that
-        // sells itself on peer review.
-        if (it.stat) {
-          const stat = document.createElement("p");
-          stat.className = "aol-finding__stat";
-          stat.textContent = it.stat;
-          f.appendChild(stat);
-        }
-        if (it.citation) {
-          const cite = document.createElement("p");
-          cite.className = "aol-finding__cite";
-          cite.textContent = it.citation;
-          f.appendChild(cite);
-        }
-        wrap.appendChild(f);
       }
 
       report.hidden = false;

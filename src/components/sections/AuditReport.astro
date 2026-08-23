@@ -2,55 +2,85 @@
 /**
  * The report.
  *
- * Three bands, in the order a reader wants them:
+ * BUILT FROM DESIGN-SYSTEM COMPONENTS, not from classes typed to look like
+ * them. That distinction is the whole point of this file's shape.
  *
- *   1. THE VERDICT — host, grade, and the two numbers that matter.
- *   2. THE BOARD   — every check as a PASS/FAIL tile, filling the width. This
- *                    is the scannable layer: you find your failures at a glance
- *                    rather than by reading seventeen rows of prose.
- *   3. THE OPEN THREE — the failures worth acting on, at full size.
+ * The report is rendered on the client — the data arrives over a stream, so
+ * there is no server pass in which to call <Card> per finding. The previous
+ * version answered that by hand-writing markup in JS and inventing `.aol-tile`,
+ * `.aol-finding` and a bespoke masthead, which drifted from the system
+ * immediately and looked it.
  *
- * The board and the findings are separated deliberately. They answer different
- * questions — "how did I do" and "what do I fix" — and the previous version
- * interleaved them, so the answer to the first was buried inside the second and
- * neither was scannable.
+ * The answer is <template>. Astro renders the real components INTO the
+ * templates below at build time, and the client clones them. The markup a
+ * visitor sees is emitted by Card, Badge and SpecGrid themselves, so it cannot
+ * drift from the system: change the component and this changes with it.
  *
- * Every check shows its verdict, including the withheld ones. Only the EVIDENCE
- * is gated. Hiding the verdict too left a column of dashes that told a reader
- * nothing about their own site; showing pass/fail for all of them is both the
- * more useful page and the stronger tease.
+ * WHAT THE SYSTEM PROVIDES, and what each part uses:
  *
- * No throat-clearing. Nothing here explains what the section is, apologises for
- * the gate, or thanks anyone for their time.
+ *   Badge     the grade, beside the host — a label, which is what a grade is
+ *   SpecGrid  the checks — a leader-dot datasheet. Its own note says rows of
+ *             facts read as a technical figure "where identical stat tiles
+ *             would read as filler", which is exactly what the tile board was
+ *   Card      each opened finding
+ *   Button    the booking CTA
+ *
+ * A FINDING CARD CARRIES FOUR THINGS AND NOTHING ELSE: what was checked, why
+ * it matters, what we found here, and the paper it comes from. The version
+ * before this also showed a code, an area label and a headline statistic, and
+ * the card stopped being readable as a finding.
  */
+import Badge from "../ds/Badge.astro";
+import Button from "../ds/Button.astro";
+import Card from "../ds/Card.astro";
+import SpecGrid from "../ds/SpecGrid.astro";
 import { BOOKING_URL } from "../../config";
 ---
 
 <section class="aol-report" id="audit-report" aria-labelledby="audit-report-title" hidden>
   <div class="aol-report__inner">
 
+    {/* The grade is a LABEL beside the name, not a headline of its own. */}
     <header class="aol-report__top">
-      <div>
-        <h2 class="aol-report__host" id="audit-report-title"></h2>
-        <p class="aol-report__grade"></p>
-      </div>
-      <div class="aol-report__tally">
-        <span class="aol-report__tallyitem aol-report__tallyitem--pass"><b></b> passed</span>
-        <span class="aol-report__tallyitem aol-report__tallyitem--fail"><b></b> failed</span>
-      </div>
+      <h2 class="aol-report__host" id="audit-report-title"></h2>
+      <Badge variant="outline" class="aol-report__grade"></Badge>
+      <p class="aol-report__count"></p>
     </header>
 
     <p class="aol-report__cap" hidden></p>
 
-    {/* The board — every check, in the order the research publishes them. */}
+    {/* Every check that ran, in the order the research publishes them. */}
     <div class="aol-report__board"></div>
 
     {/* The failures worth acting on. */}
     <div class="aol-report__findings"></div>
 
-    <div class="aol-report__cta">
+    <Card variant="sunken" padding="lg" class="aol-report__cta">
       <h3 class="aol-report__ctatitle"></h3>
-      <a class="aol-report__ctabtn" href={BOOKING_URL} target="_blank" rel="noopener">Book a call</a>
-    </div>
+      <Button variant="primary" arrow href={BOOKING_URL} target="_blank" rel="noopener">Book a call</Button>
+    </Card>
   </div>
+
+  {/*
+    TEMPLATES. Real components, rendered by Astro, cloned by the client.
+
+    Nothing in here is displayed: <template> content is inert and never
+    rendered. It exists so the client has genuine design-system markup to copy
+    instead of building its own out of strings.
+  */}
+  <template id="tpl-audit-checks">
+    <SpecGrid specs={[{ label: "", value: "" }]} class="aol-report__checks" />
+  </template>
+
+  <template id="tpl-audit-finding">
+    <Card variant="flat" padding="md" class="aol-finding">
+      <div class="aol-finding__top">
+        <h4 class="aol-finding__title" data-slot="title"></h4>
+        <Badge variant="danger" class="aol-finding__verdict" data-slot="verdict"></Badge>
+      </div>
+      <p class="aol-finding__why" data-slot="why"></p>
+      <p class="aol-finding__found" data-slot="found"></p>
+      <p class="aol-finding__cite" data-slot="cite"></p>
+    </Card>
+  </template>
 </section>
