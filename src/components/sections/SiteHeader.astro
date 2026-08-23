@@ -32,27 +32,28 @@ const NAV: [string, string][] = [
   ["Blog", "/blog/"],
 ];
 ---
-{/* The bar carries a faint pink wash rather than plain white.
-    --surface-warm IS that colour (--pink-050, the FT-inspired paper), so
-    this is the tint the rest of the site already uses for set-apart bands
-    — the footer and the cards — not a new one invented for the chrome.
+{/* Paper, translucent, over the fine grid mesh.
 
-    color-mix rather than a literal rgba: the translucency and the blur are
-    the point of a sticky bar, and hardcoding rgba(252,244,244,.88) would
-    freeze the token's value into the markup. --pink-050 has moved before.
+    The tint that was here briefly is gone: on the mesh it read as pink rather
+    than as paper, and the mesh is the thing doing the work. --paper at 88%
+    keeps the bar translucent so the page moves under it, and the blur keeps
+    what shows through from competing with the nav.
 
-    The hairline moves with it. A warm surface takes --border-warm, which is
-    what that token exists for; --ink-200 is the neutral hairline and reads
-    faintly green against pink.
+    color-mix rather than a literal rgba: the translucency and the blur are the
+    point of a sticky bar, and hardcoding rgba(255,255,255,.88) would freeze the
+    token's value into the markup.
+
+    The hairline is --ink-200 again. --border-warm is the hairline drawn ON a
+    warm surface, and this is not one any more.
 
     The mesh is .aol-grid-blue — the same 3x3px tile with a 1px blue tick at 15%
     that #what-we-do, #compare and #faq already stand on, so the chrome joins
     the grid the page is built on rather than getting a texture of its own.
 
-    It is applied as a CLASS with the tint left inline as background-COLOR. The
-    `background` shorthand would reset background-image to none and silently
+    It is applied as a CLASS with the ground left inline as background-COLOR.
+    The `background` shorthand would reset background-image to none and silently
     drop the mesh, and the header would look exactly as it did before. */}
-<header class="aol-grid-blue" style="position:sticky;top:0;z-index:20;background-color:color-mix(in srgb, var(--surface-warm) 88%, transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--border-warm)">
+<header class="aol-grid-blue" style="position:sticky;top:0;z-index:20;background-color:color-mix(in srgb, var(--paper) 88%, transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--ink-200)">
   <div style="max-width:var(--container-width);margin:0 auto;padding:var(--space-4) var(--gutter);display:flex;align-items:center;justify-content:space-between">
     <a href="/" style="text-decoration:none;display:inline-flex;align-items:center;gap:9px">
       <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" style="display:block;flex:none"><rect width="32" height="32" rx="4" fill="#1B4DFF"/><path d="M20.75 8 L11.25 24" stroke="#fff" stroke-width="3.25" stroke-linecap="round"/></svg>
