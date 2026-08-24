@@ -21,16 +21,29 @@ import { PROMISE } from "../../config";
  * that is the actual relationship, and the plain NVIDIA logo would claim a
  * different one.
  *
+ * `dim` is per-mark opacity, and it has to be, for the same reason `mark` does.
+ * A shared opacity does not produce an even row because the marks differ in how
+ * much ink they put on the page: measured as rendered, AirOps came out at 0.328
+ * mean ink and Boardy at 0.358 while the NVIDIA badge — mostly white plaque —
+ * came out at 0.099. A 3.6x spread under one opacity is why AirOps looked
+ * darker than Boardy.
+ *
+ * These values normalise each to roughly the same effective ink. They were
+ * computed, not guessed: render each mark as the bar draws it, average
+ * (1 - luminance) across its box, and divide a common target by that. NVIDIA is
+ * clamped at 0.85 — it is sparse rather than light, so evening it out fully
+ * would need it at more than 1.
+ *
  * ⚠️ Boardy is a PNG. It is the only one not available as an SVG: boardy.ai
  * ships its mark as a .webp and publishes no vector (the only SVGs on the site
  * are third-party channel icons). Swap it the moment they publish one.
  */
 const PARTNERS = [
-  { name: "NVIDIA Inception", src: "/partners/nvidia-inception.svg", w: 500, h: 216, mark: 36 },
-  { name: "AirOps", src: "/partners/airops.svg", w: 235, h: 82, mark: 24 },
-  { name: "Snitcher", src: "/partners/snitcher.svg", w: 122, h: 23, mark: 15 },
-  { name: "Superdesign", src: "/partners/superdesign.svg", w: 26, h: 30, mark: 26 },
-  { name: "Boardy", src: "/partners/boardy.png", w: 119, h: 128, mark: 28 },
+  { name: "NVIDIA Inception", src: "/partners/nvidia-inception.svg", w: 500, h: 216, mark: 36, dim: 1 },
+  { name: "AirOps", src: "/partners/airops.svg", w: 235, h: 82, mark: 24, dim: 0.47 },
+  { name: "Snitcher", src: "/partners/snitcher.svg", w: 122, h: 23, mark: 15, dim: 0.58 },
+  { name: "Superdesign", src: "/partners/superdesign.svg", w: 26, h: 30, mark: 26, dim: 0.64 },
+  { name: "Boardy", src: "/partners/boardy.png", w: 119, h: 128, mark: 28, dim: 0.43 },
 ];
 
 ---
@@ -153,17 +166,23 @@ const PARTNERS = [
       --r:6 keeps it last in the staged reveal, after the field. */}
   <div class="aol-grid-blue aol-partners" data-r style="border-top:1px solid var(--ink-200);--r:6">
     <div class="aol-partners__inner">
-      <p class="aol-partners__founder">Founded by the ex head of marketing<br />@ <strong>Blockthrough</strong> and <strong>AdPushup</strong> <Badge variant="tint" class="aol-founderpill">sold for &gt;$100M</Badge></p>
+      <p class="aol-partners__founder">Founded by the ex head of marketing<br />@ <strong>Blockthrough</strong> and <strong>AdPushup</strong> <Badge variant="outline" class="aol-founderpill">sold for &gt;$100M</Badge></p>
       {/* The label sits BESIDE the marks, not above them, and it is a Badge —
           the system's label — rather than an eyebrow. Stacked above the row it
           read as a section heading for the whole bar, which put it in charge of
           the credential on the left as well. Inline and boxed, it labels only
-          what follows it. */}
+          what follows it.
+
+          BOTH badges in this band are `outline`. They were on different
+          variants — the exit tinted blue, this one outlined — which reads as
+          two kinds of label rather than one, in a band eighty pixels tall.
+          Outline for both, and blue stays what it is everywhere else on the
+          site: the signal for actions and active states, not a label colour. */}
       <div class="aol-partners__side">
         <Badge variant="outline" class="aol-partners__label">Launch partners</Badge>
         <ul class="aol-partners__row">
           {PARTNERS.map((p) => (
-            <li class="aol-partners__item" style={`--mark-h:${p.mark}px`}>
+            <li class="aol-partners__item" style={`--mark-h:${p.mark}px;--mark-o:${p.dim}`}>
               <img src={p.src} alt={p.name} width={p.w} height={p.h} loading="lazy" decoding="async" />
             </li>
           ))}

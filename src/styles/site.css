@@ -156,7 +156,12 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
      The opacity is what keeps the row quiet: partners are context, not a claim
      competing with the promise above them. */
   filter: grayscale(1);
-  opacity: 0.55;
+  /* PER MARK, from the data. A shared opacity does not even a logo row out,
+     because the marks differ in how much ink they actually put on the page —
+     measured as rendered, AirOps and Boardy sat around 0.33-0.36 mean ink while
+     the NVIDIA badge sat at 0.099. Under one value AirOps read as darker than
+     Boardy, which is exactly what it was. */
+  opacity: var(--mark-o, 0.55);
 }
 @media (hover: hover) and (pointer: fine) {
   /* Full strength on hover — the row is quiet at rest but these are real
