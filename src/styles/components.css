@@ -37,9 +37,9 @@
   .aol-btn:hover .aol-btn__icon{ transform:translateX(2px); }
 }
 
-.aol-btn--primary{ background:var(--blue-500); color:#fff; border-color:var(--blue-700); box-shadow:0 3px 0 0 var(--blue-700); }
-.aol-btn--primary:hover{ background:var(--blue-600); border-color:var(--blue-700); color:#fff; }
-.aol-btn--primary:active{ background:var(--blue-600); transform:translateY(3px); box-shadow:0 0 0 0 var(--blue-700); color:#fff; }
+.aol-btn--primary{ background:var(--blue-500); color:var(--paper-pure); border-color:var(--blue-700); box-shadow:0 3px 0 0 var(--blue-700); }
+.aol-btn--primary:hover{ background:var(--blue-600); border-color:var(--blue-700); color:var(--paper-pure); }
+.aol-btn--primary:active{ background:var(--blue-600); transform:translateY(3px); box-shadow:0 0 0 0 var(--blue-700); color:var(--paper-pure); }
 
 .aol-btn--secondary{ background:var(--paper-pure); color:var(--ink-900); border-color:var(--ink-900); box-shadow:0 3px 0 0 var(--ink-900); }
 .aol-btn--secondary:hover{ background:var(--ink-050); color:var(--ink-900); }
@@ -112,7 +112,7 @@
 }
 .aol-badge__dot{ width:6px; height:6px; border-radius:1px; background:currentColor; flex:none; }
 .aol-badge--solid{ background:var(--ink-900); color:var(--paper); }
-.aol-badge--blue{ background:var(--blue-500); color:#fff; }
+.aol-badge--blue{ background:var(--blue-500); color:var(--paper-pure); }
 .aol-badge--outline{ background:transparent; color:var(--ink-800); border-color:var(--ink-300); }
 .aol-badge--tint{ background:var(--blue-100); color:var(--blue-700); }
 .aol-badge--positive{ background:var(--green-100); color:var(--green-600); }
