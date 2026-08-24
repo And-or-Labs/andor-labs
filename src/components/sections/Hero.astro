@@ -5,23 +5,33 @@ import Button from "../ds/Button.astro";
 import { PROMISE } from "../../config";
 
 /**
- * Launch partners, as LETTERMARKS rather than brand logos.
+ * Launch partners — official marks.
  *
- * Set in Departure Mono, which is what this system uses for anything that
- * labels or attests — so five partners read as one row in one voice instead of
- * five companies each arriving in their own.
+ * `w`/`h` are the SOURCE's intrinsic dimensions so each reserves its box before
+ * it loads and the row does not reflow; they only set the aspect ratio.
  *
- * It also disposes of a real problem rather than papering over it. The actual
- * assets are five different KINDS of thing: two wordmarks, an illustrated
- * character mark, a glyph, and a framed program badge, at aspect ratios from
- * 1:1 to nearly 3:1 and with no shared optical height. Matching them takes
- * per-logo hand-tuning and still leaves a row that reads as a sponsor bar on a
- * page with no other sponsor furniture. Type has none of that: one face, one
- * size, one colour.
+ * `mark` is the OPTICAL height, and it has to be per-mark because a bounding
+ * box says nothing about how big a logo looks. Snitcher's viewBox is cropped
+ * tight to its letterforms, so at a shared height it towers over everything;
+ * the NVIDIA asset is a framed badge with its artwork inset, so at the same
+ * height it reads as a stamp. These were set by eye against each other, which
+ * is the only way a logo row is ever evened up.
  *
- * The files stay in public/partners/ if this is ever reversed.
+ * NVIDIA is the Inception program lockup rather than the corporate wordmark —
+ * that is the actual relationship, and the plain NVIDIA logo would claim a
+ * different one.
+ *
+ * ⚠️ Boardy is a PNG. It is the only one not available as an SVG: boardy.ai
+ * ships its mark as a .webp and publishes no vector (the only SVGs on the site
+ * are third-party channel icons). Swap it the moment they publish one.
  */
-const PARTNERS = ["NVIDIA", "AirOps", "Snitcher", "Superdesign", "Boardy"];
+const PARTNERS = [
+  { name: "NVIDIA Inception", src: "/partners/nvidia-inception.svg", w: 500, h: 216, mark: 36 },
+  { name: "AirOps", src: "/partners/airops.svg", w: 235, h: 82, mark: 24 },
+  { name: "Snitcher", src: "/partners/snitcher.svg", w: 122, h: 23, mark: 15 },
+  { name: "Superdesign", src: "/partners/superdesign.svg", w: 26, h: 30, mark: 26 },
+  { name: "Boardy", src: "/partners/boardy.png", w: 119, h: 128, mark: 28 },
+];
 
 ---
 <section class="aol-hero" style="border-bottom:1px solid var(--ink-200);background:var(--paper)">
@@ -125,21 +135,40 @@ const PARTNERS = ["NVIDIA", "AirOps", "Snitcher", "Superdesign", "Boardy"];
 
         DECORATIVE: aria-hidden, empty alt, real dimensions so it reserves its
         box — this is above the fold on a short viewport. */}
-    {/* ── Launch partners ────────────────────────────────────────────────
-        INSIDE the hero, over the picture — not a bar beneath it. A separate
-        banded strip made the fold end twice: once at the image and again at a
-        rule, and the partners read as a footer to the hero rather than part of
-        it. Here they sit in the lower third, where the horizon is already
-        present, and the whole block is held at a low opacity so it belongs to
-        the treatment instead of competing with the promise above.
 
-        Last in the staged reveal, after the field. */}
-    <div class="aol-partners" data-r style="--r:5">
-      <span class="aol-eyebrow aol-partners__label">Launch partners</span>
-      <ul class="aol-partners__row">
-        {PARTNERS.map((name) => <li class="aol-partners__item">{name}</li>)}
-      </ul>
+  </div>
+  {/* ── Launch partners ──────────────────────────────────────────────────
+      The logo bar, back at the foot of the first screen on the engineering
+      grid: credentials on the left, partners on the right.
+
+      Tried inside the hero and taken out again — over the picture the marks
+      needed fading so far to belong that they stopped reading, and a Card
+      floating on the horizon put a second surface on top of a treatment that
+      was already doing the work.
+
+      OFFICIAL MARKS, sized by HEIGHT and per mark. They arrive as five
+      different kinds of asset at aspect ratios from 1:1 to nearly 3:1;
+      constrain the width and a square mark towers over a wordmark.
+
+      --r:6 keeps it last in the staged reveal, after the field. */}
+  <div class="aol-grid-blue aol-partners" data-r style="border-top:1px solid var(--ink-200);--r:6">
+    <div class="aol-partners__inner">
       <p class="aol-partners__founder">Founded by the ex head of marketing<br />@ <strong>Blockthrough</strong> and <strong>AdPushup</strong> <Badge variant="tint" class="aol-founderpill">sold for &gt;$100M</Badge></p>
+      {/* The label sits BESIDE the marks, not above them, and it is a Badge —
+          the system's label — rather than an eyebrow. Stacked above the row it
+          read as a section heading for the whole bar, which put it in charge of
+          the credential on the left as well. Inline and boxed, it labels only
+          what follows it. */}
+      <div class="aol-partners__side">
+        <Badge variant="outline" class="aol-partners__label">Launch partners</Badge>
+        <ul class="aol-partners__row">
+          {PARTNERS.map((p) => (
+            <li class="aol-partners__item" style={`--mark-h:${p.mark}px`}>
+              <img src={p.src} alt={p.name} width={p.w} height={p.h} loading="lazy" decoding="async" />
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   </div>
 </section>

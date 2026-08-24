@@ -92,80 +92,82 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
 }
 .aol-hero__eyebrow  { margin: 0 0 var(--space-3); }
 /* ── Launch partners ───────────────────────────────────────────────────────
-   A WHITE BAND FLOATING ON THE PICTURE, inside the hero, low in the frame.
+   The logo bar at the foot of the first screen: credentials left, partners
+   right, on the engineering grid the section carries.
 
-   Not a section beneath the hero: a banded strip below it ended the fold twice,
-   once at the image and again at a rule, and read as a footer rather than as
-   part of the hero. And not sitting directly on the picture as bare type
-   either — over a night scene the mono lost its contrast and the block had to
-   be faded so far to belong that it stopped being legible.
-
-   The band solves both. Translucent paper lets the horizon through, so it reads
-   as part of the treatment rather than a card dropped on top, while giving the
-   type a surface with enough contrast to be read.
-
-   FULL BLEED past the container's cap, the same 100vw trick the horizon uses,
-   because a band that stops at 1200px is a card. The hero clips overflow, so it
-   cannot open a horizontal scrollbar.
-
-   ROOM, deliberately. It is pushed well clear of the field above it and carries
-   generous vertical padding of its own — crammed against the CTA it read as an
-   appendix to the form instead of its own statement. */
-.aol-partners {
-  margin-top: var(--space-16);
-  /* Full bleed with NO offset hack. The parent is a centred flex column, so a
-     child wider than the content box already overflows it equally on both
-     sides — 100vw lands exactly on the viewport edges by itself. The
-     margin-left:50% + translateX(-50%) trick belongs to block layout, and here
-     it fought the centring and pushed the band half a screen right. */
-  width: 100vw;
-  max-width: none;
-  padding: var(--space-12) var(--gutter);
-  background: color-mix(in srgb, var(--paper) 86%, transparent);
+   Tried floating inside the hero and taken out again — over the picture the
+   marks had to be faded so far to belong that they stopped reading, and a card
+   on the horizon put a second surface on top of a treatment already doing that
+   job. A bar under the fold has neither problem. */
+.aol-partners__inner {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--gutter);
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-6);
-  text-align: center;
+  justify-content: space-between;
+  gap: var(--space-4) var(--space-8);
+  text-align: left;
 }
+/* Label then marks, on ONE line. Stacked, the label read as a heading for the
+   whole bar and took charge of the credential on the other side of it too. */
+.aol-partners__side {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+}
+/* The label is a Badge; only its alignment is set here. `flex:none` keeps it
+   from being squeezed by the row of marks beside it. */
+.aol-partners__label { flex: none; }
 .aol-partners__row {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  gap: var(--space-3) var(--space-8);
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3) var(--space-6);
 }
-/* LETTERMARKS, not logos.
-   
-   Departure Mono is the system's voice for anything that labels or attests, so
-   set as type the five partners read as one row rather than as five companies
-   each arriving in their own typeface.
+/* SIZE BY HEIGHT, and per mark. These are five different kinds of asset — two
+   wordmarks, an illustrated character mark, a glyph and a framed program badge
+   — at aspect ratios from 1:1 to nearly 3:1. Constrain the width and a square
+   mark towers over a wordmark; a single shared height does not even them either,
+   because a viewBox cropped tight to its letterforms (Snitcher) is optically
+   twice the size of one with its artwork inset (the NVIDIA badge).
 
-   It also removes a real problem instead of papering over it: the actual assets
-   are five different KINDS of thing — two wordmarks, an illustrated character
-   mark, a glyph and a framed program badge — at aspect ratios from 1:1 to
-   nearly 3:1 with no shared optical height, which needs per-logo hand-tuning
-   and still reads as a sponsor bar on a page carrying no other sponsor
-   furniture.
+   --mark-h comes from the data, beside the asset it describes, rather than from
+   a stack of nth-child rules that break the moment the order changes. */
+.aol-partners__item img {
+  display: block;
+  height: var(--mark-h, 24px);
+  width: auto;
+  /* DESATURATE, do not silhouette. brightness(0) was tried and broke two of the
+     five: the NVIDIA asset is the plaque version — a white fill behind a frame —
+     so flattening it produced a solid black rectangle, and Boardy is an
+     illustrated character mark that collapsed to a blob. grayscale() keeps
+     internal tonality, so the illustration still reads and the plaque stays
+     white, i.e. invisible on paper, leaving exactly the frame and the wordmark.
 
-   Tracked and uppercase at display size: it has to carry as a mark, and mono
-   ships 400 only — never set it bold — so size and tracking do the work weight
-   would do elsewhere. */
-.aol-partners__item {
-  font-family: var(--font-mono);
-  font-size: clamp(15px, 1.5vw, 20px);
-  line-height: 1.1;
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--ink-900);
+     The opacity is what keeps the row quiet: partners are context, not a claim
+     competing with the promise above them. */
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+@media (hover: hover) and (pointer: fine) {
+  /* Full strength on hover — the row is quiet at rest but these are real
+     relationships, and a reader who looks should get the mark properly. */
+  .aol-partners__item img { transition: opacity var(--dur-base) var(--ease-out); }
+  .aol-partners__item img:hover { opacity: 0.9; }
 }
 
-/* The founder line: same mono, caption size, under the row it belongs to. The
-   company names take full ink-900 contrast rather than weight, which is the
-   system's instruction for a heavier mono. */
+/* The credential, on the left. The company names take full ink-900 contrast
+   rather than weight — Departure Mono ships 400 only and must never be set
+   bold, so contrast is the system's instruction for a heavier mono. */
 .aol-partners__founder {
   margin: 0;
   font-family: var(--font-mono);
@@ -176,13 +178,13 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
 }
 .aol-partners__founder strong { font-weight: 400; color: var(--ink-900); }
 
-@media (max-width: 640px) {
-  .aol-partners {
-    margin-top: var(--space-12);
-    padding: var(--space-10) var(--gutter);
-    gap: var(--space-5);
-  }
-  .aol-partners__row { gap: var(--space-3) var(--space-6); }
+@media (max-width: 880px) {
+  /* Stacked and centred once the halves stop fitting side by side — squeezed,
+     the logo row wraps under itself and the split stops reading as a split. */
+  .aol-partners__inner { justify-content: center; text-align: center; }
+  .aol-partners__side { align-items: center; }
+  .aol-partners__row { justify-content: center; }
+  .aol-partners__founder { width: 100%; text-align: center; }
 }
 .aol-hero__headline { margin: 0 0 var(--space-6); }
 .aol-hero__subhead  { margin: 0 0 var(--space-8); }
