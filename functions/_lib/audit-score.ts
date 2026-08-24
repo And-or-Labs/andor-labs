@@ -183,7 +183,14 @@ function buildPrompt(key: SubsectionKey, host: string, site: SiteMarkdown, ctx: 
     `  labels, radii. If it says a thing was not found, it was not there.`,
     `- If the pages do not show you enough to judge a check, OMIT it. An`,
     `  omitted check is dropped; a guessed one is a lie with a number on it.`,
-    `- Every note is ONE sentence, twenty words at the outside.`,
+    `- Every note is ONE sentence, twenty-five words at the outside, and it MUST`,
+    `  contain a VERBATIM quote from the page in double quotes. Copy the words`,
+    `  exactly as they appear above — do not paraphrase inside the quote marks.`,
+    `- A note without a quote that is really on the page is DISCARDED, and the`,
+    `  check with it. Quote the thing you are describing, not a summary of it.`,
+    `- Do not describe structure you cannot see. If the page has one headline,`,
+    `  say so and quote it; do not report three benefits because three ideas`,
+    `  appear in one sentence.`,
     `- Cite one concrete thing: a count, a price, a quoted phrase, a position.`,
     `- No hedging, no balancing. State the problem and stop.`,
     `- Answer PASS or FAIL. Not a score, not a maybe — the definitions above`,
@@ -201,8 +208,57 @@ function buildPrompt(key: SubsectionKey, host: string, site: SiteMarkdown, ctx: 
     .join("\n");
 }
 
-/** Parse and clamp. A malformed row is dropped, never defaulted to zero. */
-function normalize(raw: unknown, valid: Set<string>): SectionVerdict {
+/**
+ * Normalise text for quote checking: one space between words, lowercased, and
+ * the typographic characters a crawler and a model disagree about folded to
+ * their ASCII forms.
+ *
+ * Without the folding this rejects true quotes constantly — the page ships a
+ * curly apostrophe in "AI That’s Yours" and the model returns a straight
+ * one, which is not a fabrication and must not be treated as one.
+ */
+export const forQuote = (t: string) =>
+  t
+    .toLowerCase()
+    .replace(/[\u2018\u2019\u02bc]/g, "'")
+    .replace(/[\u201c\u201d]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+
+/** Quoted spans in a note, longest first — `"..."` or `'...'`. */
+export function quotesIn(note: string): string[] {
+  return [...note.matchAll(/["“]([^"”]{6,120})["”]|'([^']{6,120})'/g)]
+    .map((m) => (m[1] ?? m[2] ?? "").trim())
+    .filter((q) => q.split(/\s+/).length >= 2)
+    .sort((a, b) => b.length - a.length);
+}
+
+/**
+ * Parse and clamp. A malformed row is dropped, never defaulted to zero.
+ *
+ * EVERY NOTE MUST QUOTE THE PAGE, and the quote must actually be on it.
+ *
+ * This is the gate that stops the tool asserting things the evidence does not
+ * support. Chalice's homepage has one hero line — "Chalice is
+ * platform-independent advertising AI that drives..." — and the model reported
+ * "Hero h4 lists exactly three benefits: platform-independent, real-world
+ * outcomes, full transparency." Every word of that vocabulary is on the page,
+ * which is what made it convincing; the STRUCTURE was invented. Free prose
+ * about a page is unfalsifiable, and this audit's entire claim is that it is
+ * checkable.
+ *
+ * A row whose quote is not found is DROPPED, not scored zero — the same rule
+ * that governs a check the crawl could not observe. We would rather show two
+ * findings than three, one of which is fiction.
+ */
+export function groundedNote(note: string, evidence: string): boolean {
+  if (!evidence) return true; // no text to check against — the visual group
+  const haystack = forQuote(evidence);
+  return quotesIn(note).some((q) => haystack.includes(forQuote(q)));
+}
+
+function normalize(raw: unknown, valid: Set<string>, evidence: string): SectionVerdict {
   const obj = (raw ?? {}) as { scores?: unknown };
   const scores = new Map<string, number>();
   const notes = new Map<string, string>();
@@ -217,8 +273,15 @@ function normalize(raw: unknown, valid: Set<string>): SectionVerdict {
       // guess — the same rule that governs a check the model declined to score.
       const v = String((r as { verdict?: unknown }).verdict ?? "").trim().toLowerCase();
       if (v !== "pass" && v !== "fail") continue;
+
+      const note = clampText(r.note, 180);
+      if (!groundedNote(note, evidence)) {
+        console.warn(`[audit] ${id}: note not grounded in the page, dropped — ${note.slice(0, 90)}`);
+        continue;
+      }
+
       scores.set(id, v === "pass" ? 1 : 0);
-      notes.set(id, clampText(r.note, 150));
+      notes.set(id, note);
     }
   }
   return { scores, notes, summary: "" };
@@ -270,7 +333,12 @@ async function scoreVisualGroup(
     env,
     prompt,
     (text) => {
-      const parsed = normalize(extractJson(text), valid);
+      // NO QUOTE GATE HERE, and that asymmetry is deliberate. This group scores
+      // from a screenshot, so there is no text for a quote to be checked
+      // against, and a legitimate note about where a button sits ("upper-right
+      // corner") quotes nothing. The gate belongs where the risk is: prose
+      // claims about page STRUCTURE, which is the text groups.
+      const parsed = normalize(extractJson(text), valid, "");
       if (parsed.scores.size === 0) throw new Error("no usable scores");
       return parsed;
     },
@@ -302,12 +370,15 @@ async function scoreGroup(
   if (valid.size === 0) return { scores: new Map(), notes: new Map(), summary: "" };
 
   const t0 = Date.now();
+  // The prompt IS the evidence: it is the only thing the model saw, so it is
+  // exactly the right haystack to check a quote against.
+  const prompt = buildPrompt(key, host, site, ctx, only);
   const { value } = await askLadder(
     PROVIDER,
     env,
-    buildPrompt(key, host, site, ctx, only),
+    prompt,
     (text) => {
-      const parsed = normalize(extractJson(text), valid);
+      const parsed = normalize(extractJson(text), valid, prompt);
       // A response that scored nothing is a failed call, not an answer.
       if (parsed.scores.size === 0) throw new Error("no usable scores");
       return parsed;
