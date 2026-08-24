@@ -19,6 +19,7 @@ import {
   SUBSECTIONS,
   isVisual,
   observableRules,
+  sampleChecks,
   rulesPrompt,
   rankChecks,
   scoreSubsection,
@@ -339,8 +340,10 @@ async function scoreGroup(
   return value;
 }
 
-export interface AuditResult extends AuditTotals {
+export interface AuditResult {
   host: string;
+  /** How many of the sample passed. Used for the cache row and for ordering. */
+  passed: number;
   /** What the crawl saw, so the caller can explain a ceiling. */
   ctx: CrawlContext;
   /** Every observable check, worst first. This is what the report renders. */
@@ -358,24 +361,32 @@ export async function scoreSite(
 ): Promise<AuditResult> {
   const ctx = readContext(site);
 
-  // SIX SMALL CALLS IN PARALLEL, not two large ones. Wall clock becomes the
-  // slowest single group rather than the sum, and every group is small because
-  // it carries only its own checks and only the pages those checks need.
-  // Measured: 10.3s wall against 16.7s of summed work, on a run that used to
-  // take four minutes.
+  // THREE CHECKS, NOT TWENTY-THREE.
+  //
+  // The free audit runs a sample and stops. Scoring the whole rule set took six
+  // model calls, a completion round and thirty to forty-five seconds, and then
+  // published a pass/fail for every check — the gate withheld the evidence but
+  // gave away the verdict, which is most of what a visitor wanted. Three checks
+  // from three parts of the research demonstrate the method, cost a fraction,
+  // and leave the other twenty genuinely unrun rather than run-and-redacted.
+  //
+  // No completion round either. With three rules there is nothing to complete:
+  // a rule the model declines to answer is one we cannot show, and asking twice
+  // for a sample defeats the point of sampling.
+  const sample = sampleChecks(ctx);
+  if (sample.length === 0) throw new Error("no observable check to sample");
+
+  // One call per sampled rule, in parallel. The sample holds at most one rule
+  // per subsection, so this reuses the existing group scorers with their `only`
+  // filter rather than growing a second prompt path — and each prompt now
+  // carries a single rule, which is why it is fast.
   const settled = await Promise.allSettled(
-    SUBSECTIONS.map((s) =>
-      isVisual(s.key)
-        ? scoreVisualGroup(s.key, host, site, ctx, env)
-        : scoreGroup(s.key, host, site, ctx, env),
+    sample.map((r) =>
+      isVisual(r.subsection)
+        ? scoreVisualGroup(r.subsection, host, site, ctx, env, new Set([r.id]))
+        : scoreGroup(r.subsection, host, site, ctx, env, new Set([r.id])),
     ),
   );
-
-  // A group failing is survivable — its checks simply do not appear, exactly
-  // like a check the model declined to score.
-  if (settled.every((r) => r.status === "rejected")) {
-    throw new Error("scoring failed for every group");
-  }
 
   const merged = new Map<string, number>();
   const allNotes = new Map<string, string>();
@@ -385,64 +396,15 @@ export async function scoreSite(
     for (const [k, v] of r.value.notes) allNotes.set(k, v);
   }
 
-  // SCORING NOTHING IS AN OUTAGE, not a grade of E.
+  // SCORING NOTHING IS AN OUTAGE, not a result.
   //
-  // Groups with no observable rules resolve empty, so "not every group
-  // rejected" is not the same as "something was scored". When the model layer
-  // was broken, three groups resolved empty and three rejected, and the run
-  // returned a confident E with zero checks behind it. A page that says E when
-  // nothing was measured is worse than a page that says it failed.
-  if (merged.size === 0) {
-    throw new Error("no check was scored");
-  }
+  // A page reporting three checks it never ran is worse than a page saying it
+  // failed. This mattered more when six groups could resolve empty; with three
+  // it is the whole run.
+  if (merged.size === 0) throw new Error("no check was scored");
 
-  // ONE COMPLETION ROUND, for the checks the first pass simply did not answer.
-  //
-  // A model that omits a rule is not the same as a rule that cannot be
-  // observed, and until now the two were indistinguishable downstream:
-  // rankChecks drops any observable rule with no verdict, so the denominator
-  // was whatever the model happened to return. Measured on plausible.io that
-  // was 8, 15, 18 and 19 checks out of 23 across four runs of the same site —
-  // and a report that says "5 more checks" when the research has 23 undersells
-  // the audit and reads as though most of it was skipped.
-  //
-  // Only the gaps are re-asked, per group, in parallel. That is one extra round
-  // and only when something is missing; the prompt carries a handful of rules
-  // rather than the whole group, so it is the cheapest call in the run. A rule
-  // still unanswered after this is genuinely unjudgeable from what we fetched,
-  // and it leaves the run as before.
-  const gaps = new Map<SubsectionKey, Set<string>>();
-  for (const s of SUBSECTIONS) {
-    const missing = observableRules(s.key, ctx)
-      .filter((r) => !merged.has(r.id))
-      .map((r) => r.id);
-    if (missing.length) gaps.set(s.key, new Set(missing));
-  }
-
-  if (gaps.size) {
-    console.log(
-      `[audit] completion round: ${[...gaps].map(([k, v]) => `${k}:${v.size}`).join(" ")}`,
-    );
-    const second = await Promise.allSettled(
-      [...gaps].map(([key, ids]) =>
-        isVisual(key)
-          ? scoreVisualGroup(key, host, site, ctx, env, ids)
-          : scoreGroup(key, host, site, ctx, env, ids),
-      ),
-    );
-    for (const r of second) {
-      if (r.status !== "fulfilled") continue;
-      // First answer wins. The completion round only fills holes; it must never
-      // overwrite a verdict the first pass already gave, or the same site would
-      // score differently depending on which round happened to be slower.
-      for (const [k, v] of r.value.scores) if (!merged.has(k)) merged.set(k, v);
-      for (const [k, v] of r.value.notes) if (!allNotes.has(k)) allNotes.set(k, v);
-    }
-  }
-
-  const results = SUBSECTIONS.map((s) => scoreSubsection(s.key, ctx, merged));
-
-  return { host, checks: rankChecks(ctx, merged, allNotes), ctx, ...totals(results, ctx) };
+  const checks = rankChecks(ctx, merged, allNotes);
+  return { host, ctx, checks, passed: checks.filter((c) => c.verdict === "pass").length };
 }
 
 // Re-exported so audit.ts does not need to import from two places to build a

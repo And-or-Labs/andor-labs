@@ -25,7 +25,7 @@
 import { readSiteMarkdown } from "../_lib/pages";
 import { deriveTarget, hostFromUserUrl } from "../_lib/email-domain";
 import { readContext, scoreSite } from "../_lib/audit-score";
-import { AUDITABLE_TOTAL, revealed } from "../_lib/playbook";
+import { AUDITABLE_TOTAL, remainingChecks } from "../_lib/playbook";
 
 import {
   checkRate,
@@ -64,9 +64,11 @@ const STEPS: { key: string; label: string; status: string; say: string }[] = [
   { key: "studies", label: "Reading 23 studies", status: "AGAIN", say: "loading 23 studies" },
   { key: "sodont", label: "So you don't have to", status: "YOU'RE", say: "so you don't have to" },
   { key: "science", label: "Applying the science", status: "WELCOME", say: "applying the research" },
-  { key: "math", label: "Doing the arithmetic", status: "OK", say: "doing the arithmetic" },
-  { key: "round", label: "Rounding in your favour", status: "NO", say: "not rounding in your favour" },
 ];
+// The arithmetic and the rounding used to close this list. Both were about
+// producing a grade, and there is no grade any more — three checks is a sample,
+// not a score. The statuses on the last two lines still read YOU'RE / WELCOME
+// down the column, which is the joke and survives the trim.
 
 /**
  * How often to emit a keepalive while the models are thinking.
@@ -244,15 +246,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         const result = await scoring;
 
         send({ t: "step", ...STEPS[5] });
-        send({ t: "step", ...STEPS[6] });
-        send({ t: "step", ...STEPS[7] });
 
         const body = gate(result);
         send({ t: "result", ...body, cached: false });
         controller.close();
 
         // Memoise and tidy after the visitor has their answer.
-        await writeCache(env, host, body, result.score, now);
+        await writeCache(env, host, body, result.passed, now);
         if (Math.random() < 0.05) await sweep(env, now);
         await banking;
       } catch (err) {
@@ -289,51 +289,47 @@ const tick = (ms: number) => new Promise((r) => setTimeout(r, ms));
  * than a blur: a CSS blur ships the whole payload and loses to View Source.
  */
 function gate(result: Awaited<ReturnType<typeof scoreSite>>) {
-  const { verdict, checks } = result;
-  const open = revealed(checks, OPEN_CHECKS);
+  const { checks } = result;
 
-  // Every check that ran, IN SOURCE ORDER, three of them opened where they
-  // actually fall. A masked row carries its CODE and nothing else — no name,
-  // no score, no evidence, no citation. That is a stronger gate than the names
-  // were: "no decoy plan" is most of the finding, while PRICING-2 tells you
-  // only that a check exists and has not been answered for you yet.
-  // EVERY check shows its verdict. Only the evidence is gated.
+  // NOTHING IS REDACTED HERE ANY MORE, because nothing else was run.
   //
-  // Withholding the verdict too made the card unscannable — seventeen rows of
-  // "—" told a reader nothing about their own site. Showing pass/fail for all
-  // of them is both the more useful page and the stronger tease: you can see
-  // you failed eleven checks, and the reasons are what the call is for.
-  const items = checks.map((c) =>
-    open.has(c.id)
-      ? {
-          code: c.code,
-          verdict: c.verdict,
-          open: true as const,
-          name: c.label,
-          area: c.subsectionLabel,
-          body: c.evidence,
-          why: c.why,
-          stat: c.stat,
-          citation: c.citation,
-        }
-      // Code and verdict. NOT the name — "no decoy plan" is most of the
-      // finding, while PRICING-2 FAIL says you have a problem there and nothing
-      // about what it is.
-      : { code: c.code, verdict: c.verdict, open: false as const },
-  );
+  // The previous gate scored all twenty-three and then withheld the evidence
+  // for twenty of them — but it still published their pass/fail, which is most
+  // of what a visitor came for, and it paid for every one of those verdicts.
+  // Now three checks run and the rest are simply named. A withheld row carries
+  // its code and its area and no verdict at all, because there is no verdict:
+  // claiming one we had not computed would be the one thing this page cannot
+  // afford to do.
+  //
+  // NO GRADE. A letter derived from a three-check sample is a fabricated
+  // metric, and on a page that sells itself on peer-reviewed method it is the
+  // fabrication a reader would be right to catch. The header states what was
+  // run and what it found, which is a fact.
+  const shown = checks.map((c) => ({
+    code: c.code,
+    verdict: c.verdict,
+    open: true as const,
+    name: c.label,
+    area: c.subsectionLabel,
+    body: c.evidence,
+    why: c.why,
+    stat: c.stat,
+    citation: c.citation,
+  }));
+
+  const ran = new Set(checks.map((c) => c.id));
+  const held = remainingChecks(ran);
 
   return {
     host: result.host,
-    grade: verdict.grade,
-    gradeLabel: verdict.label,
-    caps: verdict.caps,
-    total: checks.length,
-    // The full rule set, so the page can say "17 of 23" rather than just "17".
+    ran: shown.length,
     auditable: AUDITABLE_TOTAL,
-    passed: checks.filter((c) => c.verdict === "pass").length,
-    failed: checks.filter((c) => c.verdict === "fail").length,
-    shown: items.filter((i) => i.open).length,
-    items,
+    passed: shown.filter((i) => i.verdict === "pass").length,
+    failed: shown.filter((i) => i.verdict === "fail").length,
+    items: shown,
+    /** Areas of the research the free audit did not touch, with counts. */
+    held,
+    heldTotal: held.reduce((n, h) => n + h.count, 0),
   };
 }
 

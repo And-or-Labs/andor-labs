@@ -922,6 +922,94 @@ export interface CheckResult {
  * checks could not be observed has been audited against 23 rules and answered
  * on 17, and saying only "17" reads as though the tool is small.
  */
+/**
+ * The three checks a free audit actually runs.
+ *
+ * WHY ONLY THREE. Scoring all twenty-three costs six model calls, a completion
+ * round and thirty to forty-five seconds, and then gives away a verdict on
+ * every one of them — the gate withheld the evidence but published the
+ * pass/fail. Running three is faster, costs a fraction, and leaves the other
+ * twenty genuinely unopened rather than opened-and-redacted.
+ *
+ * ORDERED BY SUBSECTION, one taken from each. Three findings from three
+ * different parts of the research demonstrate the breadth of it; three from the
+ * pricing section would read as a pricing tool.
+ *
+ * WITHIN a subsection the order is deliberate:
+ *  - Heaviest first. A weight-3 rule is one the research treats as
+ *    consequential, and a sample should show the consequential ones.
+ *  - Then most commonly failed, so the free audit usually has something to say.
+ *    A trio a site passes outright is a worse advert than one it fails.
+ *
+ * SUBSECTION order is by how reliably the checks can be observed at all.
+ * messaging and proof need only the homepage. plans needs readable pricing,
+ * which perhaps half of early-stage sites do not have. trials and freemium need
+ * the site to actually offer one, so they are last — they are fallbacks, not
+ * candidates.
+ */
+const SAMPLE_ORDER: { subsection: SubsectionKey; ids: string[] }[] = [
+  { subsection: "messaging", ids: ["top-three-benefits", "productize"] },
+  { subsection: "plans", ids: ["three-to-five-plans", "decoy-plan", "simpler-than-competitors"] },
+  { subsection: "proof", ids: ["show-numbers", "imperfect-rating", "first-review"] },
+  { subsection: "design", ids: ["cta-upper-right", "perceptual-structure", "layout-by-type"] },
+  { subsection: "trials", ids: ["high-quality-trial", "seven-day-trial"] },
+  { subsection: "freemium", ids: ["limit-usage-not-features", "freemium-decoy"] },
+];
+
+/** How many checks a free audit runs. */
+export const SAMPLE_SIZE = 3;
+
+/**
+ * Pick the sample: at most one rule per subsection, in the order above,
+ * skipping any that cannot be observed on this site.
+ *
+ * Walking subsections rather than a flat list is what guarantees the spread. A
+ * flat list sorted by weight would have handed back three pricing rules on any
+ * site with a pricing page, because that is where the heavy rules cluster.
+ */
+export function sampleChecks(ctx: CrawlContext, n: number = SAMPLE_SIZE): Rule[] {
+  const byId = new Map(RULES.map((r) => [r.id, r]));
+  const out: Rule[] = [];
+  for (const group of SAMPLE_ORDER) {
+    if (out.length >= n) break;
+    for (const id of group.ids) {
+      const rule = byId.get(id);
+      if (!rule || !rule.auditable || !rule.observable(ctx)) continue;
+      out.push(rule);
+      break; // one per subsection
+    }
+  }
+  return out;
+}
+
+/**
+ * The checks a free audit did NOT run, GROUPED BY AREA with a count.
+ *
+ * Twenty named rows was the first attempt and it was a wall: the area repeated
+ * six times for design and seven for pricing, so most of the list was the same
+ * two phrases over and over, and the section ran longer than the findings it
+ * was supposed to be selling. Six rows carrying "Pricing plans ... 7 checks"
+ * say the same thing, fit on a screen, and read as the datasheet the component
+ * is for rather than an inventory.
+ *
+ * It is also the better tease. The breadth is the offer — that the research
+ * covers six areas of a page — and a reader gets that from the shape of six
+ * rows faster than from reading twenty names.
+ */
+export function remainingChecks(ran: Set<string>): { area: string; count: number }[] {
+  const counts = new Map<SubsectionKey, number>();
+  for (const r of RULES) {
+    if (!r.auditable || ran.has(r.id)) continue;
+    counts.set(r.subsection, (counts.get(r.subsection) ?? 0) + 1);
+  }
+  // SUBSECTIONS order, not Map insertion order, so the areas read in the
+  // sequence the research publishes them.
+  return SUBSECTIONS.filter((s) => counts.has(s.key)).map((s) => ({
+    area: s.label,
+    count: counts.get(s.key)!,
+  }));
+}
+
 export const AUDITABLE_TOTAL = RULES.filter((r) => r.auditable).length;
 
 export function rankChecks(

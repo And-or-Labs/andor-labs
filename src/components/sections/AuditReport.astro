@@ -40,20 +40,25 @@ import { BOOKING_URL } from "../../config";
 <section class="aol-report" id="audit-report" aria-labelledby="audit-report-title" hidden>
   <div class="aol-report__inner">
 
-    {/* The grade is a LABEL beside the name, not a headline of its own. */}
+    {/* NO GRADE. A letter derived from a three-check sample is a fabricated
+        metric, and on a page that sells peer-reviewed method it is the
+        fabrication a reader would be right to catch. The header states what was
+        run and what it found, which is a fact. */}
     <header class="aol-report__top">
       <h2 class="aol-report__host" id="audit-report-title"></h2>
-      <Badge variant="outline" class="aol-report__grade"></Badge>
       <p class="aol-report__count"></p>
     </header>
 
     <p class="aol-report__cap" hidden></p>
 
-    {/* Every check that ran, in the order the research publishes them. */}
-    <div class="aol-report__board"></div>
-
-    {/* The failures worth acting on. */}
+    {/* THE FINDINGS FIRST. This is what the visitor waited for. */}
     <div class="aol-report__findings"></div>
+
+    {/* What the full audit still checks — named, never run, no verdict column.
+        A dash per row would imply an answer is being withheld; a verdict would
+        invent one. */}
+    <h3 class="aol-report__heldtitle"></h3>
+    <div class="aol-report__board"></div>
 
     <Card variant="sunken" padding="lg" class="aol-report__cta">
       <h3 class="aol-report__ctatitle"></h3>

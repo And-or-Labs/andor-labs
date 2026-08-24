@@ -2297,3 +2297,17 @@
   -webkit-mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
           mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
 }
+
+/* The held list's heading. The rows below it are SpecGrid's; this is only the
+   line that says what they are. */
+.aol-report__heldtitle{
+  margin:0; font-family:var(--font-mono); font-size:var(--text-2xs);
+  letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--ink-500);
+}
+/* No verdict colouring here — these checks were never run, so there is nothing
+   to colour. The value column carries a COUNT, so it takes the mono treatment
+   the rest of the site gives numerals. */
+.aol-report__board .aol-specsheet__val{
+  font-family:var(--font-mono); font-weight:400;
+  font-size:var(--text-2xs); letter-spacing:var(--tracking-mono); color:var(--ink-600);
+}

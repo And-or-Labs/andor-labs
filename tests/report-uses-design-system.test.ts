@@ -39,12 +39,15 @@ describe("the report is assembled from design-system components", () => {
     expect(report).toMatch(/<Card[^>]*class="aol-finding"/);
   });
 
-  it("puts the grade in a Badge beside the host, not in a heading of its own", () => {
-    expect(report).toMatch(/<Badge[^>]*class="aol-report__grade"/);
-    // Same header row as the host.
+  it("publishes no grade", () => {
+    // A letter off a three-check sample is a fabricated metric on a page whose
+    // premise is peer-reviewed method. The header states what ran and what it
+    // found; a Badge survives only as the per-finding verdict.
+    expect(report).not.toContain("aol-report__grade");
     const top = report.slice(report.indexOf('class="aol-report__top"'), report.indexOf("</header>"));
     expect(top).toContain("aol-report__host");
-    expect(top).toContain("aol-report__grade");
+    expect(top).toContain("aol-report__count");
+    expect(top).not.toContain("Badge");
   });
 
   it("clones the templates instead of constructing markup", () => {

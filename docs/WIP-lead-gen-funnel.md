@@ -1,9 +1,22 @@
 # Lead-gen funnel — WIP, 2026-08-22
 
-The hero's email field runs a free audit of the sender's own domain against the
-23 crawl-auditable rules from sections 1–2 of the Science Says SaaS playbook,
-streams the progress in place, and shows three of the failures with the rest
-masked behind the booking CTA.
+The hero's email field runs a free audit of the sender's own domain and streams
+the result in place.
+
+**It runs THREE checks, not twenty-three.** One from each of three subsections
+of the Science Says SaaS playbook, picked by `sampleChecks()`. The other twenty
+are never run — they are named, by area and count, as the offer.
+
+That is a deliberate reversal. Scoring all twenty-three cost six model calls, a
+completion round and thirty to forty-five seconds, and then published a
+pass/fail for every one of them: the gate withheld the evidence but gave away
+the verdict, which is most of what a visitor came for. A sample is faster,
+costs a fraction, and leaves the rest genuinely unopened.
+
+**There is no grade.** A letter derived from a three-check sample is a
+fabricated metric, and on a page that sells peer-reviewed method it is the
+fabrication a reader would be right to catch. The header states what ran and
+what it found.
 
 Branch `lead-gen-funnel`. **Not deployed.**
 
@@ -39,7 +52,7 @@ Against `plausible.io`, through the real form, on `127.0.0.1:4321`:
 
 | | |
 |---|---|
-| Cold run | 33.8s, grade C, 19 checks, 3 opened |
+| Cold run | **9.4s**, 3 checks run, 1 failed, 20 named |
 | Cached replay | **0.7s**, `cached: true`, no ticks |
 | `audit_cache` after a run | one row, score 59 |
 | `audit_rate` after a run | count 1 |
@@ -79,3 +92,11 @@ There is no client-side timeout on the stream. A run that never sends `result`
 leaves the bar sitting and the visitor with no message. The server path is
 in-request and streams heartbeats, so the edge cannot silently cut it, but a
 stalled upstream would still present as an indefinite wait.
+
+⚠️ An earlier note here cited two observed stalls as evidence for this. That
+evidence was wrong: the test harness called
+`page.waitForFunction(fn, { timeout })`, whose second positional argument is
+`arg`, not `options` — so the timeout was passed as a page argument and the wait
+silently used Playwright's 30s default. The runs were not stalling; the harness
+was giving up. The gap above is still a real design observation, but nothing has
+been seen to hit it. Use `waitForFunction(fn, null, { timeout })`.
