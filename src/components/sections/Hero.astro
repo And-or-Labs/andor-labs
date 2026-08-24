@@ -20,10 +20,16 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
         line already had, and the pill is what makes the number read as a fact
         about the companies rather than an aside about the sentence.
 
+        The break is HARD, after "marketing", so the role and the companies sit
+        on their own lines rather than wherever the measure happens to put them.
+        "@" instead of "at": the rate symbol is mono's own idiom for a location,
+        and it keeps the second line starting on a mark rather than a
+        preposition.
+
         No inline styling: the typography lives in .aol-hero__founder. It used
         to ride on the element, which is how a hero ends up with its type
         decisions in three places. */}
-    <p class="aol-hero__founder" data-r style="--r:1">Founded by the ex head of marketing at <strong>Blockthrough</strong> and <strong>AdPushup</strong> <Badge variant="tint" class="aol-founderpill">sold for &gt;$100M</Badge></p>
+    <p class="aol-hero__founder" data-r style="--r:1">Founded by the ex head of marketing<br />@ <strong>Blockthrough</strong> and <strong>AdPushup</strong> <Badge variant="tint" class="aol-founderpill">sold for &gt;$100M</Badge></p>
     {/* --r counts down the page, so moving an element re-stages everything
         under it. The reveal is meant to read top to bottom; leaving the
         headline on 1 would have run it against the line above it. */}
