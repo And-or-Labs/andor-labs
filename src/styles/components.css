@@ -2059,25 +2059,30 @@
    all frame, no surface. A thin border plus a soft drop shadow gives it a
    surface that sits ON the page instead of being drawn onto it, and the button
    inside then supplies the contrast the border was doing badly. */
+/* The field and its button read as ONE control, so the row carries the border
+   and the focus ring and the input inside it carries neither.
+
+   NO SOFT SHADOW. Three hand-mixed rgba glows used to live here — the system's
+   elevation is a hard offset block shadow and --shadow-soft is reserved for
+   floating overlays, so a glowing input was inventing a third elevation
+   language for one element. The border and the focus ring do the work.
+
+   The pill is deliberate and NOT the system default (pills are for buttons and
+   the switch track): the rounded field was asked for directly. */
 .aol-hero__auditrow{
   display:flex; align-items:stretch;
   border:1px solid var(--ink-200); border-radius:var(--radius-pill);
   background:var(--paper-pure); overflow:hidden;
-  box-shadow:0 1px 2px rgba(20,21,26,0.04), 0 6px 20px -6px rgba(20,21,26,0.12);
-  transition:border-color var(--dur-base) var(--ease-out),
-              box-shadow var(--dur-base) var(--ease-out);
+  transition:border-color var(--dur-base) var(--ease-out);
 }
 @media (hover:hover) and (pointer:fine){
-  .aol-hero__auditrow:hover{
-    border-color:var(--ink-300);
-    box-shadow:0 1px 2px rgba(20,21,26,0.05), 0 10px 28px -8px rgba(20,21,26,0.16);
-  }
+  .aol-hero__auditrow:hover{ border-color:var(--ink-500); }
 }
 /* The ring goes on the WRAPPER, because the wrapper is what reads as the
    control. Same token every other focusable thing on the site uses. */
 .aol-hero__auditrow:focus-within{
   border-color:var(--blue-500);
-  box-shadow:var(--focus-ring), 0 6px 20px -6px rgba(27,77,255,0.22);
+  box-shadow:var(--focus-ring);
 }
 .aol-hero__auditrow:has(.aol-control--error){ border-color:var(--copper-600); }
 .aol-hero__auditinput{
@@ -2088,20 +2093,11 @@
 }
 .aol-hero__auditinput:hover{ border-color:transparent; }
 .aol-hero__auditinput:focus-visible{ outline:none; box-shadow:none; }
-.aol-hero__auditgo{
-  flex:none; cursor:pointer; white-space:nowrap;
-  font-family:var(--font-mono); font-size:11px;
-  letter-spacing:0.08em; text-transform:uppercase;
-  /* Inset by 3px so the button floats inside the field rather than being
-     welded to its edge — the weld was most of what made the old control look
-     like two parts bolted together. */
-  border:0; margin:3px; padding:0 18px; border-radius:var(--radius-pill);
-  background:var(--blue-600); color:var(--paper-pure);
-  transition:background var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out);
-}
-@media (hover:hover) and (pointer:fine){
-  .aol-hero__auditgo:hover{ background:var(--blue-700); }
-}
+/* POSITIONING ONLY. This was a complete second Button — font, tracking, upper
+   case, radius, fill, hover and transitions all restated — sitting next to the
+   real one. Inset by 3px so it floats inside the field rather than being welded
+   to its edge, and nothing else. */
+.aol-hero__auditgo{ flex:none; margin:3px; }
 .aol-hero__auditgo:active{ transform:scale(0.98); }
 @media (prefers-reduced-motion: reduce){ .aol-hero__auditgo{ transition:none; } .aol-hero__auditgo:active{ transform:none; } }
 .aol-hero__auditgo:focus-visible{ outline:none; box-shadow:inset 0 0 0 2px var(--paper-pure); }
@@ -2119,24 +2115,7 @@
   .aol-hero__auditgo{ padding:0 16px; letter-spacing:0.06em; }
 }
 
-/* Free-mail fallback: ask for the URL here rather than back at the entry form,
-   because by this point the visitor is looking at the panel. */
-.aol-audit__urlform{ padding:4px 1.15em 20px; }
-.aol-audit__urllabel{
-  display:block; font-family:var(--font-mono); font-size:12px;
-  color:var(--ink-600); margin:0 0 9px;
-}
-.aol-audit__urlrow{ display:flex; gap:8px; }
-/* No styling of its own beyond the flex sizing — this is a plain input and it
-   uses .aol-control, which brings the 16px, the hover border and --focus-ring
-   with it. Hand-rolling a second input here is how a design system rots. */
-.aol-audit__urlinput{ flex:1 1 auto; min-width:0; width:auto; }
-.aol-audit__urlgo{
-  font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em;
-  text-transform:uppercase; cursor:pointer; white-space:nowrap;
-  padding:9px 16px; color:var(--paper-pure); background:var(--blue-600);
-  border:1.5px solid var(--ink-900); border-radius:var(--radius-sm);
-}
+
 
 /* ---- Hero progress ------------------------------------------------------
    Under the field, and only once a run starts. */

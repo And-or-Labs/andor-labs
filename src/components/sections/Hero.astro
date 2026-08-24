@@ -68,7 +68,7 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
             placeholder="you@company.com"
             required
           />
-          <button type="submit" class="aol-hero__auditgo">Free audit</button>
+          <Button type="submit" size="sm" variant="primary" class="aol-hero__auditgo">Free audit</Button>
         </div>
         <p class="aol-hero__auditerr" role="alert" hidden></p>
 
@@ -422,16 +422,19 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       const email = auditInput.value.trim();
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
         auditInput.classList.add("aol-control--error");
+        auditInput.setAttribute("aria-invalid", "true");
         if (auditErr) { auditErr.textContent = "That doesn't look like an email address."; auditErr.hidden = false; }
         auditInput.focus();
         return;
       }
       auditInput.classList.remove("aol-control--error");
+      auditInput.removeAttribute("aria-invalid");
       if (auditErr) auditErr.hidden = true;
       void run(email);
     });
     auditInput.addEventListener("input", () => {
       auditInput.classList.remove("aol-control--error");
+      auditInput.removeAttribute("aria-invalid");
       if (auditErr) auditErr.hidden = true;
     });
   }
