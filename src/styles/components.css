@@ -2185,10 +2185,17 @@
    here was a rounded pill with a smooth blue fill, which is both the "SaaS
    progress pill" the meter's own comment rules out and a pill on something
    that is not a button or a switch track. */
+/* IT WRAPS, because it carries two very different lengths.
+   The step lines are short — "checking your page against them" is the longest
+   and sets 205px of the 342 a phone gives it — but every failure lands here
+   too, and those are sentences: "That took longer than it should. Try again, or
+   book the call and we'll run it live." is 80 characters. Under nowrap plus
+   ellipsis the visitor was shown "That took longer than it shou…" and the
+   recovery, which is the only useful half, was cut off. */
 .aol-hero__status{
   margin:8px 0 0; font-family:var(--font-mono); font-size:11px;
   letter-spacing:0.04em; color:var(--ink-500);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  line-height:1.5;
 }
 /* The field stays visible and readable while it runs; only the button is
    disabled, so nobody fires a second audit on top of the first. */
@@ -2298,7 +2305,14 @@
   display:flex; flex-direction:column; gap:var(--space-8);
 }
 
-.aol-report__top{ display:flex; align-items:baseline; flex-wrap:wrap; gap:var(--space-3) var(--space-4); }
+/* A COLUMN, not a baseline row. The row existed to sit a grade badge beside
+   the host; the grade is gone — a letter off a six-check wave is a fabricated
+   metric — so what is left is the domain and the sentence about it, and those
+   are a stack. Grouping them in the header is also what sets their spacing:
+   the inner's --space-8 rhythm is the gap between the report's PARTS, and it
+   put as much air between a caption and its heading as between the heading and
+   the cards. */
+.aol-report__top{ display:flex; flex-direction:column; gap:var(--space-3); }
 .aol-report__host{
   margin:0; font-family:var(--font-display); font-weight:400;
   font-size:var(--text-2xl); line-height:1.1; letter-spacing:-0.01em; color:var(--ink-900);
@@ -2327,6 +2341,27 @@
 }
 @media (min-width:1020px){
   .aol-report__findings{ grid-template-columns:repeat(3, minmax(0,1fr)); }
+}
+/* THE CARDS SHARE THEIR ROWS.
+   Each card holds the same six bands in the same order, and the titles are
+   whatever length the rule's first sentence is — so OBSERVED started at a
+   different height in every card and the row read as three unrelated stacks
+   rather than one comparison. Subgrid hands the bands to the parent, which
+   sizes each from the tallest card and lines all three up.
+
+   Unsupported browsers drop `subgrid` as an invalid value and get today's
+   behaviour, so there is nothing to fall back to and nothing to detect. */
+.aol-report__findings{ grid-template-rows:repeat(6, auto); grid-auto-flow:row; }
+.aol-finding{
+  display:grid; grid-row:span 6; grid-template-rows:subgrid;
+  /* ITS OWN ROW GAP, or the parent's lands between every band.
+     A subgrid takes the parent's gutters by default, and the parent's row gap
+     is the space between one card and the next — applied inside the card it
+     opened 20px between the label and its paragraph, six times over, and the
+     cards grew by a third. Level 2 lets the subgrid override it; the spacing
+     inside a card belongs to the elements' own margins, which is where it was
+     before and where the labelled-band rhythm is set. */
+  row-gap:0;
 }
 /* Number and area on one line above the instruction: which win this is, and
    which part of the research it comes from. */

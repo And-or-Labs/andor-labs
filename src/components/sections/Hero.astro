@@ -209,6 +209,12 @@ const PARTNERS = [
 </section>
 
 <script>
+  // The report quotes the page, and it should quote it in one voice — the
+  // model reaches for straight or curly marks at random and two cards side by
+  // side end up in two different conventions. Display only; the grounding gate
+  // has already run against the raw note.
+  import { curlyQuotes } from "../../lib/typography";
+
   // ── The audit, run in place ──────────────────────────────────────────────
   // No navigation. The wait is the problem a lead magnet has to solve, and
   // sending somebody to a loading screen makes it worse — it throws away the
@@ -261,6 +267,7 @@ const PARTNERS = [
       bar?.setAttribute("aria-valuenow", String(Math.round(pct)));
     };
     const say = (t: string) => { if (status) status.textContent = t; };
+
 
     const stop = (message?: string) => {
       auditForm.classList.remove("is-running");
@@ -398,7 +405,7 @@ const PARTNERS = [
         // cached results predate the flag and say the modest thing.
         const read = d.pricing ? "your homepage and pricing page" : "your homepage";
         cap.textContent = ran
-          ? `We read ${read}, and checked ${ran} ${ran === 1 ? "thing" : "things"} against published research.`
+          ? `We read ${read} and checked ${ran} ${ran === 1 ? "thing" : "things"} against published research.`
           : `We read ${read}.`;
         cap.hidden = false;
       }
@@ -426,7 +433,7 @@ const PARTNERS = [
           slot("area")!.textContent = it.area ?? "";
           slot("title")!.textContent = it.name ?? "";
           slot("why")!.textContent = it.why ?? "";
-          slot("found")!.textContent = it.observed ?? "";
+          slot("found")!.textContent = curlyQuotes(it.observed ?? "");
           slot("cite")!.textContent = it.citation ?? "";
           wrap.appendChild(card);
         });
