@@ -91,23 +91,99 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
   padding: var(--space-16) var(--gutter);
 }
 .aol-hero__eyebrow  { margin: 0 0 var(--space-3); }
-/* Mono, because this is a credential, and mono carries anything that labels,
-   measures or attests. The typography used to ride inline on the element; it
-   belongs here, where the rest of the hero's is.
+/* ── Launch partners ───────────────────────────────────────────────────────
+   A WHITE BAND FLOATING ON THE PICTURE, inside the hero, low in the frame.
 
-   The two company names take full ink-900 contrast rather than weight.
-   Departure Mono ships 400 only — 700 is synthesised and smears the pixel grid
-   — so the system's instruction for a heavier mono is to reach for contrast
-   instead, which is what `strong` does here. */
-.aol-hero__founder  {
-  margin: 0 0 var(--space-5);
+   Not a section beneath the hero: a banded strip below it ended the fold twice,
+   once at the image and again at a rule, and read as a footer rather than as
+   part of the hero. And not sitting directly on the picture as bare type
+   either — over a night scene the mono lost its contrast and the block had to
+   be faded so far to belong that it stopped being legible.
+
+   The band solves both. Translucent paper lets the horizon through, so it reads
+   as part of the treatment rather than a card dropped on top, while giving the
+   type a surface with enough contrast to be read.
+
+   FULL BLEED past the container's cap, the same 100vw trick the horizon uses,
+   because a band that stops at 1200px is a card. The hero clips overflow, so it
+   cannot open a horizontal scrollbar.
+
+   ROOM, deliberately. It is pushed well clear of the field above it and carries
+   generous vertical padding of its own — crammed against the CTA it read as an
+   appendix to the form instead of its own statement. */
+.aol-partners {
+  margin-top: var(--space-16);
+  /* Full bleed with NO offset hack. The parent is a centred flex column, so a
+     child wider than the content box already overflows it equally on both
+     sides — 100vw lands exactly on the viewport edges by itself. The
+     margin-left:50% + translateX(-50%) trick belongs to block layout, and here
+     it fought the centring and pushed the band half a screen right. */
+  width: 100vw;
+  max-width: none;
+  padding: var(--space-12) var(--gutter);
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  text-align: center;
+}
+.aol-partners__row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-3) var(--space-8);
+}
+/* LETTERMARKS, not logos.
+   
+   Departure Mono is the system's voice for anything that labels or attests, so
+   set as type the five partners read as one row rather than as five companies
+   each arriving in their own typeface.
+
+   It also removes a real problem instead of papering over it: the actual assets
+   are five different KINDS of thing — two wordmarks, an illustrated character
+   mark, a glyph and a framed program badge — at aspect ratios from 1:1 to
+   nearly 3:1 with no shared optical height, which needs per-logo hand-tuning
+   and still reads as a sponsor bar on a page carrying no other sponsor
+   furniture.
+
+   Tracked and uppercase at display size: it has to carry as a mark, and mono
+   ships 400 only — never set it bold — so size and tracking do the work weight
+   would do elsewhere. */
+.aol-partners__item {
+  font-family: var(--font-mono);
+  font-size: clamp(15px, 1.5vw, 20px);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-900);
+}
+
+/* The founder line: same mono, caption size, under the row it belongs to. The
+   company names take full ink-900 contrast rather than weight, which is the
+   system's instruction for a heavier mono. */
+.aol-partners__founder {
+  margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   line-height: 1.5;
   letter-spacing: 0.02em;
   color: var(--ink-600);
 }
-.aol-hero__founder strong { font-weight: 400; color: var(--ink-900); }
+.aol-partners__founder strong { font-weight: 400; color: var(--ink-900); }
+
+@media (max-width: 640px) {
+  .aol-partners {
+    margin-top: var(--space-12);
+    padding: var(--space-10) var(--gutter);
+    gap: var(--space-5);
+  }
+  .aol-partners__row { gap: var(--space-3) var(--space-6); }
+}
 .aol-hero__headline { margin: 0 0 var(--space-6); }
 .aol-hero__subhead  { margin: 0 0 var(--space-8); }
 /* The form is the only left-aligned thing in a centred hero, and deliberately:

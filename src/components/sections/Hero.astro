@@ -4,7 +4,24 @@ import Input from "../ds/Input.astro";
 import Button from "../ds/Button.astro";
 import { PROMISE } from "../../config";
 
-const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
+/**
+ * Launch partners, as LETTERMARKS rather than brand logos.
+ *
+ * Set in Departure Mono, which is what this system uses for anything that
+ * labels or attests — so five partners read as one row in one voice instead of
+ * five companies each arriving in their own.
+ *
+ * It also disposes of a real problem rather than papering over it. The actual
+ * assets are five different KINDS of thing: two wordmarks, an illustrated
+ * character mark, a glyph, and a framed program badge, at aspect ratios from
+ * 1:1 to nearly 3:1 and with no shared optical height. Matching them takes
+ * per-logo hand-tuning and still leaves a row that reads as a sponsor bar on a
+ * page with no other sponsor furniture. Type has none of that: one face, one
+ * size, one colour.
+ *
+ * The files stay in public/partners/ if this is ever reversed.
+ */
+const PARTNERS = ["NVIDIA", "AirOps", "Snitcher", "Superdesign", "Boardy"];
 
 ---
 <section class="aol-hero" style="border-bottom:1px solid var(--ink-200);background:var(--paper)">
@@ -13,28 +30,11 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       <img src="/northstar.png" alt="" width="952" height="320" decoding="async" />
     </div>
     <div class="aol-eyebrow aol-hero__eyebrow" data-r style="--r:0">Est. 2025</div>
-    {/* The credibility line, directly under the stamp and above the promise:
-        who is saying this, before what they are saying.
-
-        The exit is a Badge rather than parenthetical text — the treatment this
-        line already had, and the pill is what makes the number read as a fact
-        about the companies rather than an aside about the sentence.
-
-        The break is HARD, after "marketing", so the role and the companies sit
-        on their own lines rather than wherever the measure happens to put them.
-        "@" instead of "at": the rate symbol is mono's own idiom for a location,
-        and it keeps the second line starting on a mark rather than a
-        preposition.
-
-        No inline styling: the typography lives in .aol-hero__founder. It used
-        to ride on the element, which is how a hero ends up with its type
-        decisions in three places. */}
-    <p class="aol-hero__founder" data-r style="--r:1">Founded by the ex head of marketing<br />@ <strong>Blockthrough</strong> and <strong>AdPushup</strong> <Badge variant="tint" class="aol-founderpill">sold for &gt;$100M</Badge></p>
-    {/* --r counts down the page, so moving an element re-stages everything
-        under it. The reveal is meant to read top to bottom; leaving the
-        headline on 1 would have run it against the line above it. */}
-    <h1 class="aol-hero__headline" data-r style="font-family:var(--font-display);font-weight:400;font-size:42px;line-height:1.18;letter-spacing:0;max-width:30.5rem;--r:2">Don't just go-to-market. Win it.</h1>
-    <p class="aol-hero__subhead" data-r style="font-size:21px;line-height:1.5;color:var(--ink-600);max-width:42ch;--r:3">
+    {/* The founder line moved to the launch-partners band at the foot of the
+        section — it is the same claim as the logos and belongs beside them.
+        The --r stages below revert to what they were before it sat here. */}
+    <h1 class="aol-hero__headline" data-r style="font-family:var(--font-display);font-weight:400;font-size:42px;line-height:1.18;letter-spacing:0;max-width:30.5rem;--r:1">Don't just go-to-market. Win it.</h1>
+    <p class="aol-hero__subhead" data-r style="font-size:21px;line-height:1.5;color:var(--ink-600);max-width:42ch;--r:2">
       {PROMISE}
     </p>
     {/* Two asks, ranked. The booking call is the primary; the free tool sits
@@ -125,30 +125,21 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
 
         DECORATIVE: aria-hidden, empty alt, real dimensions so it reserves its
         box — this is above the fold on a short viewport. */}
-  </div>
-  {/* ── Credibility strip ────────────────────────────────────────────────
-      Rests at the foot of the first screen, so the promise is what fills the
-      fold and the proof is what you meet on the way out of it.
+    {/* ── Launch partners ────────────────────────────────────────────────
+        INSIDE the hero, over the picture — not a bar beneath it. A separate
+        banded strip made the fold end twice: once at the image and again at a
+        rule, and the partners read as a footer to the hero rather than part of
+        it. Here they sit in the lower third, where the horizon is already
+        present, and the whole block is held at a low opacity so it belongs to
+        the treatment instead of competing with the promise above.
 
-      TEXT, not logos. A wordmark row was tried here and taken out again: four
-      SVGs at four different optical weights read as a sponsor bar on a page
-      that has none of that furniture anywhere else, and the eyebrow + value
-      pairing is the vocabulary the rest of the site already uses for a stated
-      fact. The marks are still in public/partners/ if that decision changes.
-
-      --r:6 keeps it last in the staged reveal, after the field. */}
-  <div class="aol-grid-blue" data-r style="border-top:1px solid var(--ink-200);--r:6">
-    <div style="max-width:var(--container-width);width:100%;margin:0 auto;padding:var(--space-6) var(--gutter)">
-    <div class="aol-credstrip" style="border-top:0;padding-top:0">
-      <div class="aol-credstrip__cell">
-        <span class="aol-eyebrow">As seen on</span>
-        <span class="aol-credstrip__val">{PRESS.join("  ·  ")}</span>
-      </div>
-      <div class="aol-credstrip__cell">
-        <span class="aol-eyebrow">Brand partners</span>
-        <span class="aol-credstrip__val">AirOps  ·  Superdesign  ·  Snitcher</span>
-      </div>
-    </div>
+        Last in the staged reveal, after the field. */}
+    <div class="aol-partners" data-r style="--r:5">
+      <span class="aol-eyebrow aol-partners__label">Launch partners</span>
+      <ul class="aol-partners__row">
+        {PARTNERS.map((name) => <li class="aol-partners__item">{name}</li>)}
+      </ul>
+      <p class="aol-partners__founder">Founded by the ex head of marketing<br />@ <strong>Blockthrough</strong> and <strong>AdPushup</strong> <Badge variant="tint" class="aol-founderpill">sold for &gt;$100M</Badge></p>
     </div>
   </div>
 </section>
