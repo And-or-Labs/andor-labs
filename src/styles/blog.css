@@ -1260,10 +1260,9 @@
   max-width: var(--container-width);
   margin: 0 auto;
   padding: var(--section-pad-y) var(--gutter);
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: var(--space-12);
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
 }
 .aol-recent__head {
   display: flex;
@@ -1291,7 +1290,15 @@
 @media (hover: hover) and (pointer: fine) {
   .aol-recent__all:hover { text-decoration: underline; text-underline-offset: 3px; }
 }
-.aol-recent ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-5); }
+/* TWO COLUMNS, row-major: the five read 1-2 / 3-4 / 5, newest across the top.
+   `columns: 2` would flow them down the left column and back up the right,
+   which puts the second-newest post at the bottom of the block. */
+.aol-recent ul {
+  list-style: none; margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6) var(--space-10);
+}
 .aol-recent a {
   text-decoration: none;
   display: grid;
@@ -1316,14 +1323,15 @@
   letter-spacing: var(--tracking-mono);
   color: var(--ink-500);
 }
-/* The subscribe box is a component; only its column position is set here. */
-.aol-recent__aside { position: sticky; top: calc(var(--header-h) + var(--space-6)); }
+/* The subscribe box is a component; only its position is set here. Full width
+   under the posts — it was a sticky right-hand column when the list was a
+   single stack. */
+.aol-recent__aside { width: 100%; }
 
-@media (max-width: 880px) {
-  /* One column: the list, then the ask under it. Side by side below this the
-     subscribe box is too narrow for its own field. */
-  .aol-recent__inner { grid-template-columns: 1fr; gap: var(--space-10); }
-  .aol-recent__aside { position: static; }
+@media (max-width: 720px) {
+  /* One column of posts. Two columns of titles below this wrap to two or three
+     lines each and stop reading as a list. */
+  .aol-recent ul { grid-template-columns: 1fr; gap: var(--space-5); }
 }
 
 

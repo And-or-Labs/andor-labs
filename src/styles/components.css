@@ -2098,9 +2098,22 @@
    real one. Inset by 3px so it floats inside the field rather than being welded
    to its edge, and nothing else. */
 .aol-hero__auditgo{ flex:none; margin:3px; }
+/* THE FOCUS RING GOES INSIDE, because the row clips.
+   --focus-ring is `0 0 0 2px var(--paper), 0 0 0 3.5px var(--blue-500)`: a white
+   gap with a blue ring outside it, which is right for a button on open paper.
+   This button sits inside a pill with overflow:hidden, so the blue half was
+   clipped away and only the white gap survived — a white box around the button
+   and no ring at all, which is both ugly and a lost focus indicator.
+
+   An inset outline cannot be clipped, reads clearly on the blue fill, and keeps
+   the row's own :focus-within ring as the indicator for the field. */
+.aol-hero__auditgo:focus-visible{
+  box-shadow:none;
+  outline:2px solid var(--paper-pure);
+  outline-offset:-5px;
+}
 .aol-hero__auditgo:active{ transform:scale(0.98); }
 @media (prefers-reduced-motion: reduce){ .aol-hero__auditgo{ transition:none; } .aol-hero__auditgo:active{ transform:none; } }
-.aol-hero__auditgo:focus-visible{ outline:none; box-shadow:inset 0 0 0 2px var(--paper-pure); }
 /* The error message replaces the note that used to live here, and only appears
    when there is something to say. */
 .aol-hero__auditerr{
