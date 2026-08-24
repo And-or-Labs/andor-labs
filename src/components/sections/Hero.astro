@@ -1,4 +1,5 @@
 ---
+import Horizon from "../Horizon.astro";
 import Badge from "../ds/Badge.astro";
 import Input from "../ds/Input.astro";
 import Button from "../ds/Button.astro";
@@ -48,10 +49,8 @@ const PARTNERS = [
 
 ---
 <section class="aol-hero" style="border-bottom:1px solid var(--ink-200);background:var(--paper)">
-  <div class="aol-hero-inner" style="max-width:var(--container-width);width:100%;margin:0 auto">
-    <div class="aol-hero__horizon" aria-hidden="true">
-      <img src="/northstar.png" alt="" width="952" height="320" decoding="async" />
-    </div>
+  <div class="aol-hero-inner aol-has-horizon" style="max-width:var(--container-width);width:100%;margin:0 auto">
+    <Horizon name="northstar" width={952} height={320} eager />
     <div class="aol-eyebrow aol-hero__eyebrow" data-r style="--r:0">Est. 2025</div>
     {/* The founder line moved to the launch-partners band at the foot of the
         section — it is the same claim as the logos and belongs beside them.

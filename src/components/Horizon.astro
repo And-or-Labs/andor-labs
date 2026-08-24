@@ -1,0 +1,60 @@
+---
+/**
+ * A picture used as a section's GROUND: pinned to the bottom edge at its true
+ * proportions and dissolving upward into whatever is behind it.
+ *
+ * This started as one treatment in the hero and is now the page's spine — the
+ * hero, Capabilities, Offers and the footer all stand on one. It is a component
+ * rather than four copies of the markup for the obvious reason, and because the
+ * two masks below took several passes to get right and there is no version of
+ * "fix it in one place" that works if it lives in four.
+ *
+ * TO USE IT the parent must be `position: relative` and clip its overflow;
+ * `.aol-has-horizon` does both and lifts the parent's other children above it.
+ *
+ * THE SOURCE MUST BE ABOUT 3:1. The picture goes full bleed at 100vw and keeps
+ * its true proportions, so its height is dictated by the viewport width: a 2:1
+ * source is 720px tall on a 1440 screen, which is taller than most sections and
+ * leaves the dissolve no room to run. map-valley arrived at 2:1, swamped
+ * Capabilities, and was re-cropped to 2.975:1 rather than squashed or boxed.
+ *
+ * WHY THE MASK AND NOT A GRADIENT OVERLAY: it fades the image's own alpha, so
+ * it lands on whatever ground the section has. The homepage alternates grid and
+ * paper section by section, and a scrim would have had to know which it was
+ * sitting on. This does not, which is what lets one component serve all four.
+ */
+interface Props {
+  /** Path under /scenes, e.g. "map-valley". */
+  name: string;
+  /** Intrinsic size of the processed asset, so it reserves its box. */
+  width: number;
+  height: number;
+  /**
+   * How far up the section the dissolve reaches, 0-1. The hero wants the full
+   * screen; a section usually wants less, or the picture climbs into copy that
+   * has nothing to do with it.
+   */
+  reach?: number;
+  /** Above the fold? Then it must not be lazy. */
+  eager?: boolean;
+  class?: string;
+}
+const { name, width, height, reach = 1, eager = false, class: className } = Astro.props;
+---
+{/* DECORATIVE: aria-hidden with an empty alt. It carries no information a
+    reader would miss, and announcing "researcher looking through a telescope"
+    between a heading and its body is noise. */}
+<div
+  class={["aol-horizon", className].filter(Boolean).join(" ")}
+  style={`--horizon-reach:${reach}`}
+  aria-hidden="true"
+>
+  <img
+    src={`/scenes/${name}.png`}
+    alt=""
+    width={width}
+    height={height}
+    decoding="async"
+    loading={eager ? "eager" : "lazy"}
+  />
+</div>

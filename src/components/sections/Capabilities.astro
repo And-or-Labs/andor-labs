@@ -15,6 +15,7 @@
 // vault's "Areas of expertise"). The em dash in 06 is a comma here, per the
 // standing no-em-dash rule for site copy. Kickers for 04 and 05 are written to
 // match the register of the four the design supplied.
+import Horizon from "../Horizon.astro";
 import PixelIcon from "../ds/PixelIcon.astro";
 
 // Icons come from the HackerNoon Pixel Icon Library (24px grid, the same pixel
@@ -60,7 +61,8 @@ const capabilities: { icon: "pencil-ruler" | "analytics" | "newspaper" | "trendi
      downstream flips to keep the rhythm (Offers paper, Compare grid, FAQ paper).
      Sitting this on paper was what broke it, since it made three white sections
      in a row from the hero down. -->
-<section id="what-we-do" class="aol-grid-blue" style="border-bottom:1px solid var(--ink-200)">
+<section id="what-we-do" class="aol-has-horizon aol-grid-blue" style="border-bottom:1px solid var(--ink-200)">
+  <Horizon name="map-valley" width={768} height={258} reach={0.72} />
   <div style="max-width:var(--container-width);margin:0 auto;padding:var(--section-pad-y) var(--gutter)">
     <div class="aol-eyebrow" style="margin-bottom:14px">what we do</div>
     <h2 class="aol-display" style="font-size:40px;margin:0 0 36px">Taste, delivered at the speed of AI.</h2>

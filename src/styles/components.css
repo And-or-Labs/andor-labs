@@ -2227,63 +2227,68 @@
   .aol-report{ animation:none; }
 }
 
-/* ---- The hero horizon ----------------------------------------------------
-   The picture is the hero's GROUND: pinned to the bottom edge at its TRUE
-   proportions, dissolving upward across the whole first screen and gone before
-   it reaches the header.
+/* ---- The horizon -----------------------------------------------------------
+   A picture used as a section's GROUND: pinned to the bottom edge at its true
+   proportions, dissolving upward into whatever is behind it.
 
-   NO CROP. `cover` was filling the box by height, which on a 3:1 source in a
+   ONE TREATMENT, four call sites — the hero, Capabilities, Offers and the
+   footer. It was `.aol-hero__horizon` until the page grew a spine of them, and
+   the two masks below took several passes to get right; there is no version of
+   fixing that in one place if it lives in four.
+
+   NO CROP. `cover` filled the box by height, which on a 3:1 source in a
    1440x739 hero meant scaling it to 2198px wide and showing 65% of it — the
    scene was zoomed and the composition lost. `height:auto` lets the picture be
-   exactly as tall as it is wide, so nothing is cropped and nothing is squashed.
+   exactly as tall as it is wide.
 
-   THE MASK IS ON THE CONTAINER, not on the image, and that is what makes the
-   two requirements compatible. The container is the full height of the first
-   screen, so the fade is measured against the screen; the picture only occupies
-   the lower part of it, so by its own top edge the mask has already run down to
-   almost nothing. No hard edge to hide, and no need to stretch the picture to
-   reach the header.
+   THE MASK IS ON THE CONTAINER, not the image, and that is what makes the two
+   requirements compatible. The container is the height of the section, so the
+   fade is measured against the section; the picture occupies only the lower
+   part of it, so by its own top edge the mask has already run down to almost
+   nothing. No hard edge to hide, and no stretching the picture to reach the top.
 
    The stops are weighted hard to the bottom. Spread evenly the mask was still
-   at 68% behind the headline and the promise was competing with a cloud bank. */
-.aol-hero{ overflow:hidden; }
-/* The positioning context is the INNER, not the section. Against the section
-   the ground ran the full height and painted over the credibility strip, whose
-   labels sat unreadable on the dark ridge — a positioned box paints above a
-   non-positioned one whatever the DOM order says, so the strip could not win by
-   coming later. Bounded to the inner, the ground stops where the strip begins. */
-.aol-hero-inner{ position:relative; }
-.aol-hero__horizon{
+   at 68% behind the hero's headline and the promise was competing with a cloud
+   bank. --horizon-reach scales the whole ramp so a section can ask for less
+   than the hero does. */
+.aol-has-horizon{ position:relative; overflow:hidden; }
+/* Everything the reader is here for sits above it. z-index only applies to
+   positioned boxes, so these need `relative` as well as the index — without it
+   they paint in DOM order and the ground covers the copy. */
+.aol-has-horizon > *:not(.aol-horizon){ position:relative; z-index:1; }
+
+.aol-horizon{
   position:absolute; inset:0; z-index:0;
-  /* Full bleed from inside a capped container. The hero clips overflow, so
+  /* Full bleed from inside a capped container. The parent clips overflow, so
      100vw cannot open a horizontal scrollbar. */
   left:50%; width:100vw; transform:translateX(-50%);
   pointer-events:none; line-height:0; overflow:hidden;
-  /* Pin the picture to the ground; the space above it is simply paper. */
+  /* Pin the picture to the ground; the space above it is simply the section. */
   display:flex; align-items:flex-end;
+  --r1:calc(11% * var(--horizon-reach, 1));
+  --r2:calc(24% * var(--horizon-reach, 1));
+  --r3:calc(40% * var(--horizon-reach, 1));
+  --r4:calc(60% * var(--horizon-reach, 1));
+  --r5:calc(86% * var(--horizon-reach, 1));
   -webkit-mask-image:linear-gradient(to top,
-    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
-    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
+    #000 0%, rgba(0,0,0,.74) var(--r1), rgba(0,0,0,.40) var(--r2),
+    rgba(0,0,0,.18) var(--r3), rgba(0,0,0,.06) var(--r4), transparent var(--r5));
           mask-image:linear-gradient(to top,
-    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
-    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
+    #000 0%, rgba(0,0,0,.74) var(--r1), rgba(0,0,0,.40) var(--r2),
+    rgba(0,0,0,.18) var(--r3), rgba(0,0,0,.06) var(--r4), transparent var(--r5));
 }
-/* Everything the reader is actually here for sits above it. z-index only
-   applies to positioned boxes, so these need `relative` as well as the index —
-   without it they paint in DOM order and the ground covers the promise. */
-.aol-hero-inner > *:not(.aol-hero__horizon){ position:relative; z-index:1; }
-.aol-hero__horizon img{
+.aol-horizon img{
   display:block; width:100%; height:auto;
-  /* The source was quantised onto a real pixel grid so this would work.
+  /* The sources were quantised onto a real pixel grid so this would work.
      Smoothing on the way back up undoes all of it. */
   image-rendering:pixelated;
   /* A SECOND fade, on the picture's own top edge.
-     The container's fade is measured against the screen, so where it has got to
-     by the time it reaches the top of the picture depends on how tall the
-     viewport is — and at 1440x900 it was still around 5%, enough to draw a
-     faint hairline right across the page. Fading the picture's own top 28%
-     dissolves that boundary wherever it happens to fall, at any viewport,
-     because it is measured against the picture rather than the screen. */
+     The container's fade is measured against the SECTION, so where it has got
+     to by the time it reaches the top of the picture depends on how tall that
+     section is — in the hero at 1440x900 it was still around 5%, enough to draw
+     a faint hairline across the page. Fading the picture's own top 28%
+     dissolves that boundary wherever it falls, because it is measured against
+     the picture rather than its container. */
   -webkit-mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
           mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
 }
@@ -2301,3 +2306,7 @@
   font-family:var(--font-mono); font-weight:400;
   font-size:var(--text-2xs); letter-spacing:var(--tracking-mono); color:var(--ink-600);
 }
+
+/* Room under the footer columns for its horizon, so the picture is the last
+   thing on the page rather than a texture behind the links. */
+.aol-footer{ padding-bottom:clamp(120px, 14vw, 220px); }
