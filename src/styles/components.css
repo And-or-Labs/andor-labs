@@ -2245,7 +2245,13 @@
 
    The stops are weighted hard to the bottom. Spread evenly the mask was still
    at 68% behind the headline and the promise was competing with a cloud bank. */
-.aol-has-horizon{ position:relative; overflow:hidden; }
+/* POSITIONING ONLY — the clip belongs to the full-width ancestor, NOT here.
+   The host is the capped 1200px inner, and `overflow:hidden` on it clipped the
+   100vw picture back to the container: the hero lost its bleed and the image
+   sat inset with white down both sides. .aol-hero carries the clip because it
+   is the element that is actually viewport-wide. */
+.aol-has-horizon{ position:relative; }
+.aol-hero{ overflow:hidden; }
 /* Everything the reader is here for sits above it. z-index only applies to
    positioned boxes, so these need `relative` as well as the index — without it
    they paint in DOM order and the ground covers the copy. */
