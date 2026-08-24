@@ -1257,8 +1257,14 @@
 .aol-rmc__note{ margin:0 0 var(--space-4); font-size:var(--text-base); color:var(--text-muted); max-width:var(--measure); }
 
 /* Meter as a segmented tick scale — a diagram, not a SaaS progress pill.
-   Ten visible cells let a reader COUNT the score; the ink fill keeps the
-   accent budget for the things that are actually blue (links, ranks). */
+   Ten visible cells let a reader COUNT it. Square, ticked, no pill: the system
+   allows pills on buttons and the switch track and nowhere else.
+
+   SHARED, not scoped to one tool. This was .aol-rmc__meter, and the hero's
+   audit then grew its own smooth rounded bar a few hundred lines away —
+   two meters, one of them the exact thing this comment was written to rule
+   out. Anything that shows a fraction uses this. */
+.aol-meter,
 .aol-rmc__meter{
   display:block; height:8px;
   background:
@@ -1268,7 +1274,19 @@
   box-shadow:inset 0 0 0 1px var(--ink-200);
   overflow:hidden;
 }
-.aol-rmc__meter-fill{ display:block; height:100%; background:var(--ink-900); }
+.aol-meter__fill,
+.aol-rmc__meter-fill{ display:block; height:100%; }
+/* The ink fill keeps the accent budget for the things that are actually blue.
+   A SCORE is a reading, so it is ink. */
+.aol-rmc__meter-fill{ background:var(--ink-900); }
+/* PROGRESS is an active state, and active states are the signal's job — the
+   same call the Rank My AdTech pacing gauge made with its 2px blue rule.
+   Linear, never eased: a progress bar that eases is lying about its own rate. */
+.aol-meter__fill{
+  width:0%; background:var(--signal);
+  transition:width var(--dur-base) linear;
+}
+@media (prefers-reduced-motion: reduce){ .aol-meter__fill{ transition:none; } }
 
 @media (max-width:640px){
   .aol-rmc__head{ grid-template-columns:44px minmax(0,1fr); }
@@ -2123,16 +2141,10 @@
 /* ---- Hero progress ------------------------------------------------------
    Under the field, and only once a run starts. */
 .aol-hero__progress{ margin-top:14px; }
-.aol-hero__bar{
-  height:6px; width:100%; overflow:hidden;
-  border:1px solid var(--ink-300); border-radius:var(--radius-pill);
-  background:var(--paper-pure);
-}
-.aol-hero__fill{
-  display:block; height:100%; width:0%;
-  background:var(--blue-600);
-  transition:width 420ms var(--ease-out);
-}
+/* The bar itself is .aol-meter — the system's segmented tick scale. What was
+   here was a rounded pill with a smooth blue fill, which is both the "SaaS
+   progress pill" the meter's own comment rules out and a pill on something
+   that is not a button or a switch track. */
 .aol-hero__status{
   margin:8px 0 0; font-family:var(--font-mono); font-size:11px;
   letter-spacing:0.04em; color:var(--ink-500);
@@ -2141,7 +2153,6 @@
 /* The field stays visible and readable while it runs; only the button is
    disabled, so nobody fires a second audit on top of the first. */
 .aol-hero__auditform.is-running .aol-hero__auditgo{ opacity:0.55; cursor:default; }
-@media (prefers-reduced-motion: reduce){ .aol-hero__fill{ transition:none; } }
 
 
 

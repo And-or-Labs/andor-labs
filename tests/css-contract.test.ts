@@ -36,9 +36,24 @@ describe("the hero form always submits", () => {
   });
 
   it("still ships the progress markup it stopped depending on", () => {
-    for (const c of ["aol-hero__progress", "aol-hero__bar", "aol-hero__fill", "aol-hero__status"]) {
+    // The bar is the shared .aol-meter now, not a hero-local one.
+    for (const c of ["aol-hero__progress", "aol-meter", "aol-meter__fill", "aol-hero__status"]) {
       expect(hero, `${c} missing from the hero`).toContain(c);
     }
+  });
+
+  it("uses the system's segmented meter, not a progress pill", () => {
+    // The meter's own comment calls a smooth rounded fill "a SaaS progress
+    // pill" and exists to rule it out — and the system allows pills on buttons
+    // and the switch track only. The hero grew one anyway, a few hundred lines
+    // from the component that says not to.
+    expect(hero).not.toContain("aol-hero__bar");
+    expect(hero).not.toContain("aol-hero__fill");
+    expect(css).toMatch(/\.aol-meter,[\s\S]{0,40}\.aol-rmc__meter\{/);
+    // Ten cells, drawn as ticks rather than a plain track.
+    expect(css).toMatch(/\.aol-meter,[\s\S]{0,400}repeating-linear-gradient/);
+    const block = css.slice(css.indexOf(".aol-meter,"), css.indexOf(".aol-meter,") + 900);
+    expect(block).not.toMatch(/border-radius/);
   });
 
   it("centres the field on the same axis as the headline", () => {

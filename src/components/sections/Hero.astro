@@ -77,8 +77,8 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
             capped below 100 until the result lands — a bar sitting full while
             nothing happens is worse than one honestly still crawling. */}
         <div class="aol-hero__progress" hidden>
-          <div class="aol-hero__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-            <span class="aol-hero__fill"></span>
+          <div class="aol-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <span class="aol-meter__fill"></span>
           </div>
           <p class="aol-hero__status" role="status" aria-live="polite"></p>
         </div>
@@ -152,8 +152,8 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
   const auditInput = auditForm?.querySelector<HTMLInputElement>(".aol-hero__auditinput");
   const auditErr = auditForm?.querySelector<HTMLElement>(".aol-hero__auditerr");
   const progress = auditForm?.querySelector<HTMLElement>(".aol-hero__progress");
-  const bar = auditForm?.querySelector<HTMLElement>(".aol-hero__bar");
-  const fill = auditForm?.querySelector<HTMLElement>(".aol-hero__fill");
+  const bar = auditForm?.querySelector<HTMLElement>(".aol-meter");
+  const fill = auditForm?.querySelector<HTMLElement>(".aol-meter__fill");
   const status = auditForm?.querySelector<HTMLElement>(".aol-hero__status");
   const report = document.querySelector<HTMLElement>(".aol-report");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -171,12 +171,26 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
 
     // Discrete through the crawl, time-based through scoring, capped until the
     // result actually lands.
-    const STEPS = ["wake", "home", "pricing", "studies", "sodont"];
-    const FLOOR = 34, CEILING = 94, TYPICAL_S = 120;
+    // MUST match the server's STEPS keys in functions/api/audit.ts. It was
+    // missing "science", so the last step the server sends moved the bar not at
+    // all — indexOf returned -1 and the branch was skipped in silence.
+    const STEPS = ["wake", "home", "pricing", "studies", "sodont", "science"];
+    // TYPICAL_S is what the tick-driven middle of the bar is calibrated
+    // against. It was 120, from when a run scored twenty-three checks; a run is
+    // now about ten seconds, so every heartbeat moved the fill by well under
+    // one of the meter's ten cells and it sat visibly stuck.
+    const FLOOR = 34, CEILING = 94, TYPICAL_S = 12;
     let pct = 0;
     const setPct = (n: number) => {
       pct = Math.max(pct, Math.min(100, n));
-      if (fill) fill.style.width = `${pct}%`;
+      // SNAP TO THE CELL. The meter draws ten cells, and a fill that stops
+      // two-thirds of the way through one reads as a smooth bar wearing tick
+      // marks rather than as a thing counting in steps. Rounding up means a
+      // run that has started always shows at least one lit cell.
+      const cells = Math.min(10, Math.ceil(pct / 10));
+      if (fill) fill.style.width = `${cells * 10}%`;
+      // ARIA carries the REAL number, not the snapped one — the rounding is a
+      // visual convention and a screen reader should hear the actual progress.
       bar?.setAttribute("aria-valuenow", String(Math.round(pct)));
     };
     const say = (t: string) => { if (status) status.textContent = t; };
