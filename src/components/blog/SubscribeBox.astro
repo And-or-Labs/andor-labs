@@ -86,7 +86,7 @@ const checked = (key: CategoryKey) => !preselect || preselect.includes(key);
           aria-label="Email address"
           style="flex:1 1 240px"
         />
-        <Button type="submit" variant="primary" size="lg" arrow class="aol-sub__go">Get 3 quick wins</Button>
+        <Button type="submit" variant="primary" size="lg" arrow>Subscribe</Button>
       </div>
     </form>
     <p class="aol-sub__msg" role="status" aria-live="polite"></p>
@@ -118,17 +118,6 @@ const checked = (key: CategoryKey) => !preselect || preselect.includes(key);
     padding: var(--space-10) var(--space-8) var(--space-8);
   }
   .aol-sub--compact .aol-sub__inner { padding: var(--space-8) var(--space-6) var(--space-6); }
-  /* The button label, bigger and more open than the button default.
-     .aol-btn--lg sets 14px at 0.03em, and Departure Mono is a light pixel face
-     with no bold to fall back on — at that size, in white on blue, the label
-     was hard to read. 16px lands on the face's own pixel grid rather than
-     between two of its steps, which is what makes it crisp rather than merely
-     larger, and the extra tracking is what a pixel mono wants when it cannot
-     get weight. */
-  .aol-sub__go {
-    font-size: 16px;
-    letter-spacing: 0.06em;
-  }
   .aol-sub__tag {
     position: absolute;
     top: 0;

@@ -2097,7 +2097,40 @@
    case, radius, fill, hover and transitions all restated — sitting next to the
    real one. Inset by 3px so it floats inside the field rather than being welded
    to its edge, and nothing else. */
-.aol-hero__auditgo{ flex:none; margin:3px; }
+.aol-hero__auditgo{
+  flex:none; margin:3px;
+  /* BIGGER THAN .aol-btn--sm, which is 11px at 0.03em. Departure Mono is a
+     light pixel face with no bold to fall back on, and at 11px in white on blue
+     the label was hard to read. 14px lands on the face's own pixel grid rather
+     than between two of its steps, which is what makes it crisp rather than
+     merely larger; the extra tracking is what a pixel mono wants when it cannot
+     get weight. */
+  font-size:14px;
+  letter-spacing:0.06em;
+}
+@media (max-width:520px){
+  /* STACKED, because they stop fitting on one line.
+     The field and the button share a row on a wide screen, and that is the
+     nicer control. On a phone the label leaves the field 144px while
+     "you@company.com" needs 153, so the placeholder was clipped mid-word —
+     and shrinking the button to fix it costs the ask its legibility. Two
+     full-width controls, one under the other, cost nothing at all.
+
+     The row stops being a pill when it stops being a row: the wrapper drops to
+     a plain rounded box holding the two, and the button keeps its own pill. */
+  .aol-hero__auditrow{
+    flex-direction:column; align-items:stretch;
+    border:0; border-radius:0; background:transparent; overflow:visible;
+    gap:var(--space-3);
+  }
+  .aol-hero__auditrow:focus-within{ box-shadow:none; }
+  .aol-hero__auditinput{
+    border:1px solid var(--ink-200); border-radius:var(--radius-pill);
+    background:var(--paper-pure); padding:0 18px; width:100%;
+  }
+  .aol-hero__auditinput:focus-visible{ border-color:var(--blue-500); box-shadow:var(--focus-ring); }
+  .aol-hero__auditgo{ margin:0; width:100%; min-height:44px; }
+}
 /* THE FOCUS RING GOES INSIDE, because the row clips.
    --focus-ring is `0 0 0 2px var(--paper), 0 0 0 3.5px var(--blue-500)`: a white
    gap with a blue ring outside it, which is right for a button on open paper.
