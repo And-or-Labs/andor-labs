@@ -2163,6 +2163,11 @@
   margin:10px 0 0; text-align:center; font-family:var(--font-mono); font-size:11.5px;
   letter-spacing:0.04em; color:var(--copper-600);
 }
+/* The same line carrying a QUESTION rather than a fault. A free-mail address
+   is not a mistake, and asking "what's the site you'd like audited?" in the
+   colour the site uses for errors blames somebody for owning a gmail account.
+   Ink, not copper; nothing else changes. */
+.aol-hero__auditerr.is-ask{ color:var(--ink-600); }
 /* The button keeps its words at every width. "Free audit" is the offer, and an
    arrow in its place would save 70px and lose the only two words that say what
    pressing it does. */

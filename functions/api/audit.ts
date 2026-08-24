@@ -62,7 +62,11 @@ const STEPS: { key: string; label: string; status: string; say: string }[] = [
   { key: "home", label: "Reading your homepage", status: "OK", say: "reading your homepage" },
   { key: "pricing", label: "Finding your pricing", status: "EVENTUALLY", say: "looking for your pricing" },
   { key: "studies", label: "Reading 23 studies", status: "AGAIN", say: "loading 23 studies" },
-  { key: "sodont", label: "So you don't have to", status: "YOU'RE", say: "so you don't have to" },
+  // `label`+`status` is the log's voice — "So you don't have to ..... YOU'RE"
+  // only works as a pair. `say` is the same step written for the ONE line under
+  // the field, where the joke flattens into a fragment: a progress indicator
+  // reading "so you don't have to" tells a waiting visitor nothing at all.
+  { key: "sodont", label: "So you don't have to", status: "YOU'RE", say: "checking your page against them" },
   { key: "science", label: "Applying the science", status: "WELCOME", say: "applying the research" },
 ];
 // The arithmetic and the rounding used to close this list. Both were about
@@ -261,7 +265,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
         send({ t: "step", ...STEPS[5] });
 
-        const body = gate(result);
+        // `pricing` travels WITH the body so it is cached alongside it. The
+        // report's opening line says what we read, and "we read your homepage
+        // and pricing page" is a fabrication on the many sites that have no
+        // pricing page — on a page whose whole claim is that its findings are
+        // checkable, that is the one kind of sentence it cannot afford.
+        const body = { ...gate(result), pricing: ctx.hasPricing };
         send({ t: "result", ...body, cached: false });
 
         // MEMOISE BEFORE CLOSING, not after.

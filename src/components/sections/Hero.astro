@@ -90,7 +90,11 @@ const PARTNERS = [
             decision; "no label" would be an accessibility bug — a bare input
             with only a placeholder announces nothing once the placeholder is
             typed over, and placeholders are not accessible names. */}
-        <label class="aol-visually-hidden" for="hero-audit-email">Work email</label>
+        {/* The accessible name says what the field DOES with what you type,
+            which the placeholder cannot: the site we audit is the one your
+            address belongs to, and nothing on screen says so. It also changes
+            when the question changes — see askForSite() below. */}
+        <label class="aol-visually-hidden" for="hero-audit-email">Work email — we audit the site it belongs to</label>
         <div class="aol-hero__auditrow">
           <Input
             id="hero-audit-email"
@@ -230,6 +234,7 @@ const PARTNERS = [
   // at the point of use; the form always submits.
   if (auditForm && auditInput) {
     const submit = auditForm.querySelector<HTMLButtonElement>(".aol-hero__auditgo")!;
+    const label = auditForm.querySelector<HTMLLabelElement>("label[for='hero-audit-email']")!;
 
     // Discrete through the crawl, time-based through scoring, capped until the
     // result actually lands.
@@ -262,6 +267,50 @@ const PARTNERS = [
       submit.disabled = false;
       if (message) say(message);
     };
+
+    /**
+     * ASKING FOR THE SITE, IN PLACE.
+     *
+     * A free-mail address carries no company, so the server answers `need-url`
+     * with a question: "what's the site you'd like audited?". Nothing used to
+     * ask it — the handler printed the question into the status line and
+     * stopped, under a field that only accepts an email and beside a progress
+     * bar frozen at one cell. Every visitor on a gmail address hit a wall that
+     * asked them something they had no way to answer. The endpoint has taken a
+     * `url` alongside the email since the first commit; the comment in
+     * email-domain.ts still points at the modal that used to collect it, and
+     * the modal has been gone for weeks.
+     *
+     * The one field becomes the second question rather than a second field
+     * appearing beside it, which is the same trade the hero made in the first
+     * place. `pending` holds the address so the run banks against the person
+     * who asked, not the site they named.
+     */
+    let pending: string | null = null;
+
+    const askForSite = (message: string) => {
+      pending = auditInput.value.trim();
+      stop();
+      // A frozen bar under a question reads as a stalled run, not a prompt.
+      if (progress) progress.hidden = true;
+      auditInput.type = "text";
+      auditInput.inputMode = "url";
+      auditInput.autocomplete = "off";
+      auditInput.placeholder = "yourcompany.com";
+      auditInput.value = "";
+      label.textContent = "The site to audit";
+      if (auditErr) {
+        // A QUESTION, NOT AN ERROR. Same line — it is the one place beside the
+        // field where a message belongs — but not in the error colour, which
+        // would blame somebody for owning a gmail address.
+        auditErr.textContent = message;
+        auditErr.classList.add("is-ask");
+        auditErr.hidden = false;
+      }
+      auditInput.focus();
+    };
+
+    const askedForSite = () => pending !== null;
 
     /**
      * Paint the report by CLONING DESIGN-SYSTEM MARKUP.
@@ -328,13 +377,29 @@ const PARTNERS = [
         const areas: string[] = (d.held ?? []).map((h: any) => String(h.short));
         const named = areas.slice(0, 4).join(", ");
         const more = areas.length > 4 ? " and more" : "";
-        const scope = named ? `, including ${named}${more},` : "";
-        ctaTitle.textContent = `${d.heldTotal ?? 0} more checks${scope} on the call.`;
+        // AS A SENTENCE SOMEBODY WOULD SAY. "20 more checks, including brand,
+        // design, proof, pricing and more, on the call." is a noun phrase with
+        // a prepositional tail and no verb — a count where an offer should be.
+        const scope = named ? ` — ${named}${more} —` : "";
+        ctaTitle.textContent = `We go through the other ${d.heldTotal ?? 0} checks${scope} on the call.`;
       }
 
+      // WHAT THIS IS, in one line, because nothing else says it.
+      //
+      // A stranger arrives at a section headed with their own domain and a row
+      // of cards, having typed nothing but an email — so the two facts they do
+      // not have are what we read and what we measured it against. This element
+      // existed already and had never once rendered: it was gated on `d.caps`,
+      // which no version of the endpoint has ever sent.
       const cap = q(".aol-report__cap");
-      if (cap && Array.isArray(d.caps) && d.caps.length) {
-        cap.textContent = d.caps[0];
+      if (cap) {
+        const ran = items.length + (d.passing?.length ?? 0);
+        // Only claim the pricing page when the crawl actually found one. Older
+        // cached results predate the flag and say the modest thing.
+        const read = d.pricing ? "your homepage and pricing page" : "your homepage";
+        cap.textContent = ran
+          ? `We read ${read}, and checked ${ran} ${ran === 1 ? "thing" : "things"} against published research.`
+          : `We read ${read}.`;
         cap.hidden = false;
       }
 
@@ -367,6 +432,15 @@ const PARTNERS = [
         });
       }
 
+      // The question is answered; the field goes back to being an email field so
+      // a second domain can be audited without a reload.
+      pending = null;
+      auditInput.type = "email";
+      auditInput.inputMode = "email";
+      auditInput.autocomplete = "email";
+      auditInput.placeholder = "you@company.com";
+      label.textContent = "Work email — we audit the site it belongs to";
+
       report.hidden = false;
       // Say it, then go there. The status line is aria-live, but "done" does not
       // tell somebody what arrived or where; naming the result and moving focus
@@ -392,7 +466,7 @@ const PARTNERS = [
         setPct(FLOOR + Math.min(1, msg.seconds / TYPICAL_S) * (CEILING - FLOOR));
         say(`still reading — ${msg.seconds}s`);
       } else if (msg.t === "need-url") {
-        stop(msg.message);
+        askForSite(msg.message);
       } else if (msg.t === "failed") {
         stop(msg.message);
       } else if (msg.t === "result") {
@@ -413,7 +487,7 @@ const PARTNERS = [
     /** How long to wait before calling it. A cold run is ~12s; 90 is generous. */
     const RUN_TIMEOUT_MS = 90_000;
 
-    const run = async (email: string) => {
+    const run = async (email: string, site?: string) => {
       // A new run replaces the old one rather than queueing behind it.
       inFlight?.abort();
       const ctl = new AbortController();
@@ -433,7 +507,7 @@ const PARTNERS = [
         res = await fetch("/api/audit", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify(site ? { email, url: site } : { email }),
           signal: ctl.signal,
         });
       } catch (err) {
@@ -444,7 +518,7 @@ const PARTNERS = [
         stop(
           ctl.signal.reason === "timeout"
             ? "That took longer than it should. Try again, or book the call and we'll run it live."
-            : "Couldn't reach the scorer. Check your connection and try again.",
+            : "Couldn't reach the audit. Check your connection and try again.",
         );
         return;
       }
@@ -454,15 +528,22 @@ const PARTNERS = [
       // there and nothing else ever happened.
       const ctype = res.headers.get("content-type") ?? "";
       if (!res.ok || !/ndjson|json/i.test(ctype)) {
+        // "The scorer" is our word for it, and the shell command was a note to
+        // me that a visitor would have read verbatim on any 404. The hint is
+        // worth keeping — it is the exact fix, and I have chased this twice —
+        // so it stays, behind DEV, where the only reader is the person who can
+        // act on it.
         stop(
           res.status === 502 || res.status === 404
-            ? "The scorer isn't running. Locally: npx wrangler pages dev dist --port 8788"
-            : `The scorer answered ${res.status}. Try again shortly, or just book the call.`,
+            ? import.meta.env.DEV
+              ? "The audit API isn't running. Start it: npx wrangler pages dev dist --port 8788"
+              : "The audit isn't answering just now. Try again in a minute, or book the call and we'll run it with you."
+            : `The audit stopped with an error (${res.status}). Try again shortly, or just book the call.`,
         );
         return;
       }
       const reader = res.body?.getReader();
-      if (!reader) { stop("The scorer sent an empty reply."); return; }
+      if (!reader) { stop("The audit came back empty. Try again?"); return; }
 
       const dec = new TextDecoder();
       let buf = "";
@@ -534,18 +615,32 @@ const PARTNERS = [
 
     auditForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const email = auditInput.value.trim();
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      const typed = auditInput.value.trim();
+
+      // Whichever question is on screen is the one being answered. A domain is
+      // checked permissively — a dot, no spaces, no @ — because hostFromUserUrl
+      // on the server does the real parsing and accepts a full URL too.
+      const ok = askedForSite()
+        ? /^[^\s@]+\.[^\s@]{2,}$/.test(typed.replace(/^https?:\/\//i, "").replace(/\/.*$/, ""))
+        : /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(typed);
+
+      if (!typed || !ok) {
         auditInput.classList.add("aol-control--error");
         auditInput.setAttribute("aria-invalid", "true");
-        if (auditErr) { auditErr.textContent = "That doesn't look like an email address."; auditErr.hidden = false; }
+        if (auditErr) {
+          auditErr.classList.remove("is-ask");
+          auditErr.textContent = askedForSite()
+            ? "That doesn't look like a website address. Try: yourcompany.com"
+            : "That doesn't look like an email address.";
+          auditErr.hidden = false;
+        }
         auditInput.focus();
         return;
       }
       auditInput.classList.remove("aol-control--error");
       auditInput.removeAttribute("aria-invalid");
-      if (auditErr) auditErr.hidden = true;
-      void run(email);
+      if (auditErr) { auditErr.hidden = true; auditErr.classList.remove("is-ask"); }
+      void run(pending ?? typed, askedForSite() ? typed : undefined);
     });
     auditInput.addEventListener("input", () => {
       auditInput.classList.remove("aol-control--error");
