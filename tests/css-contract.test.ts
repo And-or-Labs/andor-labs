@@ -89,6 +89,53 @@ describe("screen-reader-only", () => {
   });
 });
 
+describe("the hero horizon", () => {
+  /**
+   * These assertions have now been deleted and restored twice, and the second
+   * time nobody noticed for six commits — the picture shipped to production as
+   * a plain inline image with no fade at all, because the markup still emitted
+   * the classes and no rule matched them.
+   *
+   * Both times the cause was identical: a comment-anchored slice of
+   * components.css that swallowed an unrelated block sitting between the two
+   * anchors. This whole FILE exists because of that failure mode. Do not remove
+   * these again — if the horizon is genuinely retired, delete the component and
+   * the markup in the same commit and these will fail loudly, which is the
+   * point.
+   */
+  it("still has its rules at all", () => {
+    expect(css).toContain(".aol-horizon{");
+    expect(css).toContain(".aol-has-horizon{");
+    expect(css).toContain(".aol-horizon img{");
+  });
+
+  it("keeps the container mask, which is what makes the fade span the screen", () => {
+    // The dissolve is measured against the SECTION, not the picture. Losing
+    // this leaves a hard-edged band instead of a horizon.
+    expect(css).toMatch(/\.aol-horizon\{[^}]*mask-image:\s*linear-gradient/);
+  });
+
+  it("keeps the picture's own top fade", () => {
+    // How far the container ramp has run by the picture's top edge depends on
+    // viewport height; without this a hairline draws across the page.
+    expect(css).toMatch(/\.aol-horizon img\{[^}]*mask-image:\s*linear-gradient/);
+  });
+
+  it("clips on the section, not on the capped inner", () => {
+    // .aol-hero-inner is 1200px wide. overflow:hidden there clips the 100vw
+    // picture back to the container and the hero loses its bleed — which
+    // shipped once already.
+    expect(css).toMatch(/\.aol-hero\{\s*overflow:hidden/);
+    expect(css).toMatch(/\.aol-has-horizon\{\s*position:relative;\s*\}/);
+  });
+
+  it("never crops the picture", () => {
+    // `cover` fills by height and showed 65% of a 3:1 source in a 1440 hero.
+    expect(css).toMatch(/\.aol-horizon img\{[^}]*height:auto/);
+    expect(css).not.toMatch(/\.aol-horizon img\{[^}]*object-fit:\s*cover/);
+  });
+});
+
 describe("the report", () => {
   it("has real vertical padding", () => {
     // It had almost none, and a result somebody waited thirty seconds for

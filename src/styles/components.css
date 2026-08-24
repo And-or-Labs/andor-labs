@@ -2181,6 +2181,64 @@
 
 
 
+/* ---- The horizon -----------------------------------------------------------
+   The hero's picture, used as its GROUND: pinned to the bottom edge at its true
+   proportions, dissolving upward across the whole first screen and gone before
+   it reaches the header.
+
+   NO CROP. `cover` filled the box by height, which on a 3:1 source in a
+   1440x739 hero meant scaling it to 2198px wide and showing 65% of it — the
+   scene was zoomed and the composition lost. `height:auto` lets the picture be
+   exactly as tall as it is wide.
+
+   THE MASK IS ON THE CONTAINER, not the image, and that is what makes the two
+   requirements compatible. The container is the height of the first screen, so
+   the fade is measured against the screen; the picture occupies only the lower
+   part of it, so by its own top edge the mask has already run down to almost
+   nothing. No hard edge to hide, and no stretching the picture to reach the top.
+
+   The stops are weighted hard to the bottom. Spread evenly the mask was still
+   at 68% behind the headline and the promise was competing with a cloud bank. */
+/* POSITIONING ONLY — the clip belongs to the full-width ancestor, NOT here.
+   The host is the capped 1200px inner, and `overflow:hidden` on it clipped the
+   100vw picture back to the container: the hero lost its bleed and the image
+   sat inset with white down both sides. .aol-hero carries the clip because it
+   is the element that is actually viewport-wide. */
+.aol-has-horizon{ position:relative; }
+.aol-hero{ overflow:hidden; }
+/* Everything the reader is here for sits above it. z-index only applies to
+   positioned boxes, so these need `relative` as well as the index — without it
+   they paint in DOM order and the ground covers the copy. */
+.aol-has-horizon > *:not(.aol-horizon){ position:relative; z-index:1; }
+
+.aol-horizon{
+  position:absolute; inset:0; z-index:0;
+  /* Full bleed from inside a capped container. The parent clips overflow, so
+     100vw cannot open a horizontal scrollbar. */
+  left:50%; width:100vw; transform:translateX(-50%);
+  pointer-events:none; line-height:0; overflow:hidden;
+  /* Pin the picture to the ground; the space above it is simply paper. */
+  display:flex; align-items:flex-end;
+  -webkit-mask-image:linear-gradient(to top,
+    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
+    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
+          mask-image:linear-gradient(to top,
+    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
+    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
+}
+.aol-horizon img{
+  display:block; width:100%; height:auto;
+  /* The source was quantised onto a real pixel grid so this would work.
+     Smoothing on the way back up undoes all of it. */
+  image-rendering:pixelated;
+  /* A SECOND fade, on the picture's own top edge. How far the container's ramp
+     has run by the time it reaches the picture's top depends on viewport
+     height, and at 1440x900 it was still around 5% — enough to draw a faint
+     hairline across the page. */
+  -webkit-mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
+          mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
+}
+
 /* ---- The audit report ------------------------------------------------------
    POSITIONING ONLY. The card, the badge and the button are components; what is
    left here is where they sit and how much air is between them.
