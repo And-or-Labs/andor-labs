@@ -1,5 +1,4 @@
 ---
-import Horizon from "../Horizon.astro";
 import Logo from "../ds/Logo.astro";
 
 // Absolute (`/#id`), not bare (`#id`). The footer renders on /blog/ and
@@ -20,12 +19,7 @@ const SOCIALS: [string, string][] = [
   ["GitHub", "https://github.com/eclecticv"],
 ];
 ---
-{/* The last horizon on the page, and the one the spine ends on: the hero takes
-    a bearing, the sections walk it, and the footer looks out. Given room below
-    the columns so the picture is the last thing on the page rather than a
-    texture behind the links. */}
-<footer class="aol-has-horizon aol-footer" style="border-top:1px solid var(--ink-200);background:var(--surface-card)">
-  <Horizon name="telescope-ridge" width={952} height={320} />
+<footer style="border-top:1px solid var(--ink-200);background:var(--surface-card)">
   <div class="aol-footer-grid" style="max-width:var(--container-width);margin:0 auto;padding:var(--space-12) var(--gutter) var(--gutter);display:grid;gap:32px;align-items:start">
     <div>
       <Logo size="md" />

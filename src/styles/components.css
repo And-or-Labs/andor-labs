@@ -2228,38 +2228,24 @@
 }
 
 /* ---- The horizon -----------------------------------------------------------
-   A picture used as a section's GROUND: pinned to the bottom edge at its true
-   proportions, dissolving upward.
+   The hero's picture, used as its GROUND: pinned to the bottom edge at its true
+   proportions, dissolving upward across the whole first screen and gone before
+   it reaches the header.
 
-   TWO MODES, because two jobs. The hero wants the dissolve measured against the
-   SCREEN — solid at the ground, gone before the header, across a viewport-tall
-   section. Everything else wants it measured against the PICTURE: show the
-   picture, fade its own top edge, done.
+   NO CROP. `cover` filled the box by height, which on a 3:1 source in a
+   1440x739 hero meant scaling it to 2198px wide and showing 65% of it — the
+   scene was zoomed and the composition lost. `height:auto` lets the picture be
+   exactly as tall as it is wide.
 
-   Running both fades at once is what broke this. The section horizons carried a
-   container mask AND an image mask, and the two compound: with the container
-   ramp scaled down by --horizon-reach it had already reached zero BELOW the top
-   of the picture, so most of the image was multiplied away before its own fade
-   even applied. Measured by diffing each section against itself with the
-   picture removed, Offers was visibly present across 10% of its height and
-   Capabilities 24% — the pictures were there, paid for, and could not be seen.
+   THE MASK IS ON THE CONTAINER, not the image, and that is what makes the two
+   requirements compatible. The container is the height of the first screen, so
+   the fade is measured against the screen; the picture occupies only the lower
+   part of it, so by its own top edge the mask has already run down to almost
+   nothing. No hard edge to hide, and no stretching the picture to reach the top.
 
-   So: band mode fades the IMAGE ONLY, over its own height. One mask, and what
-   you set is what you get. */
+   The stops are weighted hard to the bottom. Spread evenly the mask was still
+   at 68% behind the headline and the promise was competing with a cloud bank. */
 .aol-has-horizon{ position:relative; overflow:hidden; }
-/* A HORIZON NEEDS ROOM OF ITS OWN.
-   Behind a section that fills its own box the picture can only peek out along
-   the bottom edge, and a two-inch sliver under a row of pricing cards is not a
-   horizon, it is a smudge. Measured, Offers was visible across 10% of its
-   section while the footer — the only one with real bottom padding — was at
-   56%. The padding is the whole difference, so it belongs to the arrangement
-   rather than to the one section that happened to have it.
-
-   Band mode only. The hero's picture sits behind a viewport-tall section by
-   design and reserving more space under it would just add empty screen. */
-.aol-has-horizon:has(> .aol-horizon:not(.aol-horizon--screen)){
-  padding-bottom:clamp(150px, 17vw, 260px);
-}
 /* Everything the reader is here for sits above it. z-index only applies to
    positioned boxes, so these need `relative` as well as the index — without it
    they paint in DOM order and the ground covers the copy. */
@@ -2271,45 +2257,24 @@
      100vw cannot open a horizontal scrollbar. */
   left:50%; width:100vw; transform:translateX(-50%);
   pointer-events:none; line-height:0; overflow:hidden;
-  /* Pin the picture to the ground; the space above it is simply the section. */
+  /* Pin the picture to the ground; the space above it is simply paper. */
   display:flex; align-items:flex-end;
+  -webkit-mask-image:linear-gradient(to top,
+    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
+    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
+          mask-image:linear-gradient(to top,
+    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
+    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
 }
-
-/* BAND — the default. The picture is present in its lower two-thirds and
-   dissolves through its own top third. --horizon-fade moves where the dissolve
-   starts, as a fraction of the PICTURE, so a section can ask for more or less
-   without the result depending on how tall the section happens to be. */
 .aol-horizon img{
   display:block; width:100%; height:auto;
-  /* The sources were quantised onto a real pixel grid so this would work.
+  /* The source was quantised onto a real pixel grid so this would work.
      Smoothing on the way back up undoes all of it. */
   image-rendering:pixelated;
-  -webkit-mask-image:linear-gradient(to top,
-    #000 0%, #000 calc(var(--horizon-fade, .34) * 100%),
-    rgba(0,0,0,.62) calc(var(--horizon-fade, .34) * 100% + 22%),
-    rgba(0,0,0,.24) calc(var(--horizon-fade, .34) * 100% + 44%), transparent 100%);
-          mask-image:linear-gradient(to top,
-    #000 0%, #000 calc(var(--horizon-fade, .34) * 100%),
-    rgba(0,0,0,.62) calc(var(--horizon-fade, .34) * 100% + 22%),
-    rgba(0,0,0,.24) calc(var(--horizon-fade, .34) * 100% + 44%), transparent 100%);
-}
-
-/* SCREEN — the hero only. Here the dissolve has to run the height of the first
-   screen and be gone by the header, which is taller than the picture, so the
-   mask goes on the CONTAINER and is measured against the section. The picture
-   keeps a short fade of its own on top of it: how far the container's ramp has
-   run by the time it reaches the picture's top edge depends on viewport height,
-   and at 1440x900 it was still around 5% — enough to draw a hairline across the
-   page. */
-.aol-horizon--screen{
-  -webkit-mask-image:linear-gradient(to top,
-    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
-    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
-          mask-image:linear-gradient(to top,
-    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
-    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
-}
-.aol-horizon--screen img{
+  /* A SECOND fade, on the picture's own top edge. How far the container's ramp
+     has run by the time it reaches the picture's top depends on viewport
+     height, and at 1440x900 it was still around 5% — enough to draw a faint
+     hairline across the page. */
   -webkit-mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
           mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
 }

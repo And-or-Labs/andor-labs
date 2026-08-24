@@ -3,20 +3,15 @@
  * A picture used as a section's GROUND: pinned to the bottom edge at its true
  * proportions and dissolving upward into whatever is behind it.
  *
- * This started as one treatment in the hero and is now the page's spine — the
- * hero, Capabilities, Offers and the footer all stand on one. It is a component
- * rather than four copies of the markup for the obvious reason, and because the
- * two masks below took several passes to get right and there is no version of
- * "fix it in one place" that works if it lives in four.
+ * Used by the hero only. It is a component rather than inline markup because
+ * the two masks took several passes to get right and they are worth keeping
+ * somewhere named.
  *
  * TO USE IT the parent must be `position: relative` and clip its overflow;
  * `.aol-has-horizon` does both and lifts the parent's other children above it.
  *
- * THE SOURCE MUST BE ABOUT 3:1. The picture goes full bleed at 100vw and keeps
- * its true proportions, so its height is dictated by the viewport width: a 2:1
- * source is 720px tall on a 1440 screen, which is taller than most sections and
- * leaves the dissolve no room to run. map-valley arrived at 2:1, swamped
- * Capabilities, and was re-cropped to 2.975:1 rather than squashed or boxed.
+ * THE SOURCE MUST BE ABOUT 3:1: the picture goes full bleed at 100vw and keeps
+ * its true proportions, so its height is dictated by the viewport width.
  *
  * WHY THE MASK AND NOT A GRADIENT OVERLAY: it fades the image's own alpha, so
  * it lands on whatever ground the section has. The homepage alternates grid and
@@ -29,31 +24,17 @@ interface Props {
   /** Intrinsic size of the processed asset, so it reserves its box. */
   width: number;
   height: number;
-  /**
-   * "band" (default) fades the PICTURE over its own height — what every section
-   * wants. "screen" fades the CONTAINER over the section's height, which only
-   * the hero wants, because only the hero needs the dissolve gone by the top of
-   * a viewport-tall section.
-   *
-   * Never both: they compound, and a container ramp that reaches zero below the
-   * picture's top multiplies the picture away. That is how Offers ended up
-   * visible across 10% of its own section.
-   */
-  mode?: "band" | "screen";
-  /** Where the band dissolve starts, as a fraction of the picture. */
-  fade?: number;
   /** Above the fold? Then it must not be lazy. */
   eager?: boolean;
   class?: string;
 }
-const { name, width, height, mode = "band", fade = 0.34, eager = false, class: className } = Astro.props;
+const { name, width, height, eager = false, class: className } = Astro.props;
 ---
 {/* DECORATIVE: aria-hidden with an empty alt. It carries no information a
     reader would miss, and announcing "researcher looking through a telescope"
     between a heading and its body is noise. */}
 <div
-  class={["aol-horizon", mode === "screen" && "aol-horizon--screen", className].filter(Boolean).join(" ")}
-  style={`--horizon-fade:${fade}`}
+  class={["aol-horizon", className].filter(Boolean).join(" ")}
   aria-hidden="true"
 >
   <img
