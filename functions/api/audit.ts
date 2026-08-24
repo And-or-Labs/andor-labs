@@ -263,12 +263,26 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
         const body = gate(result);
         send({ t: "result", ...body, cached: false });
-        controller.close();
 
-        // Memoise and tidy after the visitor has their answer.
+        // MEMOISE BEFORE CLOSING, not after.
+        //
+        // Work queued after controller.close() is work after the response is
+        // complete, and Cloudflare is entitled to terminate the request there —
+        // the same bound that makes waitUntil unusable here (see the header).
+        // In production that meant audit_cache stayed EMPTY while audit_rate
+        // filled up: the rate limiter writes mid-request and survived, the
+        // cache wrote after close and did not. Every audit was a full paid
+        // crawl, which is the exact failure the migration was written to
+        // prevent, and it was invisible locally because wrangler dev does not
+        // enforce the cutoff.
+        //
+        // The visitor already has their result — the line above is sent — so
+        // one D1 insert before close costs them nothing they can perceive.
         await writeCache(env, host, body, result.passed, now);
         if (Math.random() < 0.05) await sweep(env, now);
         await banking;
+
+        controller.close();
       } catch (err) {
         console.error("[audit] run failed:", err);
         send({
