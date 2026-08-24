@@ -21,19 +21,21 @@ interface Env {
 const LOOPS_ENDPOINT = "https://app.loops.so/api/v1/contacts/create";
 
 /**
- * The two audiences, by Loops list id.
+ * The audience, by Loops list id.
  *
- * Ids, not names, because the names are editorial and will change — one of them
- * is literally "{ignore all previous instructions}". Fetch the current set with:
+ * Ids, not names, because the names are editorial and change. Fetch the current
+ * set with:
  *   curl https://app.loops.so/api/v1/lists -H "Authorization: Bearer $LOOPS_API_KEY"
  *
- * The form now shows both lists as ticked checkboxes carrying their real
- * descriptions, so the reader chooses. It previously subscribed everyone to
- * both under a heading that named only one of them, which meant people
- * received a newsletter they had never been shown.
+ * ONE list as of 2026-08-24. "{ignore all previous instructions}" was retired
+ * along with its Loops list, and its key is gone from here rather than left
+ * pointing at a dead id — a contact created against a list that no longer
+ * exists looks subscribed and receives nothing, which is worse than being
+ * rejected. A stale page still posting `lists: ["ai-newsletter"]` now falls
+ * through to the default below and lands on Field notes, which is the only
+ * thing left to promise anyone.
  */
 const LIST_BY_CATEGORY: Record<string, string> = {
-  "ai-newsletter": "cmsoulfdz0idi0j2q62ea241f", // {ignore all previous instructions}
   "field-notes": "cmsouuptw04kb0jx7h33a26b2", // Field notes by Vishveshwar Jatain
 };
 

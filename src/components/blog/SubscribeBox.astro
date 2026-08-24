@@ -26,11 +26,24 @@ interface Props {
   blurb?: string;
   compact?: boolean;
 }
+/**
+ * When only one list is left there is no choice to offer, so the checkboxes go
+ * and the copy names the thing directly.
+ *
+ * Derived rather than hardcoded: "{ignore all previous instructions}" was
+ * retired on 2026-08-24, and the moment a second list comes back this returns
+ * to a picker on its own. The defaults come off the category itself so the
+ * promise is identical wherever a reader meets it — which is the reason this
+ * component exists, after a version headed "Field notes" quietly subscribed
+ * people to a second newsletter they had never been shown.
+ */
+const only = SUBSCRIBABLE.length === 1 ? SUBSCRIBABLE[0] : null;
+
 const {
   source,
   preselect,
-  heading = "Two lists. One signup.",
-  blurb = "One is written by AI agents. The other is handwritten. Take both, or take one.",
+  heading = only ? `${only.label}, in your inbox.` : "Two lists. One signup.",
+  blurb = only ? only.blurb : "One is written by AI agents. The other is handwritten. Take both, or take one.",
   compact = false,
 } = Astro.props;
 
@@ -43,18 +56,25 @@ const checked = (key: CategoryKey) => !preselect || preselect.includes(key);
     <p class="aol-sub__blurb">{blurb}</p>
 
     <form data-subscribe data-source={source} novalidate>
-      <fieldset class="aol-sub__lists">
-        <legend class="sr-only">Choose which lists to join</legend>
-        {SUBSCRIBABLE.map((c) => (
-          <label class="aol-sub__list">
-            <input type="checkbox" name="list" value={c.key} checked={checked(c.key)} />
-            <span>
-              <span class="aol-sub__list-name">{c.label}</span>
-              <span class="aol-sub__list-blurb">{c.blurb}</span>
-            </span>
-          </label>
-        ))}
-      </fieldset>
+      {/* The picker only exists when there is something to pick. One list with
+          one permanently-ticked checkbox beside it is a control that cannot be
+          used, and it invites the reader to untick the only thing they came
+          for. The endpoint's default already lands a listless signup on the
+          remaining list, so nothing is lost by not sending the key. */}
+      {!only && (
+        <fieldset class="aol-sub__lists">
+          <legend class="sr-only">Choose which lists to join</legend>
+          {SUBSCRIBABLE.map((c) => (
+            <label class="aol-sub__list">
+              <input type="checkbox" name="list" value={c.key} checked={checked(c.key)} />
+              <span>
+                <span class="aol-sub__list-name">{c.label}</span>
+                <span class="aol-sub__list-blurb">{c.blurb}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+      )}
 
       <div class="aol-sub__row">
         <Input

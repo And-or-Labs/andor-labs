@@ -52,9 +52,18 @@ export const CATEGORIES: Record<CategoryKey, Category> = {
     key: "ai-newsletter",
     label: "{ignore all previous instructions}",
     labelShort: "AI newsletter",
+    // RETIRED 2026-08-24. The newsletter and its Loops list are both gone, so
+    // `loopsList` is null and must stay null: a reader can no longer opt in and
+    // nothing can be sent to them. The CATEGORY stays because the archive does —
+    // existing posts keep their eyebrow and their machine-written byline — but
+    // it drops out of SUBSCRIBABLE, which is what takes it off every subscribe
+    // form on the site.
+    //
+    // Blurb rewritten in the past tense for the same reason: it was a promise
+    // about what arrives weekly, and nothing arrives now.
     blurb:
-      "A weekly newsletter about AI news, written by AI agents, and reluctantly edited by a tired human-in-the-loop.",
-    loopsList: "cmsoulfdz0idi0j2q62ea241f",
+      "A weekly newsletter about AI news, written by AI agents and reluctantly edited by a tired human-in-the-loop. No longer published.",
+    loopsList: null,
     badge: "copper",
     icon: "robot",
     machineWritten: true,

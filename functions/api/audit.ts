@@ -81,15 +81,29 @@ const HEARTBEAT_MS = 5_000;
 const LOOPS_ENDPOINT = "https://app.loops.so/api/v1/contacts/create";
 
 /**
- * The audit list.
+ * Where an audit taker lands: the audit list AND the newsletter.
  *
- * TODO(vj): replace with the real Loops list id. The Loops API can read lists
- * but cannot create one, so this has to be made in the dashboard. Until it is,
- * the guard below skips the list rather than posting a bad id — a contact
- * created against a nonexistent list is worse than one created with none, since
- * it looks subscribed and receives nothing.
+ * Both, deliberately. The audit list is the transactional one — it is what this
+ * person actually asked for and what their result relates to. Field notes is
+ * the standing publication, and someone who just handed over their domain to be
+ * scored against published research is exactly its reader. Subscribing to only
+ * the audit list would mean building an audience we have no way to write to
+ * again.
+ *
+ * Ids, not names, because the names are editorial and change. Read the current
+ * set with:
+ *   curl https://app.loops.so/api/v1/lists -H "Authorization: Bearer $LOOPS_API_KEY"
+ *
+ * The Field notes id is duplicated from src/lib/categories.ts and
+ * functions/api/subscribe.ts on purpose — Pages Functions bundle separately
+ * from the Astro build, and whether an import from src/ resolves here is not a
+ * thing to find out at deploy time. Change it in one place, change it in all
+ * three.
  */
-const AUDIT_LIST_ID = "";
+const AUDIT_LISTS = [
+  "cmt7hwmfw2ics0j1517xf79f4", // Audit
+  "cmsouuptw04kb0jx7h33a26b2", // Field notes by Vishveshwar Jatain
+];
 
 /**
  * Bank the lead before doing any work.
@@ -112,7 +126,7 @@ async function bankLead(env: Env, email: string, host: string | null): Promise<v
       userGroup: "website",
       auditDomain: host ?? "",
     };
-    if (AUDIT_LIST_ID) body.mailingLists = { [AUDIT_LIST_ID]: true };
+    body.mailingLists = Object.fromEntries(AUDIT_LISTS.map((id) => [id, true]));
 
     const res = await fetch(LOOPS_ENDPOINT, {
       method: "POST",
