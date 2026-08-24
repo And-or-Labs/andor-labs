@@ -1,6 +1,6 @@
 ---
 /**
- * Homepage strip: the three most recent posts, then the subscribe box.
+ * Homepage strip: the five most recent posts as a list, subscribe box beside it.
  *
  * Fetched here rather than passed down from index.astro so the section is
  * self-contained — it can be dropped onto any page without that page having to
@@ -9,61 +9,66 @@
  */
 import { sanityClient } from "sanity:client";
 import SubscribeBox from "../blog/SubscribeBox.astro";
-import { imageUrl, type SanityImageSource } from "../../lib/sanityImage";
 import { toCategory } from "../../lib/categories";
 import Badge from "../ds/Badge.astro";
 
+/** A list row needs a title, a date and a category. Nothing else is rendered,
+    so nothing else is fetched — the thumbnails, excerpts and tags the card grid
+    used are no longer queried. */
 interface RecentPost {
   title: string;
   slug: string;
-  excerpt: string;
   publishedAt: string;
-  tags?: string[];
   category?: string;
-  heroImage?: (SanityImageSource & { alt?: string }) | null;
 }
 
 const posts: RecentPost[] = await sanityClient.fetch(
-  `*[_type == "post" && defined(slug.current) && seo.noIndex != true] | order(publishedAt desc)[0...3]{
-    title, "slug": slug.current, excerpt, publishedAt, tags, heroImage, category
+  `*[_type == "post" && defined(slug.current) && seo.noIndex != true] | order(publishedAt desc)[0...5]{
+    title, "slug": slug.current, publishedAt, category
   }`,
 );
 
 const fmt = (d: string) =>
   new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
 ---
-{/* White, not aol-grid-blue: the homepage alternates grid ↔ white section by
-    section, and Compare — which this now sits directly under — is grid. This
-    section used to be the grid half of the pair, back when it followed the FAQ. */}
+{/* GRID, not white. The homepage alternates section by section and this took
+    the grid that Compare vacated when it was removed — the alternation belongs
+    to the POSITION, not to the section. The FAQ below went to paper to match.
+
+    A LIST, not a card grid. Three cards with thumbnails made the blog look like
+    the point of the homepage; five titles in a column say there is a body of
+    writing without arguing for it, and leave the right-hand column free for the
+    thing a reader can actually act on. */}
 {posts.length > 0 && (
-  <section id="writing" class="aol-recent" style="border-bottom:1px solid var(--ink-200);background:var(--paper)">
-    <div style="max-width:var(--container-width);margin:0 auto;padding:var(--section-pad-y) var(--gutter)">
-      <div class="aol-recent__head">
-        <h2 class="aol-recent__h">Blog</h2>
-        <a class="aol-recent__all" href="/blog/">All posts →</a>
+  <section id="writing" class="aol-recent aol-grid-blue" style="border-bottom:1px solid var(--ink-200)">
+    <div class="aol-recent__inner">
+      <div class="aol-recent__list">
+        <div class="aol-recent__head">
+          <h2 class="aol-recent__h">Blog</h2>
+          <a class="aol-recent__all" href="/blog/">All posts →</a>
+        </div>
+
+        <ul>
+          {posts.map((p) => {
+            const c = toCategory(p.category);
+            return (
+              <li>
+                <a href={`/blog/${p.slug}/`}>
+                  <span class="aol-recent__title">{p.title}</span>
+                  <span class="aol-recent__row">
+                    <Badge variant={c.badge} class={c.key === "ai-newsletter" ? "aol-badge--verbatim" : undefined}>{c.labelShort}</Badge>
+                    <time class="aol-recent__meta" datetime={p.publishedAt}>{fmt(p.publishedAt)}</time>
+                  </span>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
       </div>
 
-      <ul>
-        {posts.map((p) => (
-          <li>
-            <a href={`/blog/${p.slug}/`}>
-              {(() => {
-                const src = imageUrl(p.heroImage, { width: 640, height: 400, fit: "crop", format: "auto" });
-                return src ? (
-                  <img class="aol-recent__thumb" src={src} alt={p.heroImage?.alt ?? ""} width="640" height="400" loading="lazy" decoding="async" />
-                ) : null;
-              })()}
-              {(() => { const c = toCategory(p.category); return (
-                <p class="aol-recent__eyebrow"><Badge variant={c.badge} class={c.key === "ai-newsletter" ? "aol-badge--verbatim" : undefined}>{c.labelShort}</Badge></p>
-              ); })()}
-              <h3 class="aol-recent__title">{p.title}</h3>
-              <p class="aol-recent__meta"><time datetime={p.publishedAt}>{fmt(p.publishedAt)}</time></p>
-            </a>
-          </li>
-        ))}
-      </ul>
-
-      <SubscribeBox source="homepage" compact />
+      <div class="aol-recent__aside">
+        <SubscribeBox source="homepage" compact />
+      </div>
     </div>
   </section>
 )}

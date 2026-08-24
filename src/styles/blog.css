@@ -1247,69 +1247,85 @@
    15. Homepage — recent stories strip
    ============================================================ */
 
+/* ── Homepage blog strip ───────────────────────────────────────────────────
+   Two columns: the list of writing on the left, the one thing a reader can act
+   on beside it. It was three cards with thumbnails stacked above the subscribe
+   box, which made the blog look like the point of the homepage and pushed the
+   ask below the fold of its own section.
+
+   NO RULES BETWEEN ROWS. The rows are separated by space, not by lines — a
+   stack of hairlines across a two-column block reads as a table, and the
+   section already sits on the engineering grid. */
+.aol-recent__inner {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: var(--section-pad-y) var(--gutter);
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: var(--space-12);
+  align-items: start;
+}
 .aol-recent__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-4);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--ink-900);
-  margin-bottom: var(--space-8);
-  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
 }
 .aol-recent__h {
+  margin: 0;
   font-family: var(--font-display);
-  font-size: 34px;
+  font-weight: 400;
+  font-size: var(--text-2xl);
   line-height: 1.1;
   color: var(--ink-900);
-  margin: 0;
 }
 .aol-recent__all {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
+  letter-spacing: var(--tracking-mono);
   color: var(--blue-600);
   text-decoration: none;
-  border-bottom: 1px solid var(--blue-200);
+  white-space: nowrap;
 }
-.aol-recent__all:hover { border-bottom-color: var(--blue-600); }
-.aol-recent ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-8); grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.aol-recent a { text-decoration: none; display: block; }
-.aol-recent__thumb {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  border: 1px solid var(--ink-900);
-  border-radius: var(--radius-sm);
-  image-rendering: pixelated;
-  background: var(--ink-050);
-  margin-bottom: var(--space-4);
-  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+@media (hover: hover) and (pointer: fine) {
+  .aol-recent__all:hover { text-decoration: underline; text-underline-offset: 3px; }
 }
-.aol-recent a:hover .aol-recent__thumb { transform: translate(-2px, -2px); box-shadow: var(--shadow-hard-sm); }
-.aol-recent__eyebrow {
-  /* Wraps a <Badge>, which owns colour and type. Only the margin is ours —
-     each of the four differs, and that difference is real layout. */
-  margin: 0 0 8px;
+.aol-recent ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-5); }
+.aol-recent a {
+  text-decoration: none;
+  display: grid;
+  gap: 6px;
+  /* Padding, not a border. The row's hit area grows without drawing a line. */
+  padding: 2px 0;
 }
 .aol-recent__title {
   font-family: var(--font-serif);
-  font-weight: var(--weight-semibold);
-  font-size: 19px;
-  line-height: 1.3;
+  font-size: var(--text-lg);
+  line-height: 1.35;
   color: var(--ink-900);
-  margin: 0 0 8px;
-  text-wrap: pretty;
+  transition: color var(--dur-base) var(--ease-out);
 }
-.aol-recent a:hover .aol-recent__title { color: var(--blue-700); }
+@media (hover: hover) and (pointer: fine) {
+  .aol-recent a:hover .aol-recent__title { color: var(--blue-700); }
+}
+.aol-recent__row { display: flex; align-items: center; gap: var(--space-3); }
 .aol-recent__meta {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
-  color: var(--text-faint);
-  margin: 0;
+  letter-spacing: var(--tracking-mono);
+  color: var(--ink-500);
 }
+/* The subscribe box is a component; only its column position is set here. */
+.aol-recent__aside { position: sticky; top: calc(var(--header-h) + var(--space-6)); }
+
+@media (max-width: 880px) {
+  /* One column: the list, then the ask under it. Side by side below this the
+     subscribe box is too narrow for its own field. */
+  .aol-recent__inner { grid-template-columns: 1fr; gap: var(--space-10); }
+  .aol-recent__aside { position: static; }
+}
+
 
 /* ============================================================
    16. `text-wrap: pretty` — narrow-viewport escape hatch
