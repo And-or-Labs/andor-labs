@@ -32,18 +32,24 @@ export type SubsectionKey =
   | "trials"
   | "freemium";
 
-export const SUBSECTIONS: { key: SubsectionKey; label: string; section: 1 | 2; visual?: true }[] = [
-  { key: "messaging", label: "Brand and messaging", section: 1 },
+/**
+ * `short` is the name for a SENTENCE, `label` the name for a heading. The CTA
+ * lists the areas it has not run, and the long forms read as a bureaucratic
+ * inventory there: "including brand and messaging, page design and visuals,
+ * social proof and reviews, pricing plans, free trials, freemium, on the call."
+ */
+export const SUBSECTIONS: { key: SubsectionKey; label: string; short: string; section: 1 | 2; visual?: true }[] = [
+  { key: "messaging", short: "brand", label: "Brand and messaging", section: 1 },
   // Scored from the SCREENSHOT, not the text. Every rule in this subsection is
   // positional or aesthetic — corner radius, quadrant, left-versus-right, does
   // the page hold one register — and none of that survives being turned into
   // markdown. The playbook calls it "Page design and visuals"; taking that
   // literally is what fixed it.
-  { key: "design", label: "Page design and visuals", section: 1, visual: true },
-  { key: "proof", label: "Social proof and reviews", section: 1 },
-  { key: "plans", label: "Pricing plans", section: 2 },
-  { key: "trials", label: "Free trials", section: 2 },
-  { key: "freemium", label: "Freemium", section: 2 },
+  { key: "design", short: "design", label: "Page design and visuals", section: 1, visual: true },
+  { key: "proof", short: "proof", label: "Social proof and reviews", section: 1 },
+  { key: "plans", short: "pricing", label: "Pricing plans", section: 2 },
+  { key: "trials", short: "trials", label: "Free trials", section: 2 },
+  { key: "freemium", short: "freemium", label: "Freemium", section: 2 },
 ];
 
 export const isVisual = (key: SubsectionKey): boolean =>
@@ -900,6 +906,8 @@ export interface CheckResult {
   /** The whole verdict. */
   verdict: Verdict;
   label: string;
+  /** The rule stated as an instruction, e.g. "Lead with three key benefits." */
+  rule: string;
   subsection: SubsectionKey;
   subsectionLabel: string;
   /** 0-5 as scored. */
@@ -1010,7 +1018,7 @@ export function wins(checks: CheckResult[], n: number = WINS): CheckResult[] {
     .slice(0, n);
 }
 
-export function remainingChecks(ran: Set<string>): { area: string; count: number }[] {
+export function remainingChecks(ran: Set<string>): { area: string; short: string; count: number }[] {
   const counts = new Map<SubsectionKey, number>();
   for (const r of RULES) {
     if (!r.auditable || ran.has(r.id)) continue;
@@ -1020,6 +1028,8 @@ export function remainingChecks(ran: Set<string>): { area: string; count: number
   // sequence the research publishes them.
   return SUBSECTIONS.filter((s) => counts.has(s.key)).map((s) => ({
     area: s.label,
+    /** The name for a sentence, which is what the CTA writes. */
+    short: s.short,
     count: counts.get(s.key)!,
   }));
 }
@@ -1088,6 +1098,8 @@ export function rankChecks(
       id: r.id,
       code: codeFor(r.id),
       label: r.label,
+      /** The rule as an instruction — the card's headline, and the "win". */
+      rule: r.rule,
       subsection: r.subsection,
       subsectionLabel: subsectionLabel(r.subsection),
       verdict: score >= 1 ? "pass" : "fail",

@@ -47,9 +47,22 @@ describe("a note has to quote the page", () => {
     expect(groundedNote(`The page leads with "AI That's Yours" and one subheadline.`, PAGE)).toBe(true);
   });
 
-  it("is not fooled by a one-word quote", () => {
-    // "AI" appears everywhere. A quote has to carry enough to identify a claim.
-    expect(quotesIn('It says "AI" a lot.')).toEqual([]);
+  it("is not grounded by a single one-word quote", () => {
+    // "AI" appears everywhere. One short word identifies no claim.
+    expect(groundedNote('It says "AI" a lot.', PAGE)).toBe(false);
+  });
+
+  it("accepts a LIST of short quotes, all of them found", () => {
+    // The commonest true answer this audit gives, and a two-word minimum threw
+    // it away: plan names are one word each, and
+    // 'the pricing page shows "Starter", "Growth" and "Business"' is about as
+    // checkable as a note gets. Two or more, and every one has to be real.
+    expect(groundedNote('Plans are "Starter", "Growth" and "Business".', "Starter Growth Business Enterprise")).toBe(true);
+  });
+
+  it("rejects a list where one of the quotes was invented", () => {
+    // All-or-nothing on the list shape, or the rule becomes "get one right".
+    expect(groundedNote('Plans are "Starter", "Growth" and "Platinum".', "Starter Growth Business")).toBe(false);
   });
 
   it("does not gate when there is no text to gate against", () => {

@@ -87,7 +87,9 @@ describe("what is held back", () => {
     // imply an answer is being withheld.
     const held = remainingChecks(new Set(sampleChecks(ctx()).map((r) => r.id)));
     for (const h of held) {
-      expect(Object.keys(h).sort()).toEqual(["area", "count"]);
+      // area + short (the name for a heading and the name for a sentence) and a
+      // count. Notably NOT a verdict.
+      expect(Object.keys(h).sort()).toEqual(["area", "count", "short"]);
     }
   });
 });

@@ -96,14 +96,13 @@ describe("the report", () => {
     expect(css).toMatch(/\.aol-report\{[^}]*padding:\s*var\(--space-16\)/);
   });
 
-  it("colours failures differently from passes", () => {
-    // A verdict has to be pre-attentive — if pass and fail collapse to one
-    // colour the check list stops being scannable and becomes prose again.
-    //
-    // These hang off data-verdict, not off a class, because the row belongs to
-    // SpecGrid. Adding `.aol-tile--fail` back would mean the report had started
-    // growing its own components again.
-    expect(css).toMatch(/\[data-verdict="fail"\][^{]*\{[^}]*copper/);
-    expect(css).toMatch(/\[data-verdict="pass"\][^{]*\{[^}]*blue/);
+  it("gives the observation its own ground inside the card", () => {
+    // The card was a flat pink field carrying four paragraphs with nothing to
+    // tell a reader which sentence was about the research and which was about
+    // their own site. The one sentence that IS about their site now sits on a
+    // sunken Card — a component surface, not a background drawn here.
+    const block = css.slice(css.indexOf("/* ---- The audit report ----"));
+    expect(block).toMatch(/\.aol-finding__observed\{[^}]*margin-top/);
+    expect(block).not.toMatch(/\.aol-finding__observed\{[^}]*background/);
   });
 });

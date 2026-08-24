@@ -25,7 +25,7 @@
 import { readSiteMarkdown } from "../_lib/pages";
 import { deriveTarget, hostFromUserUrl } from "../_lib/email-domain";
 import { readContext, scoreSite } from "../_lib/audit-score";
-import { AUDITABLE_TOTAL, remainingChecks } from "../_lib/playbook";
+import { remainingChecks, shortCitation, wins } from "../_lib/playbook";
 
 import {
   checkRate,
@@ -305,43 +305,42 @@ const tick = (ms: number) => new Promise((r) => setTimeout(r, ms));
 function gate(result: Awaited<ReturnType<typeof scoreSite>>) {
   const { checks } = result;
 
-  // NOTHING IS REDACTED HERE ANY MORE, because nothing else was run.
+  // THREE WINS, NOT THREE VERDICTS.
   //
-  // The previous gate scored all twenty-three and then withheld the evidence
-  // for twenty of them — but it still published their pass/fail, which is most
-  // of what a visitor came for, and it paid for every one of those verdicts.
-  // Now three checks run and the rest are simply named. A withheld row carries
-  // its code and its area and no verdict at all, because there is no verdict:
-  // claiming one we had not computed would be the one thing this page cannot
-  // afford to do.
+  // The button promises three quick wins, and a win is something to fix — so
+  // what the page shows is the three heaviest FAILURES, framed as the fix
+  // rather than as a mark against the reader. "You failed BRAND-2" is a verdict
+  // on somebody who just handed over their domain; "lead with three key
+  // benefits" is the thing they were promised.
   //
-  // NO GRADE. A letter derived from a three-check sample is a fabricated
-  // metric, and on a page that sells itself on peer-reviewed method it is the
-  // fabrication a reader would be right to catch. The header states what was
-  // run and what it found, which is a fact.
-  const shown = checks.map((c) => ({
+  // The wave scores six to find them. Fewer than three failures means fewer
+  // than three wins — see wins(), which never pads with passes.
+  const won = wins(checks);
+  const items = won.map((c) => ({
     code: c.code,
-    verdict: c.verdict,
-    open: true as const,
-    name: c.label,
+    // The rule's own first sentence, which is already written as an
+    // instruction: "Lead with three key benefits." That IS the win, so it is
+    // the card's headline rather than the rule's short label.
+    name: c.rule.split(/(?<=\.)\s/)[0],
     area: c.subsectionLabel,
-    body: c.evidence,
     why: c.why,
-    stat: c.stat,
-    citation: c.citation,
+    observed: c.evidence,
+    citation: shortCitation(c.citation),
   }));
+
+  // What the site already gets right. Named, not scored — it makes the wins
+  // more credible rather than less, and it is the honest thing to show when a
+  // site fails fewer than three.
+  const passing = checks.filter((c) => c.verdict === "pass").map((c) => c.label);
 
   const ran = new Set(checks.map((c) => c.id));
   const held = remainingChecks(ran);
 
   return {
     host: result.host,
-    ran: shown.length,
-    auditable: AUDITABLE_TOTAL,
-    passed: shown.filter((i) => i.verdict === "pass").length,
-    failed: shown.filter((i) => i.verdict === "fail").length,
-    items: shown,
-    /** Areas of the research the free audit did not touch, with counts. */
+    items,
+    passing,
+    /** Areas the free audit did not touch, so the CTA can name the scope. */
     held,
     heldTotal: held.reduce((n, h) => n + h.count, 0),
   };

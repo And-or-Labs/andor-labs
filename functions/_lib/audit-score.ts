@@ -228,9 +228,9 @@ export const forQuote = (t: string) =>
 
 /** Quoted spans in a note, longest first — `"..."` or `'...'`. */
 export function quotesIn(note: string): string[] {
-  return [...note.matchAll(/["“]([^"”]{6,120})["”]|'([^']{6,120})'/g)]
+  return [...note.matchAll(/["“]([^"”]{2,160})["”]|'([^']{2,160})'/g)]
     .map((m) => (m[1] ?? m[2] ?? "").trim())
-    .filter((q) => q.split(/\s+/).length >= 2)
+    .filter(Boolean)
     .sort((a, b) => b.length - a.length);
 }
 
@@ -252,10 +252,29 @@ export function quotesIn(note: string): string[] {
  * that governs a check the crawl could not observe. We would rather show two
  * findings than three, one of which is fiction.
  */
+/**
+ * Is this note traceable to the page?
+ *
+ * A note qualifies on either of two shapes, and the second one is not a
+ * loophole — it is the commonest true answer this audit gives:
+ *
+ *   ONE SUBSTANTIAL QUOTE — three words or more, found on the page.
+ *   A LIST OF SHORT ONES — two or more quotes, all found. Plan names are one
+ *   word each: 'the pricing page shows "Starter", "Growth" and "Business"' is
+ *   about as checkable as a note gets, and a two-word minimum threw it away.
+ *
+ * Both were false negatives in a real run against plausible.io, and a gate that
+ * discards true findings is worse than no gate: it costs the reader the finding
+ * AND leaves the impression the site passed.
+ */
 export function groundedNote(note: string, evidence: string): boolean {
   if (!evidence) return true; // no text to check against — the visual group
   const haystack = forQuote(evidence);
-  return quotesIn(note).some((q) => haystack.includes(forQuote(q)));
+  const quotes = quotesIn(note);
+  const found = quotes.filter((q) => haystack.includes(forQuote(q)));
+
+  if (found.some((q) => q.split(/\s+/).length >= 3)) return true;
+  return found.length >= 2 && found.length === quotes.length;
 }
 
 function normalize(raw: unknown, valid: Set<string>, evidence: string): SectionVerdict {
@@ -274,14 +293,18 @@ function normalize(raw: unknown, valid: Set<string>, evidence: string): SectionV
       const v = String((r as { verdict?: unknown }).verdict ?? "").trim().toLowerCase();
       if (v !== "pass" && v !== "fail") continue;
 
-      const note = clampText(r.note, 180);
-      if (!groundedNote(note, evidence)) {
-        console.warn(`[audit] ${id}: note not grounded in the page, dropped — ${note.slice(0, 90)}`);
+      // VALIDATE THE RAW NOTE, clamp only for display. Clamping first cut a
+      // long quote in half — the h1 of plausible.io is 60 characters and the
+      // closing quote fell off the end, so a correct finding was discarded for
+      // being unquoted.
+      const raw = typeof r.note === "string" ? r.note : "";
+      if (!groundedNote(raw, evidence)) {
+        console.warn(`[audit] ${id}: note not grounded in the page, dropped — ${raw.slice(0, 90)}`);
         continue;
       }
 
       scores.set(id, v === "pass" ? 1 : 0);
-      notes.set(id, note);
+      notes.set(id, clampText(raw, 180));
     }
   }
   return { scores, notes, summary: "" };

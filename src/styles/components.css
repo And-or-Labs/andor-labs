@@ -2181,20 +2181,17 @@
 
 
 
-/* ---- The audit report ----------------------------------------------------
-   POSITIONING ONLY. Every visual decision below this line already belongs to a
-   component: the grade is a Badge, the checks are a SpecGrid, each finding is a
-   Card, the CTA is a Card holding a Button. What is left here is where those
-   sit and how much air is between them.
+/* ---- The audit report ------------------------------------------------------
+   POSITIONING ONLY. The card, the badge and the button are components; what is
+   left here is where they sit and how much air is between them.
 
-   The block this replaced was 285 lines and drew its own tiles, its own
-   masthead, its own 2px rules and its own button — a second design system
-   living next to the real one. If something below starts describing a border,
-   a radius or a type ramp again, the component should be carrying it.
-
-   Two separators were called out and both are gone: the 2px black rule over
-   every finding, and the heavy divider above the CTA. A Card already has an
-   edge; a second one drawn on top of it is not emphasis, it is noise. */
+   THE CARD HAS AN INSIDE NOW. It was a flat pink field carrying four
+   paragraphs, with nothing to tell a reader which sentence was about the
+   research and which was about their own site — the eye had nowhere to land and
+   the work of deciding where to look fell on the reader. Three changes fix it:
+   a labelled WHY, an OBSERVED sentence on its own inset panel, and the
+   citation demoted to a footnote. The one sentence that is about THIS site is
+   the one with a surface under it. */
 .aol-report{
   background:var(--paper);
   padding:var(--space-16) 0;
@@ -2207,49 +2204,51 @@
   display:flex; flex-direction:column; gap:var(--space-8);
 }
 
-/* Host, then the grade beside it, then the count underneath. `baseline` rather
-   than `center`: the Badge is a label ON the name, and aligning their baselines
-   is what makes it read as one line instead of two stacked objects. */
-.aol-report__top{
-  display:flex; align-items:baseline; flex-wrap:wrap; gap:var(--space-3) var(--space-4);
-}
+.aol-report__top{ display:flex; align-items:baseline; flex-wrap:wrap; gap:var(--space-3) var(--space-4); }
 .aol-report__host{
   margin:0; font-family:var(--font-display); font-weight:400;
   font-size:var(--text-2xl); line-height:1.1; letter-spacing:-0.01em; color:var(--ink-900);
 }
-.aol-report__count{
-  flex-basis:100%; margin:0;
-  font-family:var(--font-mono); font-size:var(--text-2xs); letter-spacing:var(--tracking-mono);
-  color:var(--ink-500);
+.aol-report__cap,
+.aol-report__passing{
+  margin:0; font-family:var(--font-mono); font-size:var(--text-2xs);
+  letter-spacing:var(--tracking-mono); color:var(--ink-500);
 }
-.aol-report__cap{
-  margin:0; font-family:var(--font-serif); font-size:var(--text-sm); color:var(--ink-600);
-}
-
-/* The checks. The SpecGrid carries the row, the leader and the type; the only
-   thing added is which of two verdicts a row holds, and that is a data
-   attribute rather than a class so the row stays the component's. */
-.aol-report__checks .aol-specsheet__val{ font-family:var(--font-mono); font-size:var(--text-2xs); letter-spacing:var(--tracking-mono); }
-.aol-specsheet__row[data-verdict="pass"] .aol-specsheet__val{ color:var(--blue-600); }
-.aol-specsheet__row[data-verdict="fail"] .aol-specsheet__val{ color:var(--copper-700); }
-.aol-specsheet__row[data-open="true"] .aol-specsheet__label{ color:var(--ink-900); }
 
 .aol-report__findings{
   display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:var(--space-5);
 }
-.aol-finding__top{ display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-3); }
+/* Number and area on one line above the instruction: which win this is, and
+   which part of the research it comes from. */
+.aol-finding__top{ display:flex; align-items:center; gap:var(--space-3); margin-bottom:var(--space-3); }
+.aol-finding__area{
+  font-family:var(--font-mono); font-size:var(--text-2xs);
+  letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--ink-500);
+}
+/* The instruction IS the win, so it is the biggest thing on the card. */
 .aol-finding__title{
   margin:0; font-family:var(--font-display); font-weight:400;
   font-size:var(--text-lg); line-height:1.2; color:var(--ink-900);
 }
+/* The labels are what stopped the two paragraphs reading as one. */
+.aol-finding__lbl{
+  margin:var(--space-4) 0 4px; font-family:var(--font-mono);
+  font-size:var(--text-2xs); letter-spacing:var(--tracking-label);
+  text-transform:uppercase; color:var(--ink-400);
+}
 .aol-finding__why,
 .aol-finding__found{
-  margin:var(--space-3) 0 0;
-  font-family:var(--font-serif); font-size:var(--text-sm); line-height:1.55; color:var(--ink-600);
+  margin:0; font-family:var(--font-serif); font-size:var(--text-sm);
+  line-height:1.55; color:var(--ink-600);
 }
-/* The finding about THIS site is the sentence the visitor came for, so it is
-   the one in full ink. Everything else on the card is context for it. */
+/* WHAT WE FOUND ON THIS SITE, on its own ground. The recess is a sunken Card —
+   the system's own "filled --ink-050 recess" — so the surface, its border and
+   its radius all belong to the component. Only the spacing is set here. */
+.aol-finding__observed{ margin-top:var(--space-4); }
+.aol-finding__observed .aol-finding__lbl{ margin-top:0; }
 .aol-finding__found{ color:var(--ink-900); }
+/* A footnote, not a paragraph. Title and year only — the full APA string was
+   the longest thing on the card. */
 .aol-finding__cite{
   margin:var(--space-4) 0 0;
   font-family:var(--font-mono); font-size:var(--text-2xs); line-height:1.5;
@@ -2263,6 +2262,7 @@
 .aol-report__ctatitle{
   margin:0; font-family:var(--font-display); font-weight:400;
   font-size:var(--text-xl); line-height:1.15; color:var(--ink-900);
+  max-width:44ch;
 }
 
 @media (max-width:640px){
@@ -2273,77 +2273,6 @@
   .aol-report{ animation:none; }
 }
 
-/* ---- The horizon -----------------------------------------------------------
-   The hero's picture, used as its GROUND: pinned to the bottom edge at its true
-   proportions, dissolving upward across the whole first screen and gone before
-   it reaches the header.
-
-   NO CROP. `cover` filled the box by height, which on a 3:1 source in a
-   1440x739 hero meant scaling it to 2198px wide and showing 65% of it — the
-   scene was zoomed and the composition lost. `height:auto` lets the picture be
-   exactly as tall as it is wide.
-
-   THE MASK IS ON THE CONTAINER, not the image, and that is what makes the two
-   requirements compatible. The container is the height of the first screen, so
-   the fade is measured against the screen; the picture occupies only the lower
-   part of it, so by its own top edge the mask has already run down to almost
-   nothing. No hard edge to hide, and no stretching the picture to reach the top.
-
-   The stops are weighted hard to the bottom. Spread evenly the mask was still
-   at 68% behind the headline and the promise was competing with a cloud bank. */
-/* POSITIONING ONLY — the clip belongs to the full-width ancestor, NOT here.
-   The host is the capped 1200px inner, and `overflow:hidden` on it clipped the
-   100vw picture back to the container: the hero lost its bleed and the image
-   sat inset with white down both sides. .aol-hero carries the clip because it
-   is the element that is actually viewport-wide. */
-.aol-has-horizon{ position:relative; }
-.aol-hero{ overflow:hidden; }
-/* Everything the reader is here for sits above it. z-index only applies to
-   positioned boxes, so these need `relative` as well as the index — without it
-   they paint in DOM order and the ground covers the copy. */
-.aol-has-horizon > *:not(.aol-horizon){ position:relative; z-index:1; }
-
-.aol-horizon{
-  position:absolute; inset:0; z-index:0;
-  /* Full bleed from inside a capped container. The parent clips overflow, so
-     100vw cannot open a horizontal scrollbar. */
-  left:50%; width:100vw; transform:translateX(-50%);
-  pointer-events:none; line-height:0; overflow:hidden;
-  /* Pin the picture to the ground; the space above it is simply paper. */
-  display:flex; align-items:flex-end;
-  -webkit-mask-image:linear-gradient(to top,
-    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
-    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
-          mask-image:linear-gradient(to top,
-    #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
-    rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
-}
-.aol-horizon img{
-  display:block; width:100%; height:auto;
-  /* The source was quantised onto a real pixel grid so this would work.
-     Smoothing on the way back up undoes all of it. */
-  image-rendering:pixelated;
-  /* A SECOND fade, on the picture's own top edge. How far the container's ramp
-     has run by the time it reaches the picture's top depends on viewport
-     height, and at 1440x900 it was still around 5% — enough to draw a faint
-     hairline across the page. */
-  -webkit-mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
-          mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
-}
-
-/* The held list's heading. The rows below it are SpecGrid's; this is only the
-   line that says what they are. */
-.aol-report__heldtitle{
-  margin:0; font-family:var(--font-mono); font-size:var(--text-2xs);
-  letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--ink-500);
-}
-/* No verdict colouring here — these checks were never run, so there is nothing
-   to colour. The value column carries a COUNT, so it takes the mono treatment
-   the rest of the site gives numerals. */
-.aol-report__board .aol-specsheet__val{
-  font-family:var(--font-mono); font-weight:400;
-  font-size:var(--text-2xs); letter-spacing:var(--tracking-mono); color:var(--ink-600);
-}
 
 
 /* The two assurances under the field. Layout only — the tick is StatusMark. */

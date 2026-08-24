@@ -288,33 +288,48 @@ const PARTNERS = [
      * it — which put the least useful thing first and gave away the pass/fail
      * on every check we had paid to run.
      */
+    /**
+     * Paint the report by CLONING DESIGN-SYSTEM MARKUP.
+     *
+     * The <template> in AuditReport.astro holds real <Card> and <Badge> output,
+     * rendered by Astro at build time. Cloning it is what keeps this in the
+     * system; nothing below constructs a class name a component does not emit.
+     *
+     * THREE WINS, not three verdicts. Every card is a fix the reader can act on.
+     */
     const render = (d: any) => {
       if (!report) return;
       const q = (sel: string) => report.querySelector<HTMLElement>(sel);
       const items = d.items ?? [];
-      const held = d.held ?? [];
 
       const host = q(".aol-report__host");
       if (host) host.textContent = d.host ?? "";
 
-      // WHAT WAS RUN AND WHAT IT FOUND. No grade: a letter derived from three
-      // checks would be a fabricated metric on a page that sells peer-reviewed
-      // method, and it is the fabrication a reader would be right to catch.
-      const count = q(".aol-report__count");
-      if (count) {
-        const failed = d.failed ?? 0;
-        count.textContent =
-          failed === 0
-            ? `${d.ran ?? items.length} checks run · all passed`
-            : `${d.ran ?? items.length} checks run · ${failed} failed`;
+      // What the site already gets right. Shown only when there is something to
+      // say, and never as a substitute for a win.
+      const passing = q(".aol-report__passing");
+      if (passing) {
+        const ok: string[] = d.passing ?? [];
+        if (ok.length) {
+          passing.textContent = `Already doing this: ${ok.join(" · ")}`;
+          passing.hidden = false;
+        } else {
+          passing.hidden = true;
+        }
       }
 
-      const heldTitle = q(".aol-report__heldtitle");
-      if (heldTitle) heldTitle.textContent = "The full audit also checks";
-
+      // The scope lives in the CTA line now, naming the areas rather than
+      // tabulating them above it.
+      // The scope lives in this line now. FOUR AREAS AT MOST: naming all six
+      // turned the sentence into an inventory, and "…free trials, freemium, on
+      // the call" does not read as English.
       const ctaTitle = q(".aol-report__ctatitle");
       if (ctaTitle) {
-        ctaTitle.textContent = `${d.heldTotal ?? 0} more checks, on the call.`;
+        const areas: string[] = (d.held ?? []).map((h: any) => String(h.short));
+        const named = areas.slice(0, 4).join(", ");
+        const more = areas.length > 4 ? " and more" : "";
+        const scope = named ? `, including ${named}${more},` : "";
+        ctaTitle.textContent = `${d.heldTotal ?? 0} more checks${scope} on the call.`;
       }
 
       const cap = q(".aol-report__cap");
@@ -323,43 +338,21 @@ const PARTNERS = [
         cap.hidden = false;
       }
 
-      // THE FINDINGS, first. Four things each: what was checked, why it
-      // matters, what we found here, and where the rule comes from.
       const wrap = q(".aol-report__findings");
       const cardTpl = document.querySelector<HTMLTemplateElement>("#tpl-audit-finding");
       if (wrap && cardTpl) {
         wrap.textContent = "";
-        for (const it of items) {
+        items.forEach((it: any, i: number) => {
           const card = cardTpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
           const slot = (n: string) => card.querySelector<HTMLElement>(`[data-slot="${n}"]`);
+          slot("n")!.textContent = `Win ${i + 1}`;
+          slot("area")!.textContent = it.area ?? "";
           slot("title")!.textContent = it.name ?? "";
-          const v = slot("verdict")!;
-          v.textContent = it.verdict === "pass" ? "PASS" : "FAIL";
-          v.className = `aol-badge aol-badge--${it.verdict === "pass" ? "positive" : "danger"} aol-finding__verdict`;
           slot("why")!.textContent = it.why ?? "";
-          slot("found")!.textContent = it.body ?? "";
+          slot("found")!.textContent = it.observed ?? "";
           slot("cite")!.textContent = it.citation ?? "";
           wrap.appendChild(card);
-        }
-      }
-
-      // WHAT THE FULL AUDIT STILL CHECKS. Named, with no verdict column,
-      // because these were never run — printing a dash for each would imply an
-      // answer is being withheld, and printing a verdict would invent one.
-      const board = q(".aol-report__board");
-      const rowTpl = document.querySelector<HTMLTemplateElement>("#tpl-audit-checks");
-      if (board && rowTpl) {
-        board.textContent = "";
-        const sheet = rowTpl.content.querySelector(".aol-specsheet")!.cloneNode(false) as HTMLElement;
-        const proto = rowTpl.content.querySelector(".aol-specsheet__row")!;
-        for (const h of held) {
-          const row = proto.cloneNode(true) as HTMLElement;
-          row.querySelector(".aol-specsheet__label")!.textContent = h.area ?? "";
-          row.querySelector(".aol-specsheet__val")!.textContent =
-            h.count === 1 ? "1 check" : `${h.count} checks`;
-          sheet.appendChild(row);
-        }
-        board.appendChild(sheet);
+        });
       }
 
       report.hidden = false;

@@ -13,15 +13,12 @@
  *
  * The answer is <template>. Astro renders the real components INTO the
  * templates below at build time, and the client clones them. The markup a
- * visitor sees is emitted by Card, Badge and SpecGrid themselves, so it cannot
+ * visitor sees is emitted by Card and Badge themselves, so it cannot
  * drift from the system: change the component and this changes with it.
  *
  * WHAT THE SYSTEM PROVIDES, and what each part uses:
  *
  *   Badge     the grade, beside the host — a label, which is what a grade is
- *   SpecGrid  the checks — a leader-dot datasheet. Its own note says rows of
- *             facts read as a technical figure "where identical stat tiles
- *             would read as filler", which is exactly what the tile board was
  *   Card      each opened finding
  *   Button    the booking CTA
  *
@@ -33,33 +30,34 @@
 import Badge from "../ds/Badge.astro";
 import Button from "../ds/Button.astro";
 import Card from "../ds/Card.astro";
-import SpecGrid from "../ds/SpecGrid.astro";
 import { BOOKING_URL } from "../../config";
 ---
 
 <section class="aol-report" id="audit-report" aria-labelledby="audit-report-title" hidden>
   <div class="aol-report__inner">
 
-    {/* NO GRADE. A letter derived from a three-check sample is a fabricated
-        metric, and on a page that sells peer-reviewed method it is the
-        fabrication a reader would be right to catch. The header states what was
-        run and what it found, which is a fact. */}
+    {/* Host and nothing else. No grade — a letter off a six-check wave is a
+        fabricated metric on a page that sells peer-reviewed method. And no run
+        count: "3 checks run · 1 failed" was scorekeeping about the tool, not
+        information about the site, and it framed three fixes as a mark against
+        the reader. */}
     <header class="aol-report__top">
       <h2 class="aol-report__host" id="audit-report-title"></h2>
-      <p class="aol-report__count"></p>
     </header>
 
     <p class="aol-report__cap" hidden></p>
 
-    {/* THE FINDINGS FIRST. This is what the visitor waited for. */}
+    {/* THE WINS. This is what the button promised. */}
     <div class="aol-report__findings"></div>
 
-    {/* What the full audit still checks — named, never run, no verdict column.
-        A dash per row would imply an answer is being withheld; a verdict would
-        invent one. */}
-    <h3 class="aol-report__heldtitle"></h3>
-    <div class="aol-report__board"></div>
+    {/* What the site already gets right. Named, not scored — it is the honest
+        thing to show when fewer than three checks failed, and it makes the wins
+        more credible rather than less. */}
+    <p class="aol-report__passing" hidden></p>
 
+    {/* The scope lives in the CTA copy now. A table of six areas above it was
+        the longest thing in the report and said the same thing this sentence
+        says. */}
     <Card variant="sunken" padding="lg" class="aol-report__cta">
       <h3 class="aol-report__ctatitle"></h3>
       <Button variant="primary" arrow href={BOOKING_URL} target="_blank" rel="noopener">Book a call</Button>
@@ -73,18 +71,37 @@ import { BOOKING_URL } from "../../config";
     rendered. It exists so the client has genuine design-system markup to copy
     instead of building its own out of strings.
   */}
-  <template id="tpl-audit-checks">
-    <SpecGrid specs={[{ label: "", value: "" }]} class="aol-report__checks" />
-  </template>
+  {/* A win, not a verdict.
 
+      The number is a Badge because a reader needs to know which of three this
+      is; there is no PASS/FAIL badge any more, because every card is a fix.
+
+      WHY and OBSERVED are LABELLED. Unlabelled, the two paragraphs read as one
+      run of prose and a reader had to work out which sentence was about the
+      research and which was about their own page — the single most confusing
+      thing about the card.
+
+      OBSERVED sits on its own inset panel — a SUNKEN Card, which the system
+      describes as "a filled --ink-050 recess". The card was a flat pink field
+      with four paragraphs on it and nowhere for the eye to land; the one
+      sentence that is about THIS site now has a surface of its own, and that
+      surface is a component rather than a background I drew. */}
   <template id="tpl-audit-finding">
     <Card variant="flat" padding="md" class="aol-finding">
       <div class="aol-finding__top">
-        <h4 class="aol-finding__title" data-slot="title"></h4>
-        <Badge variant="danger" class="aol-finding__verdict" data-slot="verdict"></Badge>
+        <Badge variant="outline" class="aol-finding__n" data-slot="n"></Badge>
+        <span class="aol-finding__area" data-slot="area"></span>
       </div>
+      <h4 class="aol-finding__title" data-slot="title"></h4>
+
+      <p class="aol-finding__lbl">Why</p>
       <p class="aol-finding__why" data-slot="why"></p>
-      <p class="aol-finding__found" data-slot="found"></p>
+
+      <Card variant="sunken" padding="sm" class="aol-finding__observed">
+        <p class="aol-finding__lbl">Observed</p>
+        <p class="aol-finding__found" data-slot="found"></p>
+      </Card>
+
       <p class="aol-finding__cite" data-slot="cite"></p>
     </Card>
   </template>
