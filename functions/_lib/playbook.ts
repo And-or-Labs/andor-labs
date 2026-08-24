@@ -923,79 +923,93 @@ export interface CheckResult {
  * on 17, and saying only "17" reads as though the tool is small.
  */
 /**
- * The three checks a free audit actually runs.
+ * The checks a free audit runs, and how the three "quick wins" are chosen.
  *
- * WHY ONLY THREE. Scoring all twenty-three costs six model calls, a completion
- * round and thirty to forty-five seconds, and then gives away a verdict on
- * every one of them — the gate withheld the evidence but published the
- * pass/fail. Running three is faster, costs a fraction, and leaves the other
- * twenty genuinely unopened rather than opened-and-redacted.
+ * A WAVE OF SIX, NOT THREE. The button promises three quick wins, and a win is
+ * something to fix — so the run has to find three FAILURES, and you cannot know
+ * which checks fail without scoring them. Six scored in one parallel round is
+ * still one round: wall clock is the slowest single call, not the sum, so this
+ * costs a couple of seconds rather than doubling the wait.
  *
- * ORDERED BY SUBSECTION, one taken from each. Three findings from three
- * different parts of the research demonstrate the breadth of it; three from the
- * pricing section would read as a pricing tool.
+ * DETERMINISTIC FIRST. Every rule below can be settled from something
+ * signals.ts actually COUNTS on the page — social-proof numbers, star ratings,
+ * plan counts, price divisibility, per-unit pricing, trial length, headings —
+ * rather than from a judgement about tone or intent. That is not a style
+ * preference: the one confirmed hallucination this tool has produced was a
+ * structural claim ("the hero lists exactly three benefits") invented around
+ * real words on the page. A check whose answer is a count is a check that
+ * cannot be narrated into existence.
  *
- * WITHIN a subsection the order is deliberate:
- *  - Heaviest first. A weight-3 rule is one the research treats as
- *    consequential, and a sample should show the consequential ones.
- *  - Then most commonly failed, so the free audit usually has something to say.
- *    A trio a site passes outright is a worse advert than one it fails.
+ * The design subsection is deliberately LAST. It is scored from a screenshot,
+ * which means it is both the least countable group and the one the note-quoting
+ * gate cannot cover — there is no text for a quote to be checked against.
  *
- * SUBSECTION order is by how reliably the checks can be observed at all.
- * messaging and proof need only the homepage. plans needs readable pricing,
- * which perhaps half of early-stage sites do not have. trials and freemium need
- * the site to actually offer one, so they are last — they are fallbacks, not
- * candidates.
+ * SPREAD IS ROUND-ROBIN. Walking one rule per subsection per pass, rather than
+ * draining a subsection before moving on, is what stops six checks becoming six
+ * pricing checks: seven of the twenty-three rules are pricing rules, so any
+ * order that is not round-robin lands there.
  */
 const SAMPLE_ORDER: { subsection: SubsectionKey; ids: string[] }[] = [
   { subsection: "messaging", ids: ["top-three-benefits", "productize"] },
-  { subsection: "plans", ids: ["three-to-five-plans", "decoy-plan", "simpler-than-competitors"] },
   { subsection: "proof", ids: ["show-numbers", "imperfect-rating", "first-review"] },
-  { subsection: "design", ids: ["cta-upper-right", "perceptual-structure", "layout-by-type"] },
-  { subsection: "trials", ids: ["high-quality-trial", "seven-day-trial"] },
+  { subsection: "plans", ids: ["three-to-five-plans", "divisible-prices", "flat-rate-bias"] },
+  { subsection: "trials", ids: ["seven-day-trial", "high-quality-trial"] },
   { subsection: "freemium", ids: ["limit-usage-not-features", "freemium-decoy"] },
+  { subsection: "design", ids: ["cta-upper-right", "rounded-cta"] },
 ];
 
-/** How many checks a free audit runs. */
-export const SAMPLE_SIZE = 3;
+/** How many checks one wave scores. */
+export const WAVE_SIZE = 6;
+/** How many wins the report shows. */
+export const WINS = 3;
 
 /**
- * Pick the sample: at most one rule per subsection, in the order above,
- * skipping any that cannot be observed on this site.
+ * Pick the wave: round-robin across subsections, skipping anything this site
+ * does not expose.
  *
- * Walking subsections rather than a flat list is what guarantees the spread. A
- * flat list sorted by weight would have handed back three pricing rules on any
- * site with a pricing page, because that is where the heavy rules cluster.
+ * Round-robin rather than a flat list, because the heavy rules cluster in
+ * pricing and a flat list sorted by weight returns a pricing tool.
  */
-export function sampleChecks(ctx: CrawlContext, n: number = SAMPLE_SIZE): Rule[] {
+export function sampleChecks(ctx: CrawlContext, n: number = WAVE_SIZE): Rule[] {
   const byId = new Map(RULES.map((r) => [r.id, r]));
   const out: Rule[] = [];
-  for (const group of SAMPLE_ORDER) {
-    if (out.length >= n) break;
-    for (const id of group.ids) {
+  const taken = new Set<string>();
+  const depth = Math.max(...SAMPLE_ORDER.map((g) => g.ids.length));
+
+  for (let pass = 0; pass < depth && out.length < n; pass++) {
+    for (const group of SAMPLE_ORDER) {
+      if (out.length >= n) break;
+      const id = group.ids[pass];
+      if (!id || taken.has(id)) continue;
       const rule = byId.get(id);
       if (!rule || !rule.auditable || !rule.observable(ctx)) continue;
+      taken.add(id);
       out.push(rule);
-      break; // one per subsection
     }
   }
   return out;
 }
 
 /**
- * The checks a free audit did NOT run, GROUPED BY AREA with a count.
+ * The three wins: the heaviest FAILURES, worst first.
  *
- * Twenty named rows was the first attempt and it was a wall: the area repeated
- * six times for design and seven for pricing, so most of the list was the same
- * two phrases over and over, and the section ran longer than the findings it
- * was supposed to be selling. Six rows carrying "Pricing plans ... 7 checks"
- * say the same thing, fit on a screen, and read as the datasheet the component
- * is for rather than an inventory.
+ * Heaviest rather than first-in-source-order, because the research already
+ * ranks its rules by consequence and "the three that happen to come first" is
+ * arbitrary from the reader's side.
  *
- * It is also the better tease. The breadth is the offer — that the research
- * covers six areas of a page — and a reader gets that from the shape of six
- * rows faster than from reading twenty names.
+ * NEVER PADDED WITH PASSES. If a site fails fewer than three, it gets fewer
+ * than three — inventing a third by promoting something it passed would be the
+ * one thing a page like this cannot do. The passes are reported separately, as
+ * what the site is already getting right, which makes the failures more
+ * credible rather than less.
  */
+export function wins(checks: CheckResult[], n: number = WINS): CheckResult[] {
+  return checks
+    .filter((c) => c.verdict === "fail")
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, n);
+}
+
 export function remainingChecks(ran: Set<string>): { area: string; count: number }[] {
   const counts = new Map<SubsectionKey, number>();
   for (const r of RULES) {
@@ -1008,6 +1022,50 @@ export function remainingChecks(ran: Set<string>): { area: string; count: number
     area: s.label,
     count: counts.get(s.key)!,
   }));
+}
+
+/**
+ * A citation cut to its title and year.
+ *
+ * The full APA string is right for a footnote and wrong for a card: at 150-200
+ * characters it was the longest thing on a finding, so the card read as a
+ * bibliography with a note attached.
+ *
+ * The parse is deliberate about one thing. Splitting on ". " does not work,
+ * because author initials are full of it — "Shu, S. B., & Carlson, K. A. When
+ * three charms..." breaks into four fragments, three of them useless. What IS
+ * reliable is SHAPE: the year is the last four-digit number in parentheses, the
+ * journal is the final segment, and the title is the one IMMEDIATELY BEFORE the
+ * journal — a citation always runs authors, title, journal, year.
+ *
+ * "Longest segment" was the first attempt and it is wrong: a five-author list
+ * is longer than a short title, so Wirtz et al. came out as "P., Jaakkola, E.,
+ * Gelbrich, K., & Hartley, N (2021)". Position is structural; length is a guess.
+ *
+ * The leading initial that survives the split ("A. When three charms") is
+ * stripped, and a subtitle after a colon is dropped — the reader is being told
+ * which study, not cataloguing it.
+ *
+ * Anything that does not parse falls back to the full citation. A wrong short
+ * form is worse than a long right one on a page that sells itself on sources.
+ */
+export function shortCitation(citation: string): string {
+  const year = [...citation.matchAll(/\((?:[A-Za-z]+\s+)?(\d{4})\)/g)].pop()?.[1];
+  if (!year) return citation;
+
+  // Drop the trailing "(Month Year)." and the journal name before it.
+  const body = citation.replace(/\s*\([^)]*\)\.?\s*$/, "");
+  const segments = body.split(". ");
+  if (segments.length < 2) return citation;
+  segments.pop(); // the journal
+
+  const title = segments[segments.length - 1] ?? "";
+  const cleaned = title
+    .replace(/^[A-Z]\.\s+/, "")   // an initial left behind by the split
+    .replace(/:.*$/, "")           // the subtitle
+    .trim();
+
+  return cleaned.length > 8 ? `${cleaned} (${year})` : citation;
 }
 
 export const AUDITABLE_TOTAL = RULES.filter((r) => r.auditable).length;

@@ -1,4 +1,5 @@
 ---
+import StatusMark from "../ds/StatusMark.astro";
 import Horizon from "../Horizon.astro";
 import Badge from "../ds/Badge.astro";
 import Input from "../ds/Input.astro";
@@ -104,6 +105,18 @@ const PARTNERS = [
           <Button type="submit" size="sm" variant="primary" class="aol-hero__auditgo">Get 3 quick wins</Button>
         </div>
         <p class="aol-hero__auditerr" role="alert" hidden></p>
+
+        {/* What it costs to say yes, answered before it is asked. Both are the
+            two objections a stranger has to an email field: how long is this
+            going to take, and am I about to be made to create an account.
+
+            StatusMark is the system's yes/no glyph — the same mark the
+            comparison table and the offer cards use — rather than a tick typed
+            into the copy. */}
+        <ul class="aol-hero__assurances">
+          <li><StatusMark kind="yes" size={15} /> Takes 30 seconds</li>
+          <li><StatusMark kind="yes" size={15} /> No sign up needed</li>
+        </ul>
 
         {/* Progress, under the field, appearing only once a run starts.
             Discrete jumps through the crawl, then elapsed-time through scoring,

@@ -4,34 +4,41 @@
  * without collapsing on a site where half the checks cannot be observed.
  */
 import { describe, expect, it } from "vitest";
-import { sampleChecks, remainingChecks, SAMPLE_SIZE, AUDITABLE_TOTAL, codeFor } from "../functions/_lib/playbook";
+import { sampleChecks, remainingChecks, wins, WAVE_SIZE, WINS, AUDITABLE_TOTAL, codeFor } from "../functions/_lib/playbook";
 
 const ctx = (o: Record<string, unknown> = {}) =>
   ({ hasPricing: true, pricingUnreadable: false, thin: false, hasTrial: true,
      hasFreemium: true, hasVideo: true, signals: {}, ...o }) as never;
 
 describe("the sample", () => {
-  it("takes three", () => {
-    expect(sampleChecks(ctx())).toHaveLength(SAMPLE_SIZE);
+  it("takes a wave of six", () => {
+    expect(sampleChecks(ctx())).toHaveLength(WAVE_SIZE);
   });
 
-  it("never takes two from the same subsection", () => {
-    // This is the property the whole design rests on. A flat list sorted by
-    // weight would return three PRICING rules on any site with a pricing page,
-    // because that is where the heavy rules cluster — and three pricing
-    // findings read as a pricing tool rather than an audit.
+  it("spreads across the research rather than draining one subsection", () => {
+    // The property the whole design rests on. Seven of the twenty-three rules
+    // are pricing rules, so any order that is not round-robin returns a pricing
+    // tool: NO subsection may supply more than two of the six.
+    //
+    // The floor is three distinct subsections, not four, and that is a fact
+    // about the rule set rather than a weak test — a site with no readable
+    // pricing loses the plans, trials AND freemium rules at once, which leaves
+    // messaging, proof and design as the only places to draw from.
     for (const c of [ctx(), ctx({ hasPricing: false }), ctx({ hasTrial: false, hasFreemium: false })]) {
       const subs = sampleChecks(c).map((r) => r.subsection);
-      expect(new Set(subs).size).toBe(subs.length);
+      expect(new Set(subs).size).toBeGreaterThanOrEqual(3);
+      for (const s of new Set(subs)) {
+        expect(subs.filter((x) => x === s).length).toBeLessThanOrEqual(2);
+      }
     }
   });
 
-  it("still finds three when there is no pricing, trial or free tier", () => {
+  it("still fills the wave when there is no pricing, trial or free tier", () => {
     // The commonest shape of early-stage site: a homepage and not much else.
     // If the sampler needed pricing it would return one check and the report
     // would have nothing to say.
     const thin = sampleChecks(ctx({ hasPricing: false, hasTrial: false, hasFreemium: false }));
-    expect(thin).toHaveLength(SAMPLE_SIZE);
+    expect(thin).toHaveLength(WAVE_SIZE);
     for (const r of thin) expect(r.observable(ctx({ hasPricing: false, hasTrial: false, hasFreemium: false }))).toBe(true);
   });
 
@@ -41,6 +48,29 @@ describe("the sample", () => {
     const a = sampleChecks(ctx()).map((r) => codeFor(r.id));
     const b = sampleChecks(ctx()).map((r) => codeFor(r.id));
     expect(a).toEqual(b);
+  });
+});
+
+describe("the wins", () => {
+  const check = (id: string, verdict: "pass" | "fail", weight: number) =>
+    ({ id, verdict, weight }) as never;
+
+  it("takes the heaviest failures, worst first", () => {
+    const got = wins([check("a", "fail", 1), check("b", "fail", 3), check("c", "fail", 2)]);
+    expect(got.map((c) => c.id)).toEqual(["b", "c", "a"]);
+  });
+
+  it("never pads with passes", () => {
+    // A site that fails one check gets ONE win. Promoting something it passed
+    // to fill the third slot would be inventing a problem, which is the one
+    // thing a page selling an evidence-based audit cannot do.
+    const got = wins([check("a", "fail", 3), check("b", "pass", 3), check("c", "pass", 2)]);
+    expect(got.map((c) => c.id)).toEqual(["a"]);
+  });
+
+  it("shows at most three even when everything fails", () => {
+    const all = ["a", "b", "c", "d", "e"].map((id, i) => check(id, "fail", ((i % 3) + 1) as never));
+    expect(wins(all)).toHaveLength(WINS);
   });
 });
 

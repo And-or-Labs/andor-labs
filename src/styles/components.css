@@ -2345,3 +2345,18 @@
   font-size:var(--text-2xs); letter-spacing:var(--tracking-mono); color:var(--ink-600);
 }
 
+
+/* The two assurances under the field. Layout only — the tick is StatusMark. */
+.aol-hero__assurances{
+  list-style:none; margin:var(--space-4) 0 0; padding:0;
+  display:flex; flex-wrap:wrap; justify-content:center;
+  gap:var(--space-2) var(--space-5);
+}
+.aol-hero__assurances li{
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:var(--font-mono); font-size:var(--text-2xs);
+  letter-spacing:var(--tracking-mono); color:var(--ink-500);
+}
+/* The mark is supplementary — every one of these is paired with its own label,
+   so the glyph is never the sole carrier of meaning. */
+.aol-hero__assurances .aol-statusmark{ color:var(--blue-600); }
