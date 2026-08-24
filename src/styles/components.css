@@ -2281,6 +2281,25 @@
   -webkit-mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
           mask-image:linear-gradient(to top, #000 0%, #000 72%, transparent 100%);
 }
+/* A LONGER TOP FADE ON A PHONE, because the source is dark-pale-dark.
+   The scene runs night sky at the top, cloud bank and lit sea through the
+   middle, black hillside along the bottom. Desktop only ever puts copy over the
+   pale middle third, so a 28% fade is enough to hide the picture's own top
+   edge. A phone crops to a third of the width and the same picture is a
+   quarter the height, which brings the dark SKY band up to where the field and
+   the ticks are — the one part of the image nobody was designing against.
+
+   Fading the top 45% instead of the top 28% takes the sky out of play without
+   touching the cloud bank, and is worth 0.6 of contrast behind the ticks.
+   Scoped to the media query: above 660px the picture is uncropped and its top
+   is already at 4% container alpha, so widening this there would only wash out
+   the cloud bank behind the subhead for no gain. */
+@media (max-width:900px){
+  .aol-horizon img{
+    -webkit-mask-image:linear-gradient(to top, #000 0%, #000 55%, transparent 100%);
+            mask-image:linear-gradient(to top, #000 0%, #000 55%, transparent 100%);
+  }
+}
 
 /* ---- The audit report ------------------------------------------------------
    POSITIONING ONLY. The card, the badge and the button are components; what is

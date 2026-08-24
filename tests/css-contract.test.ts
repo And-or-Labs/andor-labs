@@ -23,6 +23,7 @@ import { describe, expect, it } from "vitest";
 
 const css = readFileSync(new URL("../src/styles/components.css", import.meta.url), "utf8");
 const hero = readFileSync(new URL("../src/components/sections/Hero.astro", import.meta.url), "utf8");
+const site = readFileSync(new URL("../src/styles/site.css", import.meta.url), "utf8");
 
 describe("the hero form always submits", () => {
   it("guards on the form and input ONLY", () => {
@@ -127,6 +128,31 @@ describe("the hero horizon", () => {
     // shipped once already.
     expect(css).toMatch(/\.aol-hero\{\s*overflow:hidden/);
     expect(css).toMatch(/\.aol-has-horizon\{\s*position:relative;\s*\}/);
+  });
+
+  it("keeps the ground under the copy on a phone, not parked below it", () => {
+    // TWO RULES, ONE COMPOSITION, and it has been wrong in both directions.
+    //
+    // Without a band the last line of copy sat at 7-8% up the mask ramp, where
+    // the picture is near solid — the assurance ticks are --ink-500 at 11px and
+    // measured 1.3:1 against the hillside. The first fix reserved the picture's
+    // WHOLE height below the content, which made them legible by moving the
+    // picture out from under them entirely: it began 32px BELOW the last line
+    // at every mobile width, zero overlap, and read as a photograph parked
+    // under the hero rather than the ground the hero stands on.
+    //
+    // So the band must exist AND be smaller than the picture. 22vh puts the
+    // last line at 29% — desktop's own position — leaving 60-100px of picture
+    // above it. Measured behind the ticks afterwards: 3.8:1 at 390px and 4.0:1
+    // at 768, against desktop's 3.65:1.
+    expect(site).toMatch(/padding-bottom:\s*clamp\(110px,\s*22vh,\s*190px\)/);
+    expect(site).not.toMatch(/padding-bottom:\s*calc\(64vw/);
+
+    // The picture's own top fade is longer on a phone, because the source runs
+    // dark-pale-dark: night sky, cloud bank, black hillside. Desktop only ever
+    // puts copy over the pale middle third; a phone crops to a third of the
+    // width and brings the dark SKY up to where the field is.
+    expect(css).toMatch(/@media \(max-width:900px\)\{[\s\S]{0,120}#000 55%/);
   });
 
   it("never crops on a wide screen, and caps the crop on a narrow one", () => {

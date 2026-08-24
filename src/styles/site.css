@@ -279,23 +279,40 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
 @media (max-width: 620px) {
   .aol-grid-3 { grid-template-columns: 1fr; }
 }
-/* ON A PHONE THE PICTURE GETS A BAND OF ITS OWN.
-   The horizon is a GROUND on a wide screen: the copy floats in the pale sky
-   half and the dark foreground stays well below the last line. That composition
-   does not survive a 390px column — the same picture is a third as wide, so its
-   foreground is proportionally much taller in frame and had risen to sit behind
-   the assurance ticks, which are --ink-500 and stopped being readable on it.
+/* ON A PHONE THE PICTURE IS STILL THE GROUND — it just needs room to dissolve.
+   The horizon works on a wide screen because the copy sits in the TOP half of
+   a tall container: the last line lands about 29% up the mask's ramp, where the
+   picture is down to roughly a third strength and reads as a wash. On a phone
+   the content fills almost the whole container and the last line was at 7-8%,
+   where the mask is near solid — so the assurance ticks, which are --ink-500
+   11px, sat on the hillside at a measured contrast of 1.3:1.
 
-   Reserving the picture's own height below the content is what makes enlarging
-   it safe. 64vw is exactly the height the image takes at these widths, so the
-   band IS the picture and everything above it stays paper.
+   The first fix here reserved the picture's WHOLE height below the content
+   (~64vw, 237-416px). That made the ticks legible by moving the picture out
+   from under them entirely, and in doing so threw away the treatment: the
+   image began 32px BELOW the last line at every mobile width, with zero
+   overlap, so it read as a photograph parked under the hero rather than the
+   ground the hero stands on. Desktop overlaps its copy by 276px.
+
+   This reserves only what the RAMP needs. 22vh puts the last line at 29% —
+   desktop's own position — while leaving 64-85px of picture still above it, so
+   the fade runs up through the ticks and the field exactly as it does at 1440.
+   Measured behind the ticks: 3.8:1 mean at 390, 3.7:1 at 430, against 3.7:1 on
+   desktop.
+
+   900px, NOT 660. The tablet had the same fault and worse: at 768 the picture
+   is uncropped and 69% of the container, so the ticks sat deep in it at 2.0:1 —
+   the lowest contrast anywhere on the site, and it predates all of this. The
+   band takes it to 4.0:1. Above 900 the copy already clears the picture on its
+   own and nothing here applies: 1024, 1280, 1440 and 1920 measure identically
+   with the rule present and absent.
 
    SELECTOR AND POSITION BOTH MATTER. The mobile hero's padding is set by
    `.aol-hero > .aol-hero-inner` inside the 880px block above, as a shorthand —
    so a bare `.aol-hero-inner` rule loses on specificity AND this has to come
    after it. Written once with a plain class and it silently did nothing. */
-@media (max-width: 660px) {
-  .aol-hero > .aol-hero-inner { padding-bottom: calc(64vw + var(--space-8)); }
+@media (max-width: 900px) {
+  .aol-hero > .aol-hero-inner { padding-bottom: clamp(110px, 22vh, 190px); }
 }
 
 /* ── Contact drawer ───────────────────────────────────────── */
