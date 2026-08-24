@@ -129,14 +129,39 @@ describe("the hero horizon", () => {
     expect(css).toMatch(/\.aol-has-horizon\{\s*position:relative;\s*\}/);
   });
 
-  it("never crops the picture", () => {
-    // `cover` fills by height and showed 65% of a 3:1 source in a 1440 hero.
+  it("never crops on a wide screen, and caps the crop on a narrow one", () => {
+    // Two separate bugs, one rule.
+    //
+    // `height:auto` is what keeps the picture at its true proportions: `cover`
+    // alone filled the box by height and showed 65% of a 3:1 source in a 1440
+    // hero — the scene zoomed and the composition lost. That shipped once.
+    //
+    // The min-height is what gives the picture its share of the ground on a
+    // phone, where `height:auto` alone left it at 19% of the container against
+    // 67% on desktop. It crops to do that, and the CAP HAS TO LIVE INSIDE THE
+    // min(): CSS resolves min-height last, so a separate max-height is simply
+    // ignored — written that way it zoomed 2.87x at 320px and cut the figure
+    // out of the frame. 64vw is 1.9x on a 2.975:1 source, which is exactly
+    // where the visible window still reaches the figure at 0.80.
     expect(css).toMatch(/\.aol-horizon img\{[^}]*height:auto/);
-    expect(css).not.toMatch(/\.aol-horizon img\{[^}]*object-fit:\s*cover/);
+    expect(css).toMatch(/\.aol-horizon img\{[^}]*min-height:\s*min\(55%,\s*64vw\)/);
+    expect(css).not.toMatch(/\.aol-horizon img\{[^}]*max-height/);
   });
 });
 
 describe("the report", () => {
+  it("gives a win card the same width whatever the win count", () => {
+    // The wave returns one, two or three wins, and one and two are the common
+    // answers on real sites. Under `auto-fit` the empty tracks collapse and the
+    // survivors take the whole container: the same card measured 371px with
+    // three wins, 566px with two and 1152px with one — a different component
+    // depending on how well the visitor's site scored.
+    const rule = /\.aol-report__findings\{[^}]*\}/.exec(css)?.[0] ?? "";
+    expect(rule).not.toContain("auto-fit");
+    expect(rule).not.toContain("auto-fill");
+    expect(rule).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+  });
+
   it("has real vertical padding", () => {
     // It had almost none, and a result somebody waited thirty seconds for
     // should not arrive crammed against the thing above it.

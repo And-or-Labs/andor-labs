@@ -25,6 +25,16 @@
   -webkit-user-select:none; user-select:none;
 }
 .aol-btn:focus-visible{ outline:none; box-shadow: var(--focus-ring); }
+/* A FLOOR ON TOUCH, at the component.
+   Padding sizes a button for the pointer that clicks it, and on a coarse
+   pointer the small and medium variants land under the 44px target: the
+   report's `Book a call` measured 33px tall on every phone, and the hero's
+   submit 38px on a tablet, because the width breakpoint that stacks the field
+   never fires at 768. Gated on the POINTER, not the viewport, because that is
+   what the rule is actually about. */
+@media (pointer:coarse){
+  .aol-btn{ min-height:44px; }
+}
 .aol-btn--sm{ font-size:11px; padding:6px 12px; }
 .aol-btn--md{ font-size:13px; padding:9px 16px; }
 .aol-btn--lg{ font-size:14px; padding:13px 22px; }
@@ -2226,8 +2236,29 @@
     #000 0%, rgba(0,0,0,.74) 11%, rgba(0,0,0,.40) 24%,
     rgba(0,0,0,.18) 40%, rgba(0,0,0,.06) 60%, transparent 86%);
 }
+/* THE PICTURE KEEPS ITS SHARE OF THE GROUND AT EVERY WIDTH.
+   `height:auto` alone ties the scene's size to the viewport's WIDTH, and the
+   horizon container's height is set by the first screen — so the same treatment
+   that fills 67% of the container at 1440 filled 19% of it at 320. On a phone
+   the ground the promise stands on had become a strip along the bottom.
+
+   min-height restores the proportion and carries its own ceiling. The cap is
+   INSIDE the min() and not a max-height, because CSS resolves min-height last
+   and it wins outright over max-height — as a separate declaration the cap was
+   simply ignored and 320px zoomed to 2.87x, past the figure.
+
+   The picture is 2.975:1, so its natural height is 33.6vw and 64vw is 1.9x, the
+   most it can take: at 58% the visible window is 0.58 + 0.42/zoom, which passes
+   the figure at 0.80 exactly when zoom is 1.9. Above 768px the natural height
+   already clears 55% and nothing here applies at all.
+
+   58%, NOT CENTRE. The crop only happens once min-height binds, and a centred
+   window at 320px loses the figure on the right. 58% keeps both the star and
+   the person; the tree at the left edge is what goes. */
 .aol-horizon img{
   display:block; width:100%; height:auto;
+  min-height:min(55%, 64vw);
+  object-fit:cover; object-position:58% 100%;
   /* The source was quantised onto a real pixel grid so this would work.
      Smoothing on the way back up undoes all of it. */
   image-rendering:pixelated;
@@ -2273,8 +2304,24 @@
   letter-spacing:var(--tracking-mono); color:var(--ink-500);
 }
 
+/* A FIXED COLUMN COUNT, not auto-fit.
+   The wave returns ONE, TWO or three wins — measured across real sites, one and
+   two are the common answers, not the exception. Under `auto-fit` the empty
+   tracks collapse and the survivors absorb the whole container, so the same
+   card rendered at 371px with three wins, 566px with two and 1152px with one:
+   three different components depending on how well the visitor's site did.
+
+   Columns are declared instead, so a win card is one column wide always and the
+   row simply runs short. The breakpoints are where the card stops being a
+   comfortable measure, not device widths. */
 .aol-report__findings{
-  display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:var(--space-5);
+  display:grid; grid-template-columns:minmax(0,1fr); gap:var(--space-5);
+}
+@media (min-width:660px){
+  .aol-report__findings{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+}
+@media (min-width:1020px){
+  .aol-report__findings{ grid-template-columns:repeat(3, minmax(0,1fr)); }
 }
 /* Number and area on one line above the instruction: which win this is, and
    which part of the research it comes from. */
@@ -2325,7 +2372,6 @@
 
 @media (max-width:640px){
   .aol-report{ padding:var(--space-10) 0; }
-  .aol-report__findings{ grid-template-columns:1fr; }
 }
 @media (prefers-reduced-motion:reduce){
   .aol-report{ animation:none; }

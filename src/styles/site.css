@@ -185,9 +185,14 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
 
 @media (max-width: 880px) {
   /* Stacked and centred once the halves stop fitting side by side — squeezed,
-     the logo row wraps under itself and the split stops reading as a split. */
+     the logo row wraps under itself and the split stops reading as a split.
+
+     `justify-content` as well as `align-items`: the side keeps `flex-end` from
+     the row layout, so once the label and the marks wrapped onto separate lines
+     the label sat hard right above a centred row of marks, reading as though it
+     labelled nothing. Both axes have to come back to centre together. */
   .aol-partners__inner { justify-content: center; text-align: center; }
-  .aol-partners__side { align-items: center; }
+  .aol-partners__side { align-items: center; justify-content: center; }
   .aol-partners__row { justify-content: center; }
   .aol-partners__founder { width: 100%; text-align: center; }
 }
@@ -273,6 +278,24 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
 }
 @media (max-width: 620px) {
   .aol-grid-3 { grid-template-columns: 1fr; }
+}
+/* ON A PHONE THE PICTURE GETS A BAND OF ITS OWN.
+   The horizon is a GROUND on a wide screen: the copy floats in the pale sky
+   half and the dark foreground stays well below the last line. That composition
+   does not survive a 390px column — the same picture is a third as wide, so its
+   foreground is proportionally much taller in frame and had risen to sit behind
+   the assurance ticks, which are --ink-500 and stopped being readable on it.
+
+   Reserving the picture's own height below the content is what makes enlarging
+   it safe. 64vw is exactly the height the image takes at these widths, so the
+   band IS the picture and everything above it stays paper.
+
+   SELECTOR AND POSITION BOTH MATTER. The mobile hero's padding is set by
+   `.aol-hero > .aol-hero-inner` inside the 880px block above, as a shorthand —
+   so a bare `.aol-hero-inner` rule loses on specificity AND this has to come
+   after it. Written once with a plain class and it silently did nothing. */
+@media (max-width: 660px) {
+  .aol-hero > .aol-hero-inner { padding-bottom: calc(64vw + var(--space-8)); }
 }
 
 /* ── Contact drawer ───────────────────────────────────────── */
