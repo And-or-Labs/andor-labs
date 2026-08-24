@@ -277,6 +277,34 @@ export function groundedNote(note: string, evidence: string): boolean {
   return found.length >= 2 && found.length === quotes.length;
 }
 
+/**
+ * AN ANSWER THAT OMITS IS NOT A FAILED CALL.
+ *
+ * Both group scorers used to throw when a response scored nothing, which was
+ * right when a call carried a whole subsection: six rules and zero scores is a
+ * model that ignored the task. The wave changed that and the check did not
+ * follow it — every call now carries ONE rule, so the two things the prompt
+ * explicitly asks for, "if the pages do not show you enough, OMIT it" and a
+ * note whose quote is really on the page, both produce an empty result. An
+ * honest omission was being raised as an exception, rejected out of
+ * Promise.allSettled and dropped on the floor beside a genuine outage.
+ *
+ * Measured across three sites, two to three of every six sampled checks
+ * disappeared this way and the report simply said it had checked fewer things.
+ *
+ * So the only thing that throws now is a response that is not an answer at
+ * all: no JSON, or JSON with no `scores` array. That is a transport or model
+ * failure, it is worth a rejection, and — unlike an omission — it is now the
+ * ONLY thing a rejection can mean, which is what makes counting them useful.
+ */
+export function requireScores(text: string): unknown {
+  const raw = extractJson(text);
+  if (!raw || typeof raw !== "object" || !Array.isArray((raw as { scores?: unknown }).scores)) {
+    throw new Error("no scores array in the response");
+  }
+  return raw;
+}
+
 function normalize(raw: unknown, valid: Set<string>, evidence: string): SectionVerdict {
   const obj = (raw ?? {}) as { scores?: unknown };
   const scores = new Map<string, number>();
@@ -361,9 +389,7 @@ async function scoreVisualGroup(
       // against, and a legitimate note about where a button sits ("upper-right
       // corner") quotes nothing. The gate belongs where the risk is: prose
       // claims about page STRUCTURE, which is the text groups.
-      const parsed = normalize(extractJson(text), valid, "");
-      if (parsed.scores.size === 0) throw new Error("no usable scores");
-      return parsed;
+      return normalize(requireScores(text), valid, "");
     },
     {
       preferred: VISION_MODEL,
@@ -393,19 +419,14 @@ async function scoreGroup(
   if (valid.size === 0) return { scores: new Map(), notes: new Map(), summary: "" };
 
   const t0 = Date.now();
-  // The prompt IS the evidence: it is the only thing the model saw, so it is
-  // exactly the right haystack to check a quote against.
   const prompt = buildPrompt(key, host, site, ctx, only);
   const { value } = await askLadder(
     PROVIDER,
     env,
     prompt,
-    (text) => {
-      const parsed = normalize(extractJson(text), valid, prompt);
-      // A response that scored nothing is a failed call, not an answer.
-      if (parsed.scores.size === 0) throw new Error("no usable scores");
-      return parsed;
-    },
+    // The prompt IS the evidence: it is the only thing the model saw, so it is
+    // exactly the right haystack to check a quote against.
+    (text) => normalize(requireScores(text), valid, prompt),
     {
       temperature: 0.2,
       schema: RESPONSE_SCHEMA,
@@ -484,18 +505,41 @@ export async function scoreSite(
 
   const merged = new Map<string, number>();
   const allNotes = new Map<string, string>();
-  for (const r of settled) {
-    if (r.status !== "fulfilled") continue;
+  const failures: string[] = [];
+  for (const [i, r] of settled.entries()) {
+    if (r.status !== "fulfilled") {
+      failures.push(`${sample[i].id}: ${r.reason}`);
+      continue;
+    }
     for (const [k, v] of r.value.scores) merged.set(k, v);
     for (const [k, v] of r.value.notes) allNotes.set(k, v);
   }
 
-  // SCORING NOTHING IS AN OUTAGE, not a result.
-  //
-  // A page reporting three checks it never ran is worse than a page saying it
-  // failed. This mattered more when six groups could resolve empty; with three
-  // it is the whole run.
+  // THE THREE WAYS A CHECK DISAPPEARS ARE NOW DISTINGUISHABLE, and only one of
+  // them is a fault. Declined and ungrounded are the design working; a rejected
+  // call is the provider. Logged apart, because "we showed two wins" reads the
+  // same in all three cases and only one of them wants looking at.
+  const declined = sample.filter((r) => !merged.has(r.id) && !failures.some((f) => f.startsWith(`${r.id}:`)));
+  console.log(
+    `[audit] wave: ${sample.length} sampled, ${merged.size} scored, ` +
+      `${declined.length} declined or ungrounded, ${failures.length} failed` +
+      (declined.length ? ` — declined: ${declined.map((r) => r.id).join(", ")}` : "") +
+      (failures.length ? ` — failed: ${failures.join(" | ")}` : ""),
+  );
+
+  // SCORING NOTHING IS AN OUTAGE, not a result. A page reporting checks it
+  // never ran is worse than a page saying it could not run them.
   if (merged.size === 0) throw new Error("no check was scored");
+
+  // AND SO IS MOST OF THE WAVE FAILING. One provider error costs a check and
+  // the report is honest about how many it ran; half the wave erroring is an
+  // outage wearing a thin report, and a visitor gets a result that looks like
+  // their site's rather than ours. Fail instead — audit.ts turns a throw into
+  // "we couldn't read that site well enough to score it", which is at least
+  // about us.
+  if (failures.length > sample.length / 2) {
+    throw new Error(`wave mostly failed: ${failures.length}/${sample.length} — ${failures.join(" | ")}`);
+  }
 
   const checks = rankChecks(ctx, merged, allNotes);
   return { host, ctx, checks, passed: checks.filter((c) => c.verdict === "pass").length };

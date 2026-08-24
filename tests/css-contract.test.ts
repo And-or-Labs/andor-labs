@@ -162,6 +162,29 @@ describe("the report", () => {
     expect(rule).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   });
 
+  it("wraps every string it did not write", () => {
+    // These overflow WITHOUT widening their own box, so nothing measures as too
+    // wide and the page just gains a horizontal scrollbar. A 160-character host
+    // took the document to 1826px at every viewport while .aol-report__top went
+    // on reporting a width of 342.
+    // Every rule in the file that sets it — there is more than one, and the
+    // report's is whichever one claims the findings.
+    const blocks = [...css.matchAll(/([^{}]*)\{\s*overflow-wrap:anywhere;?\s*\}/g)].map((m) => m[1]);
+    const rule = blocks.find((b) => b.includes(".aol-finding__found")) ?? "";
+    for (const cls of [
+      ".aol-finding__found",   // the page's own words
+      ".aol-finding__why",
+      ".aol-finding__title",
+      ".aol-finding__cite",
+      ".aol-report__host",     // whatever the visitor typed
+      ".aol-report__cap",
+      ".aol-report__passing",
+      ".aol-report__ctatitle", // subsection names out of the rule table
+    ]) {
+      expect(rule, `${cls} renders text from outside this repo and must wrap`).toContain(cls);
+    }
+  });
+
   it("has real vertical padding", () => {
     // It had almost none, and a result somebody waited thirty seconds for
     // should not arrive crammed against the thing above it.

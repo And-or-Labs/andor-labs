@@ -2443,8 +2443,26 @@
    a programmatic focus — :focus-visible only fires for keyboard intent. */
 .aol-report__host:focus{ outline:none; }
 
-/* Long, unbroken strings in a quoted observation — a URL, a class name, a
-   German compound — must wrap rather than push the card wide. */
+/* EVERY STRING IN THE REPORT THAT WE DID NOT WRITE.
+   A quoted observation carries whatever is on the page — a URL, a class name, a
+   German compound — and the host carries whatever the visitor typed. Without
+   this they overflow WITHOUT widening their own box, so nothing measures as
+   too wide and the page simply gains a horizontal scrollbar: a 160-character
+   host took the document to 1826px at every viewport, and `.aol-report__top`
+   still reported a width of 342.
+
+   The CTA line is here for the same reason from the other direction — its
+   subsection names come from the rule table, and a long one pushed it 36px past
+   a 320px screen.
+
+   The list is every element in the report whose text comes from outside this
+   repository. Anything added later that renders crawled or model-written text
+   belongs in it. */
 .aol-finding__found,
 .aol-finding__why,
-.aol-finding__title{ overflow-wrap:anywhere; }
+.aol-finding__title,
+.aol-finding__cite,
+.aol-report__host,
+.aol-report__cap,
+.aol-report__passing,
+.aol-report__ctatitle{ overflow-wrap:anywhere; }

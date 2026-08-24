@@ -414,9 +414,10 @@ const PARTNERS = [
       // would otherwise get a heading, a blank space and a booking CTA, which
       // reads as breakage rather than as a compliment.
       const none = q(".aol-report__none");
+      const drawableCount = items.filter((it: any) => typeof it?.name === "string" && it.name.trim() !== "").length;
       if (none) {
-        none.hidden = items.length > 0;
-        if (!items.length) {
+        none.hidden = drawableCount > 0;
+        if (!drawableCount) {
           none.textContent =
             "Nothing to fix in the checks we ran — which is rare. The rest of the audit is where the interesting ones are.";
         }
@@ -426,7 +427,11 @@ const PARTNERS = [
       const cardTpl = document.querySelector<HTMLTemplateElement>("#tpl-audit-finding");
       if (wrap && cardTpl) {
         wrap.textContent = "";
-        items.forEach((it: any, i: number) => {
+        // A finding with no instruction is not a finding. The endpoint has
+        // never sent one, and a card rendering four empty slots is noise the
+        // reader has to decide about — cheaper to not draw it.
+        const drawable = items.filter((it: any) => typeof it?.name === "string" && it.name.trim() !== "");
+        drawable.forEach((it: any, i: number) => {
           const card = cardTpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
           const slot = (n: string) => card.querySelector<HTMLElement>(`[data-slot="${n}"]`);
           slot("n")!.textContent = `Win ${i + 1}`;
@@ -453,7 +458,7 @@ const PARTNERS = [
       // tell somebody what arrived or where; naming the result and moving focus
       // to the section heading does both, and a keyboard user carries on from
       // the report rather than from the field they left behind.
-      const n = items.length;
+      const n = report.querySelectorAll(".aol-finding").length;
       say(n === 0 ? "no quick wins found" : `${n} quick ${n === 1 ? "win" : "wins"} below`);
       requestAnimationFrame(() => {
         report.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
