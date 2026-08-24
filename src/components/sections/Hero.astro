@@ -13,19 +13,24 @@ const PRESS = ["Digiday", "Forbes", "Adweek", "eMarketer"];
       <img src="/northstar.png" alt="" width="952" height="320" decoding="async" />
     </div>
     <div class="aol-eyebrow aol-hero__eyebrow" data-r style="--r:0">Est. 2025</div>
-    <h1 class="aol-hero__headline" data-r style="font-family:var(--font-display);font-weight:400;font-size:42px;line-height:1.18;letter-spacing:0;max-width:30.5rem;--r:1">Don't just go-to-market. Win it.</h1>
-    <p class="aol-hero__subhead" data-r style="font-size:21px;line-height:1.5;color:var(--ink-600);max-width:42ch;--r:2">
+    {/* The credibility line, directly under the stamp and above the promise:
+        who is saying this, before what they are saying.
+
+        The exit is a Badge rather than parenthetical text — the treatment this
+        line already had, and the pill is what makes the number read as a fact
+        about the companies rather than an aside about the sentence.
+
+        No inline styling: the typography lives in .aol-hero__founder. It used
+        to ride on the element, which is how a hero ends up with its type
+        decisions in three places. */}
+    <p class="aol-hero__founder" data-r style="--r:1">Founded by the ex head of marketing at <strong>Blockthrough</strong> and <strong>AdPushup</strong> <Badge variant="tint" class="aol-founderpill">sold for &gt;$100M</Badge></p>
+    {/* --r counts down the page, so moving an element re-stages everything
+        under it. The reveal is meant to read top to bottom; leaving the
+        headline on 1 would have run it against the line above it. */}
+    <h1 class="aol-hero__headline" data-r style="font-family:var(--font-display);font-weight:400;font-size:42px;line-height:1.18;letter-spacing:0;max-width:30.5rem;--r:2">Don't just go-to-market. Win it.</h1>
+    <p class="aol-hero__subhead" data-r style="font-size:21px;line-height:1.5;color:var(--ink-600);max-width:42ch;--r:3">
       {PROMISE}
     </p>
-    {/* PARKED — credibility line, hidden for now.
-        Sits between the promise and the CTA: last thing read before the ask,
-        which is where proof does the most work. DOM order matches the
-        grid-area order in site.css, so a screen reader gets the same reading
-        order as the screen — restore both together if this stays put.
-        A JSX comment, not an HTML one, so it's stripped at build rather than
-        shipped as readable source. The Badge import and the `founder` grid
-        area are deliberately left in place so uncommenting is the only step. */}
-    {/* <p class="aol-hero__founder" data-r style="font-family:var(--font-mono);font-size:13px;line-height:1.5;letter-spacing:0.02em;color:var(--ink-600);--r:3">Founded by former Head of Marketing at<br /><strong style="font-weight:400;color:var(--ink-900)">Blockthrough</strong> &amp; <strong style="font-weight:400;color:var(--ink-900)">AdPushup</strong> <Badge variant="tint" class="aol-founderpill">Sold for &gt;$100M</Badge></p> */}
     {/* Two asks, ranked. The booking call is the primary; the free tool sits
         directly under it as the lighter option for someone not ready to talk to
         a human yet. Stacked rather than side-by-side so it reads as a fallback

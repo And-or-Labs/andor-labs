@@ -91,7 +91,23 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
   padding: var(--space-16) var(--gutter);
 }
 .aol-hero__eyebrow  { margin: 0 0 var(--space-3); }
-.aol-hero__founder  { margin: 0 0 var(--space-5); }
+/* Mono, because this is a credential, and mono carries anything that labels,
+   measures or attests. The typography used to ride inline on the element; it
+   belongs here, where the rest of the hero's is.
+
+   The two company names take full ink-900 contrast rather than weight.
+   Departure Mono ships 400 only — 700 is synthesised and smears the pixel grid
+   — so the system's instruction for a heavier mono is to reach for contrast
+   instead, which is what `strong` does here. */
+.aol-hero__founder  {
+  margin: 0 0 var(--space-5);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--ink-600);
+}
+.aol-hero__founder strong { font-weight: 400; color: var(--ink-900); }
 .aol-hero__headline { margin: 0 0 var(--space-6); }
 .aol-hero__subhead  { margin: 0 0 var(--space-8); }
 /* The form is the only left-aligned thing in a centred hero, and deliberately:
