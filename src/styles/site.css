@@ -314,6 +314,29 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
 @media (max-width: 900px) {
   .aol-hero > .aol-hero-inner { padding-bottom: clamp(110px, 22vh, 190px); }
 }
+/* AND ONE MORE ROW'S WORTH WHERE THE TICKS WRAP.
+   The band above is sized so the LAST LINE of copy lands about 29% up the mask
+   ramp, which is where desktop puts it. Below 380px the two assurance ticks
+   stop fitting on one line, so there is a second line 26px further down, and
+   the band was still sized for one: at 320 the first row sat 54px into the
+   picture and the second sat 80px, on the black hillside at a measured 1.1:1
+   with 99.9% of its background under 3:1. It was, in plain terms, invisible.
+
+   MEASURED PER ROW, SCROLLED INTO VIEW, and both of those matter — the union
+   box of the two rows averages out to a comfortable 4.8:1 and hides it
+   completely, and at 320 the second row starts below the fold, so an
+   unscrolled screenshot samples the page background instead of the picture.
+   Two rounds of checking missed this for exactly those two reasons.
+
+   340px, THOUGH THE TICKS WRAP UP TO 380. 360 and 375 measured 0% under 3:1
+   before this rule and did not need it — the picture is 230-240px tall there
+   against 205 at 320, so the same depth in pixels is a smaller fraction of the
+   ramp. Applied to them it pushed the first row out of the picture altogether
+   (a depth of -1px), which is the parked-below fault again in miniature. Widen
+   this only with a per-row measurement in front of you. */
+@media (max-width: 340px) {
+  .aol-hero > .aol-hero-inner { padding-bottom: calc(clamp(110px, 22vh, 190px) + 34px); }
+}
 
 /* ── Contact drawer ───────────────────────────────────────── */
 .contact-overlay {

@@ -153,6 +153,21 @@ describe("the hero horizon", () => {
     // puts copy over the pale middle third; a phone crops to a third of the
     // width and brings the dark SKY up to where the field is.
     expect(css).toMatch(/@media \(max-width:900px\)\{[\s\S]{0,120}#000 55%/);
+
+    // And a third rule, for the width where the ticks wrap onto two lines. The
+    // band is sized so the LAST LINE lands about 29% up the ramp; below 380px
+    // there is a second line 26px further down, and at 320 it sat 80px into the
+    // picture, on the black hillside, at 1.1:1 with 99.9% of its background
+    // under 3:1 — invisible, and shipped.
+    //
+    // It survived two rounds of checking because the union box of the two rows
+    // averages to a comfortable 4.8:1, and because at 320 the second row starts
+    // below the fold, so an unscrolled screenshot samples the page background
+    // rather than the picture. Measure PER ROW, SCROLLED.
+    //
+    // 340 and not 380: 360 and 375 measured clean without it, and applying it
+    // there pushed the first row out of the picture entirely.
+    expect(site).toMatch(/@media \(max-width: 340px\)[\s\S]{0,160}clamp\(110px, 22vh, 190px\) \+ 34px/);
   });
 
   it("never crops on a wide screen, and caps the crop on a narrow one", () => {
