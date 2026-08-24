@@ -2289,3 +2289,18 @@
 /* The mark is supplementary — every one of these is paired with its own label,
    so the glyph is never the sole carrier of meaning. */
 .aol-hero__assurances .aol-statusmark{ color:var(--blue-600); }
+
+/* A site that fails nothing still gets a sentence. */
+.aol-report__none{
+  margin:0; font-family:var(--font-serif); font-size:var(--text-base);
+  line-height:1.5; color:var(--ink-600); max-width:60ch;
+}
+/* The heading takes focus when a result lands, so it must not paint a ring on
+   a programmatic focus — :focus-visible only fires for keyboard intent. */
+.aol-report__host:focus{ outline:none; }
+
+/* Long, unbroken strings in a quoted observation — a URL, a class name, a
+   German compound — must wrap rather than push the card wide. */
+.aol-finding__found,
+.aol-finding__why,
+.aol-finding__title{ overflow-wrap:anywhere; }

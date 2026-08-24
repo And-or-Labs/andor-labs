@@ -42,12 +42,13 @@ import { BOOKING_URL } from "../../config";
         information about the site, and it framed three fixes as a mark against
         the reader. */}
     <header class="aol-report__top">
-      <h2 class="aol-report__host" id="audit-report-title"></h2>
+      <h2 class="aol-report__host" id="audit-report-title" tabindex="-1"></h2>
     </header>
 
     <p class="aol-report__cap" hidden></p>
 
     {/* THE WINS. This is what the button promised. */}
+    <p class="aol-report__none" hidden></p>
     <div class="aol-report__findings"></div>
 
     {/* What the site already gets right. Named, not scored — it is the honest

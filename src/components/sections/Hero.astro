@@ -338,6 +338,18 @@ const PARTNERS = [
         cap.hidden = false;
       }
 
+      // NOTHING TO FIX IS A RESULT. A site that passes every check it was given
+      // would otherwise get a heading, a blank space and a booking CTA, which
+      // reads as breakage rather than as a compliment.
+      const none = q(".aol-report__none");
+      if (none) {
+        none.hidden = items.length > 0;
+        if (!items.length) {
+          none.textContent =
+            "Nothing to fix in the checks we ran — which is rare. The rest of the audit is where the interesting ones are.";
+        }
+      }
+
       const wrap = q(".aol-report__findings");
       const cardTpl = document.querySelector<HTMLTemplateElement>("#tpl-audit-finding");
       if (wrap && cardTpl) {
@@ -356,11 +368,16 @@ const PARTNERS = [
       }
 
       report.hidden = false;
-      // Wait a frame: scrollIntoView on a section hidden a moment ago targets
-      // where it used to be rather than where it now is.
-      requestAnimationFrame(() =>
-        report.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }),
-      );
+      // Say it, then go there. The status line is aria-live, but "done" does not
+      // tell somebody what arrived or where; naming the result and moving focus
+      // to the section heading does both, and a keyboard user carries on from
+      // the report rather than from the field they left behind.
+      const n = items.length;
+      say(n === 0 ? "no quick wins found" : `${n} quick ${n === 1 ? "win" : "wins"} below`);
+      requestAnimationFrame(() => {
+        report.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+        report.querySelector<HTMLElement>(".aol-report__host")?.focus();
+      });
     };
 
     const handle = (msg: any) => {
@@ -385,8 +402,27 @@ const PARTNERS = [
       }
     };
 
+    /**
+     * The run in flight, so a second submit can supersede it and a stall can be
+     * cut off. Without this there was no way out of a running audit except a
+     * reload: the button was disabled, the field kept its value, and a request
+     * that never answered left the meter sitting at whatever cell it reached.
+     */
+    let inFlight: AbortController | null = null;
+
+    /** How long to wait before calling it. A cold run is ~12s; 90 is generous. */
+    const RUN_TIMEOUT_MS = 90_000;
+
     const run = async (email: string) => {
+      // A new run replaces the old one rather than queueing behind it.
+      inFlight?.abort();
+      const ctl = new AbortController();
+      inFlight = ctl;
+      const timer = setTimeout(() => ctl.abort("timeout"), RUN_TIMEOUT_MS);
+
       auditForm.classList.add("is-running");
+      // The FIELD stays live. Only the button is disabled, so somebody who
+      // typed the wrong domain can correct it and submit again.
       submit.disabled = true;
       if (progress) progress.hidden = false;
       setPct(2);
@@ -398,9 +434,18 @@ const PARTNERS = [
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ email }),
+          signal: ctl.signal,
         });
-      } catch {
-        stop("Couldn't reach the scorer. Check your connection and try again.");
+      } catch (err) {
+        clearTimeout(timer);
+        // A superseded run must die quietly — the run that replaced it owns the
+        // status line now, and two messages fighting over it reads as a bug.
+        if (ctl.signal.aborted && ctl.signal.reason !== "timeout") return;
+        stop(
+          ctl.signal.reason === "timeout"
+            ? "That took longer than it should. Try again, or book the call and we'll run it live."
+            : "Couldn't reach the scorer. Check your connection and try again.",
+        );
         return;
       }
 
@@ -426,7 +471,17 @@ const PARTNERS = [
         try { handle(JSON.parse(raw)); } catch { /* a partial or junk line */ }
       };
       while (true) {
-        const { value, done } = await reader.read();
+        let value: Uint8Array | undefined;
+        let done = false;
+        try {
+          ({ value, done } = await reader.read());
+        } catch {
+          // Aborted mid-stream. A superseded run says nothing; a timeout has
+          // already been reported by the catch above.
+          clearTimeout(timer);
+          if (!ctl.signal.aborted) stop("The connection dropped. Try again.");
+          return;
+        }
         if (done) break;
         buf += dec.decode(value, { stream: true });
         const lines = buf.split("\n");
@@ -437,6 +492,11 @@ const PARTNERS = [
       // object with no trailing newline, so they live entirely in the buffer.
       buf += dec.decode();
       feed(buf);
+      clearTimeout(timer);
+      // Released whatever happened, so a second domain can be audited without a
+      // reload. `stop()` handles the failure paths; this is the success one.
+      submit.disabled = false;
+      auditForm.classList.remove("is-running");
     };
 
     /**
