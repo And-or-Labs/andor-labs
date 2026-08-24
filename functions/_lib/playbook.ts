@@ -112,6 +112,12 @@ export interface CrawlContext {
   thin: boolean;
   /** A pricing or plans page was found and read. */
   hasPricing: boolean;
+  /**
+   * The plans can be COUNTED from what was read — two distinct amounts, or one
+   * and a free tier. Every rule in the `plans` subsection needs this rather
+   * than hasPricing, which the phrase "free forever" satisfies on its own.
+   */
+  hasPlanTable: boolean;
   /** Pricing was located but would not render to text — a widget or slider. */
   pricingUnreadable?: boolean;
   /** The pricing page mentions a free trial. */
@@ -192,6 +198,18 @@ export interface Rule {
 // copy, which is unreadable when the homepage is a client-side shell.
 const onPage = (ctx: CrawlContext) => !ctx.thin;
 const onPricing = (ctx: CrawlContext) => ctx.hasPricing;
+/**
+ * Every `plans` rule, because every one of them is a variation on "how many
+ * plans are there and what do they cost". `onPricing` was too weak for that
+ * question and it cost the wave a slot per run: measured over ten live runs,
+ * three-to-five-plans declined 100% of the times it was sampled — the crawl had
+ * found the word "pricing" and a price, and no enumerable table.
+ *
+ * A rule we cannot see must LEAVE the run, not be asked and dropped. That is
+ * the same principle this file already applies to a thin homepage; it was only
+ * ever the predicate that was wrong.
+ */
+const onPlanTable = (ctx: CrawlContext) => ctx.hasPlanTable;
 const onTrial = (ctx: CrawlContext) => ctx.hasPricing && ctx.hasTrial;
 const onFreemium = (ctx: CrawlContext) => ctx.hasPricing && ctx.hasFreemium;
 const never = () => false;
@@ -399,7 +417,7 @@ export const RULES: Rule[] = [
       "Simonson, I., & Tversky, A. Choice in Context: Tradeoff Contrast and Extremeness Aversion. Journal of Marketing Research (August 1992).",
     weight: 3,
     auditable: true,
-    observable: onPricing,
+    observable: onPlanTable,
   },
   {
     id: "decoy-plan",
@@ -414,7 +432,7 @@ export const RULES: Rule[] = [
       "Cui, Y. G., Kim, S. S., & Kim, J. Impact of preciseness of price presentation on the magnitude of compromise and decoy effects. Journal of Business Research (August 2021).",
     weight: 3,
     auditable: true,
-    observable: onPricing,
+    observable: onPlanTable,
   },
   {
     id: "price-on-left",
@@ -429,7 +447,7 @@ export const RULES: Rule[] = [
       "Cai, F., Shen, H., & Hui, M. K. The Effect of Location on Price Estimation: Understanding Number-Location and Number-Order Associations. Journal of Marketing Research (October 2012).",
     weight: 1,
     auditable: true,
-    observable: onPricing,
+    observable: onPlanTable,
   },
   {
     id: "price-difference-framing",
@@ -444,7 +462,7 @@ export const RULES: Rule[] = [
       "Allard, T., Hardisty, D.J. & Griffin, D. When “More” Seems Like Less: Differential Price Framing Increases the Choice Share of Higher-Priced Options. Journal of Marketing Research (July 2019).",
     weight: 2,
     auditable: true,
-    observable: onPricing,
+    observable: onPlanTable,
   },
   {
     id: "simpler-than-competitors",
@@ -459,7 +477,7 @@ export const RULES: Rule[] = [
       "Homburg, C., Totzek, D., & Krämer, M. How price complexity takes its toll: The neglected role of a simplicity bias and fairness in price evaluations. Journal of Business Research (June 2013).",
     weight: 3,
     auditable: true,
-    observable: onPricing,
+    observable: onPlanTable,
   },
   {
     id: "divisible-prices",
@@ -474,7 +492,7 @@ export const RULES: Rule[] = [
       "King, D., & Janiszewski, C. The Sources and Consequences of the Fluent Processing of Numbers. Journal of Marketing Research (April 2011).",
     weight: 1,
     auditable: true,
-    observable: onPricing,
+    observable: onPlanTable,
   },
   {
     id: "metered-hybrid",
@@ -489,7 +507,7 @@ export const RULES: Rule[] = [
       "Schlereth, C., Skiera, B., & Wolk, A. Measuring Consumers’ Preferences for Metered Pricing of Services. Journal of Service Research (December 2011).",
     weight: 1,
     auditable: true,
-    observable: onPricing,
+    observable: onPlanTable,
   },
   {
     id: "flat-rate-bias",
@@ -504,7 +522,7 @@ export const RULES: Rule[] = [
       "Kienzler, M., Kowalkowski, C., & Kindström, D. Purchasing professionals and the flat-rate bias: Effects of price premiums, past usage, and relational ties on price plan choice. Journal of Business Research (April 2021).",
     weight: 2,
     auditable: true,
-    observable: onPricing,
+    observable: onPlanTable,
   },
 
   // ── §2 Free trials ────────────────────────────────────────────────────────
@@ -963,11 +981,44 @@ const SAMPLE_ORDER: { subsection: SubsectionKey; ids: string[] }[] = [
   { subsection: "plans", ids: ["three-to-five-plans", "divisible-prices", "flat-rate-bias"] },
   { subsection: "trials", ids: ["seven-day-trial", "high-quality-trial"] },
   { subsection: "freemium", ids: ["limit-usage-not-features", "freemium-decoy"] },
-  { subsection: "design", ids: ["cta-upper-right", "rounded-cta"] },
+  // SIX, not two. The other four design rules were auditable, observable from
+  // the homepage alone, and had never once been reachable — the sampler could
+  // only ever draw from the fourteen ids named here, so on the commonest
+  // early-stage shape (a homepage and not much else) the pool was seven rules
+  // and a wave of nine could not be filled.
+  //
+  // Ordered by how often the question can be answered at all: structure and
+  // layout are readable off any screenshot, a before/after pair and a product
+  // video are not there to see on most sites, so they sit last and are reached
+  // only when everything else has been.
+  {
+    subsection: "design",
+    ids: [
+      "cta-upper-right",
+      "rounded-cta",
+      "perceptual-structure",
+      "layout-by-type",
+      "video-for-hedonic",
+      "before-left-after-right",
+    ],
+  },
 ];
 
 /** How many checks one wave scores. */
-export const WAVE_SIZE = 6;
+/**
+ * How many checks one wave scores.
+ *
+ * NINE, up from six. The button promises three quick wins and six delivered
+ * them about half the time — measured cold runs returned 3 to 5 answers, and
+ * the wins are the failures among those. Nine returned three wins on every site
+ * trialled. It costs three more model calls per uncached run and nothing on a
+ * cached one; the calls are parallel, so the wall clock it adds is the
+ * difference between the slowest of six and the slowest of nine.
+ *
+ * Raised together with onPlanTable, which is what stops the extra slots going
+ * to the same unanswerable pricing questions the first six were losing.
+ */
+export const WAVE_SIZE = 9;
 /** How many wins the report shows. */
 export const WINS = 3;
 

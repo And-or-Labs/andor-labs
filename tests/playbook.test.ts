@@ -25,9 +25,9 @@ import {
   type SubsectionKey,
 } from "../functions/_lib/playbook";
 
-const FULL: CrawlContext = { thin: false, hasPricing: true, hasTrial: true, hasFreemium: true };
-const NO_PRICING: CrawlContext = { thin: false, hasPricing: false, hasTrial: false, hasFreemium: false };
-const THIN: CrawlContext = { thin: true, hasPricing: false, hasTrial: false, hasFreemium: false };
+const FULL: CrawlContext = { thin: false, hasPricing: true, hasPlanTable: true, hasTrial: true, hasFreemium: true };
+const NO_PRICING: CrawlContext = { thin: false, hasPricing: false, hasPlanTable: false, hasTrial: false, hasFreemium: false };
+const THIN: CrawlContext = { thin: true, hasPricing: false, hasPlanTable: false, hasTrial: false, hasFreemium: false };
 
 /** Score every observable rule in a subsection at the same value. */
 const flat = (key: SubsectionKey, ctx: CrawlContext, v: number) =>

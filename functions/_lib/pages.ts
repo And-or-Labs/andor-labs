@@ -63,6 +63,17 @@ export interface SiteMarkdown {
    * says which, because they are different facts about a company.
    */
   pricingUnreadable: boolean;
+  /**
+   * The plans are ENUMERABLE — not merely that this company publishes prices.
+   *
+   * `hasPricing` is satisfied by the phrase "free forever" appearing anywhere on
+   * the site, which is the right test for "does it publish prices" and the wrong
+   * one for "can we count the tiers". Every rule in the `plans` subsection needs
+   * the second thing, and gating them on the first meant sampling questions the
+   * crawl could not evidence: measured over ten live runs, `three-to-five-plans`
+   * declined in 100% of the runs it was sampled in, burning a slot every time.
+   */
+  hasPlanTable: boolean;
 }
 
 /**
@@ -192,6 +203,35 @@ function pricingOnHomepage(home: string, links: string[]): boolean {
   return links.some((l) => PRICING_ANCHOR.test(l)) || PRICING_HEADING.test(home);
 }
 
+/** A currency amount, as written. */
+const AMOUNT = /(?:\$|€|£)\s?\d[\d.,]*/g;
+/** A tier that costs nothing, which counts as one of the two. */
+const FREE_TIER = /\bfree (forever|plan|tier)\b|\$\s?0\b/i;
+
+/**
+ * Can the plans be counted from what we read?
+ *
+ * TWO DISTINCT AMOUNTS, or one amount and a free tier. That is the least a
+ * reader would need to answer "how many plans are there" — and it is the
+ * question every rule in the `plans` subsection is a variation of.
+ *
+ * DISTINCT, because the same price repeated down a comparison column is one
+ * plan quoted twice. A monthly/annual toggle showing $12 and $120 does count as
+ * two, and that is a knowing false positive: the model then sees a real table,
+ * answers "one plan" and FAILS the check, which is a verdict rather than a
+ * decline — and a verdict is what we wanted from the slot.
+ *
+ * Deterministic string matching on purpose. These gates decide whether a rule
+ * is scored at all, so they have to be cheap and explainable: "we did not find
+ * prices on your pricing page" is a defensible sentence, and a model's opinion
+ * about whether a pricing table exists is not worth a round trip. Same argument
+ * readContext() makes for the flags beside this one.
+ */
+export function planTableIn(markdown: string): boolean {
+  const amounts = new Set([...markdown.matchAll(AMOUNT)].map((m) => m[0].replace(/\s/g, "")));
+  return amounts.size >= 2 || (amounts.size >= 1 && FREE_TIER.test(markdown));
+}
+
 /**
  * Read a site as markdown: homepage first, then the pages these rules need.
  *
@@ -209,6 +249,7 @@ export async function readSiteMarkdown(host: string, key?: string): Promise<Site
     screenshot: "",
     thin: true,
     hasPricing: false,
+    hasPlanTable: false,
     pricingUnreadable: false,
   };
   if (!key) return empty;
@@ -275,6 +316,10 @@ export async function readSiteMarkdown(host: string, key?: string): Promise<Site
   const pricingFound = read.some((p) => p.label === "Pricing");
   // ...AND something readable when we looked.
   const hasPricing = pricingFound && PRICE_EVIDENCE.test(pages);
+  // Scoped to the pricing pages, not `pages`. A homepage that says "from $9"
+  // beside a testimonial mentioning "$40k saved" is not a plan table, and
+  // testing the whole crawl would call it one.
+  const hasPlanTable = read.some((p) => p.label === "Pricing" && planTableIn(p.markdown));
 
   return {
     html,
@@ -284,6 +329,7 @@ export async function readSiteMarkdown(host: string, key?: string): Promise<Site
     finalUrl: origin,
     thin: false,
     hasPricing,
+    hasPlanTable,
     /** Pricing exists but did not render to markdown — usually a JS widget. */
     pricingUnreadable: pricingFound && !hasPricing,
   };

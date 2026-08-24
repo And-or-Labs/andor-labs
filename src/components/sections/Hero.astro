@@ -118,8 +118,20 @@ const PARTNERS = [
             comparison table and the offer cards use — rather than a tick typed
             into the copy. */}
         <ul class="aol-hero__assurances">
-          <li><StatusMark kind="yes" size={15} /> Takes 30 seconds</li>
-          <li><StatusMark kind="yes" size={15} /> No sign up needed</li>
+          {/* "UNDER A MINUTE", measured, not "30 seconds".
+              Four cold runs after the wave went to nine: 20s, 24s, 36s, 52s —
+              a median of exactly thirty and a tail at nearly double it, so the
+              old claim was true for about half of visitors. A cached host comes
+              back in one second. The whole page is an argument that we check
+              things rather than assert them; the tick above the field is not
+              the place to stop doing that. */}
+          <li><StatusMark kind="yes" size={15} /> Takes under a minute</li>
+          {/* "No ACCOUNT needed", not "no sign up". Both answer the same
+              objection — you are not about to be made to create a login — but
+              submitting does add the address to Field notes, and "no sign up"
+              is the half of that sentence a reader could fairly hear as "you
+              will not be emailed". */}
+          <li><StatusMark kind="yes" size={15} /> No account needed</li>
         </ul>
 
         {/* Progress, under the field, appearing only once a run starts.
@@ -319,31 +331,6 @@ const PARTNERS = [
 
     const askedForSite = () => pending !== null;
 
-    /**
-     * Paint the report by CLONING DESIGN-SYSTEM MARKUP.
-     *
-     * The two <template> elements in AuditReport.astro hold real <SpecGrid> and
-     * <Card> output, rendered by Astro at build time. Cloning them is what
-     * keeps this in the system: the previous version wrote its own markup here
-     * and invented `.aol-tile` and a bespoke masthead to style it, which is
-     * exactly the drift that gets a report looking nothing like the site.
-     *
-     * Nothing below constructs a class name that a component does not already
-     * emit.
-     */
-    /**
-     * Paint the report by CLONING DESIGN-SYSTEM MARKUP.
-     *
-     * The two <template> elements in AuditReport.astro hold real <SpecGrid> and
-     * <Card> output, rendered by Astro at build time. Cloning them is what
-     * keeps this in the system; nothing below constructs a class name that a
-     * component does not already emit.
-     *
-     * RESULTS FIRST. Three findings, then the offer. The version before this
-     * led with a board of twenty verdicts and buried the three findings under
-     * it — which put the least useful thing first and gave away the pass/fail
-     * on every check we had paid to run.
-     */
     /**
      * Paint the report by CLONING DESIGN-SYSTEM MARKUP.
      *
@@ -621,7 +608,10 @@ const PARTNERS = [
     };
 
     if (new URLSearchParams(location.search).get("demo")) {
-      auditInput.value = "someone@plausible.io";
+      // Must match the host in public/audit-demo.json — the field shows the
+      // address that produced the report below it, and a mismatch reads as the
+      // tool auditing the wrong site.
+      auditInput.value = "someone@render.com";
       void runDemo();
     }
 

@@ -6,29 +6,53 @@
 import { describe, expect, it } from "vitest";
 import { sampleChecks, remainingChecks, wins, WAVE_SIZE, WINS, AUDITABLE_TOTAL, codeFor } from "../functions/_lib/playbook";
 
+/** Every rule the sampler could have drawn for this site, across subsections. */
+const observableRules2 = (c: never) => sampleChecks(c, Number.MAX_SAFE_INTEGER);
+
 const ctx = (o: Record<string, unknown> = {}) =>
   ({ hasPricing: true, pricingUnreadable: false, thin: false, hasTrial: true,
      hasFreemium: true, hasVideo: true, signals: {}, ...o }) as never;
 
 describe("the sample", () => {
-  it("takes a wave of six", () => {
+  it("takes a full wave", () => {
     expect(sampleChecks(ctx())).toHaveLength(WAVE_SIZE);
   });
 
   it("spreads across the research rather than draining one subsection", () => {
-    // The property the whole design rests on. Seven of the twenty-three rules
+    // The property the whole design rests on. Eight of the twenty-three rules
     // are pricing rules, so any order that is not round-robin returns a pricing
-    // tool: NO subsection may supply more than two of the six.
+    // tool.
     //
-    // The floor is three distinct subsections, not four, and that is a fact
+    // The rule is ROUND-ROBIN FAIRNESS, not a fixed cap: a subsection only gets
+    // an extra check once every other subsection with checks left has had one.
+    // So two subsections may differ by more than one ONLY when the smaller was
+    // exhausted — which is the honest statement of what the sampler does, and
+    // survives a change of WAVE_SIZE. A flat "no more than two" happened to be
+    // equivalent at a wave of six and stopped being true at nine.
+    //
+    // The floor is three distinct subsections, not six, and that is a fact
     // about the rule set rather than a weak test — a site with no readable
     // pricing loses the plans, trials AND freemium rules at once, which leaves
     // messaging, proof and design as the only places to draw from.
-    for (const c of [ctx(), ctx({ hasPricing: false }), ctx({ hasTrial: false, hasFreemium: false })]) {
-      const subs = sampleChecks(c).map((r) => r.subsection);
+    for (const c of [ctx(), ctx({ hasPlanTable: false }), ctx({ hasTrial: false, hasFreemium: false })]) {
+      const picked = sampleChecks(c);
+      const subs = picked.map((r) => r.subsection);
       expect(new Set(subs).size).toBeGreaterThanOrEqual(3);
-      for (const s of new Set(subs)) {
-        expect(subs.filter((x) => x === s).length).toBeLessThanOrEqual(2);
+
+      // How many that subsection could have supplied at all, so "exhausted" is
+      // measurable rather than assumed.
+      const available = new Map<string, number>();
+      for (const r of observableRules2(c)) available.set(r.subsection, (available.get(r.subsection) ?? 0) + 1);
+
+      const took = new Map<string, number>();
+      for (const s of subs) took.set(s, (took.get(s) ?? 0) + 1);
+
+      for (const [a, na] of took) {
+        for (const [b, nb] of took) {
+          if (na - nb <= 1) continue;
+          // b has fewer — that is only allowed if b had nothing left to give.
+          expect(nb, `${a} took ${na} while ${b} took ${nb} with more available`).toBe(available.get(b));
+        }
       }
     }
   });

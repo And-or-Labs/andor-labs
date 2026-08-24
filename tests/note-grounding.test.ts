@@ -14,7 +14,7 @@
  * the check with it.
  */
 import { describe, expect, it } from "vitest";
-import { groundedNote, quotesIn, forQuote } from "../functions/_lib/audit-score";
+import { groundedNote, forQuote } from "../functions/_lib/audit-score";
 
 const PAGE = `
 # AI That’s Yours
@@ -69,6 +69,21 @@ describe("a note has to quote the page", () => {
     // The visual group scores from a screenshot: a note about where a button
     // sits quotes nothing, and must not be discarded for it.
     expect(groundedNote("The CTA sits in the upper-right corner.", "")).toBe(true);
+  });
+});
+
+describe("why the visual group is NOT gated", () => {
+  // Gating it on the page markdown was tried on 2026-08-24 and reverted the
+  // same hour: cta-upper-right and rounded-cta, which had passed for weeks,
+  // started being dropped. These two assertions are the reason, and they are
+  // structural — a positional note cites a BUTTON LABEL, which is two words,
+  // and the model is describing a rendered picture, not the markdown.
+  it("a single short quote can never be grounded, by design", () => {
+    expect(groundedNote(`A 'Sign up' button sits at the far right of the nav.`, "Sign up")).toBe(false);
+  });
+
+  it("so the group is handed no evidence and keeps its notes", () => {
+    expect(groundedNote(`A 'Sign up' button sits at the far right of the nav.`, "")).toBe(true);
   });
 });
 

@@ -17,6 +17,7 @@ const site = (pages: string, thin = false, hasPricing = /##\s*Pricing/i.test(pag
   finalUrl: "https://acme.com",
   thin,
   hasPricing,
+  hasPlanTable: hasPricing,
   pricingUnreadable: false,
   html: "",
   screenshot: "",
@@ -66,7 +67,7 @@ describe("check codes", () => {
 });
 
 describe("the wire payload", () => {
-  const ctx = { thin: false, hasPricing: true, hasTrial: true, hasFreemium: true };
+  const ctx = { thin: false, hasPricing: true, hasPlanTable: true, hasTrial: true, hasFreemium: true };
   const build = () => {
     const scores = new Map(
       SUBSECTIONS.flatMap((s) => observableRules(s.key, ctx)).map((r, i) => [r.id, i % 6]),

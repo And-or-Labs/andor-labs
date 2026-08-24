@@ -8,8 +8,14 @@
  *
  * Usually. Free-mail addresses carry no company, and guessing is worse than
  * asking — auditing gmail.com because somebody signed up from a personal
- * address is a comic failure in front of a prospect. Those fall through to a
- * URL prompt in the modal instead.
+ * address is a comic failure in front of a prospect. Those get a `need-url`
+ * answer instead, and the hero's ONE FIELD becomes the second question rather
+ * than a second field appearing beside it (see askForSite in Hero.astro).
+ *
+ * This used to say "a URL prompt in the modal". The modal was removed weeks
+ * before the prompt was built, and for that whole time the sentence was the
+ * only thing claiming anybody asked the question — nothing did, and every
+ * visitor on a gmail address hit a wall.
  */
 
 /**

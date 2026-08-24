@@ -135,6 +135,10 @@ export function readContext(site: SiteMarkdown): CrawlContext {
   return {
     thin: site.thin,
     hasPricing,
+    // Whether the plans can be COUNTED, which is a different question from
+    // whether this company publishes prices — see pages.ts. The `plans` rules
+    // gate on this one.
+    hasPlanTable: site.hasPlanTable,
     pricingUnreadable: site.pricingUnreadable,
     hasTrial: hasPricing && /\bfree trial\b|\btry (it )?free\b|\bstart (your )?trial\b/.test(text),
     hasFreemium: hasPricing && /\bfree (plan|tier|forever)\b|\bfreemium\b|\$0\b/.test(text),
@@ -305,7 +309,38 @@ export function requireScores(text: string): unknown {
   return raw;
 }
 
-function normalize(raw: unknown, valid: Set<string>, evidence: string): SectionVerdict {
+/**
+ * DO NOT GATE THE VISUAL GROUP ON THE MARKDOWN. Tried on 2026-08-24, measured,
+ * reverted the same hour.
+ *
+ * The idea was sound on paper: the group scores from a screenshot so it cannot
+ * be made to quote, but when the vision model DOES quote, that quote is
+ * checkable. Implemented as "a quote-free note passes, a quoted one must be
+ * traceable", with the page markdown as the haystack.
+ *
+ * It cost real checks immediately. Across four live runs `cta-upper-right` and
+ * `rounded-cta` — which had passed consistently for weeks — were dropped with
+ * notes like:
+ *
+ *   "A 'Sign up' button is visible at the far right of the top navigation bar."
+ *   "The 'GET STARTED' button in the center has visibly rounded corners."
+ *
+ * Two reasons, and both are structural rather than fixable by tuning. A
+ * positional note cites a BUTTON LABEL, which is two words, and groundedNote
+ * requires either one quote of three words or more or a list of two — a single
+ * short quote can never be grounded, by design, because "AI" appears
+ * everywhere. And the haystack is wrong: the model is looking at a rendered
+ * picture, where a label may be uppercased by CSS, drawn inside an image, or
+ * hydrated by script, and the markdown has none of that.
+ *
+ * The screenshot has no text form we hold, so there is nothing sound to check
+ * against. The asymmetry stays.
+ */
+function normalize(
+  raw: unknown,
+  valid: Set<string>,
+  evidence: string,
+): SectionVerdict {
   const obj = (raw ?? {}) as { scores?: unknown };
   const scores = new Map<string, number>();
   const notes = new Map<string, string>();
@@ -383,14 +418,10 @@ async function scoreVisualGroup(
     PROVIDER,
     env,
     prompt,
-    (text) => {
-      // NO QUOTE GATE HERE, and that asymmetry is deliberate. This group scores
-      // from a screenshot, so there is no text for a quote to be checked
-      // against, and a legitimate note about where a button sits ("upper-right
-      // corner") quotes nothing. The gate belongs where the risk is: prose
-      // claims about page STRUCTURE, which is the text groups.
-      return normalize(requireScores(text), valid, "");
-    },
+    // EMPTY EVIDENCE ON PURPOSE — see the note above normalize(). There is no
+    // text form of a screenshot for a quote to be checked against, and passing
+    // the markdown instead measurably discarded true findings.
+    (text) => normalize(requireScores(text), valid, ""),
     {
       preferred: VISION_MODEL,
       only: [VISION_MODEL],
@@ -455,6 +486,53 @@ async function scoreGroup(
   return value;
 }
 
+/**
+ * HOW LONG THE WHOLE WAVE MAY TAKE, not how long one call may.
+ *
+ * A wave's wall clock is the SLOWEST of its calls, so widening it from six to
+ * nine did not add a fixed cost — it added another chance to draw a slow one,
+ * and the calls queue at the provider besides. Measured on four live runs at
+ * nine: 40s, 55s, and one run at 187s where a single call sat until the
+ * provider's own 180s ceiling. Against a hero that says "takes 30 seconds".
+ *
+ * A straggler is worth exactly as much as a check the model declined: nothing.
+ * So the wave stops waiting and scores what came back. That is what makes a
+ * wider wave safe — the extra slots either answer inside the budget or they
+ * cost nothing but their own tokens.
+ *
+ * 45s is above the median group (16–50s observed) and far below the provider
+ * ceiling. It is deliberately not derived from the crawl's elapsed time: the
+ * crawl is the part that varies least, and a budget that moves is a budget
+ * nobody can reason about from a log line.
+ */
+const WAVE_DEADLINE_MS = 45_000;
+
+type Outcome =
+  | { kind: "scored"; value: SectionVerdict }
+  | { kind: "late" }
+  | { kind: "failed"; reason: unknown };
+
+/**
+ * Race a call against the wave's budget.
+ *
+ * A late call resolves to its own kind rather than a rejection, because the
+ * outage check counts rejections and a straggler is not an outage — treating it
+ * as one would fail whole runs on a slow afternoon.
+ */
+function withDeadline(work: Promise<SectionVerdict>): Promise<Outcome> {
+  let timer: ReturnType<typeof setTimeout>;
+  const deadline = new Promise<Outcome>((resolve) => {
+    timer = setTimeout(() => resolve({ kind: "late" }), WAVE_DEADLINE_MS);
+  });
+  return Promise.race([
+    work.then(
+      (value): Outcome => ({ kind: "scored", value }),
+      (reason): Outcome => ({ kind: "failed", reason }),
+    ),
+    deadline,
+  ]).finally(() => clearTimeout(timer));
+}
+
 export interface AuditResult {
   host: string;
   /** How many of the sample passed. Used for the cache row and for ordering. */
@@ -495,35 +573,45 @@ export async function scoreSite(
   // per subsection, so this reuses the existing group scorers with their `only`
   // filter rather than growing a second prompt path — and each prompt now
   // carries a single rule, which is why it is fast.
-  const settled = await Promise.allSettled(
+  const outcomes = await Promise.all(
     sample.map((r) =>
-      isVisual(r.subsection)
-        ? scoreVisualGroup(r.subsection, host, site, ctx, env, new Set([r.id]))
-        : scoreGroup(r.subsection, host, site, ctx, env, new Set([r.id])),
+      withDeadline(
+        isVisual(r.subsection)
+          ? scoreVisualGroup(r.subsection, host, site, ctx, env, new Set([r.id]))
+          : scoreGroup(r.subsection, host, site, ctx, env, new Set([r.id])),
+      ),
     ),
   );
 
   const merged = new Map<string, number>();
   const allNotes = new Map<string, string>();
   const failures: string[] = [];
-  for (const [i, r] of settled.entries()) {
-    if (r.status !== "fulfilled") {
-      failures.push(`${sample[i].id}: ${r.reason}`);
+  const late: string[] = [];
+  for (const [i, o] of outcomes.entries()) {
+    if (o.kind === "failed") {
+      failures.push(`${sample[i].id}: ${o.reason}`);
       continue;
     }
-    for (const [k, v] of r.value.scores) merged.set(k, v);
-    for (const [k, v] of r.value.notes) allNotes.set(k, v);
+    if (o.kind === "late") {
+      late.push(sample[i].id);
+      continue;
+    }
+    for (const [k, v] of o.value.scores) merged.set(k, v);
+    for (const [k, v] of o.value.notes) allNotes.set(k, v);
   }
 
   // THE THREE WAYS A CHECK DISAPPEARS ARE NOW DISTINGUISHABLE, and only one of
   // them is a fault. Declined and ungrounded are the design working; a rejected
   // call is the provider. Logged apart, because "we showed two wins" reads the
   // same in all three cases and only one of them wants looking at.
-  const declined = sample.filter((r) => !merged.has(r.id) && !failures.some((f) => f.startsWith(`${r.id}:`)));
+  const declined = sample.filter(
+    (r) => !merged.has(r.id) && !late.includes(r.id) && !failures.some((f) => f.startsWith(`${r.id}:`)),
+  );
   console.log(
     `[audit] wave: ${sample.length} sampled, ${merged.size} scored, ` +
-      `${declined.length} declined or ungrounded, ${failures.length} failed` +
+      `${declined.length} declined or ungrounded, ${late.length} late, ${failures.length} failed` +
       (declined.length ? ` — declined: ${declined.map((r) => r.id).join(", ")}` : "") +
+      (late.length ? ` — late: ${late.join(", ")}` : "") +
       (failures.length ? ` — failed: ${failures.join(" | ")}` : ""),
   );
 
