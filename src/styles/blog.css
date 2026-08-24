@@ -1309,8 +1309,8 @@
 @media (hover: hover) and (pointer: fine) {
   .aol-recent a:hover .aol-recent__title { color: var(--blue-700); }
 }
-.aol-recent__row { display: flex; align-items: center; gap: var(--space-3); }
 .aol-recent__meta {
+  display: block;
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-mono);

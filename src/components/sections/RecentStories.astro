@@ -9,22 +9,19 @@
  */
 import { sanityClient } from "sanity:client";
 import SubscribeBox from "../blog/SubscribeBox.astro";
-import { toCategory } from "../../lib/categories";
-import Badge from "../ds/Badge.astro";
 
-/** A list row needs a title, a date and a category. Nothing else is rendered,
-    so nothing else is fetched — the thumbnails, excerpts and tags the card grid
-    used are no longer queried. */
+/** A row renders a title and a date. Nothing else is rendered, so nothing else
+    is fetched — the thumbnails, excerpts, tags and category the card grid used
+    are all out of the query. */
 interface RecentPost {
   title: string;
   slug: string;
   publishedAt: string;
-  category?: string;
 }
 
 const posts: RecentPost[] = await sanityClient.fetch(
   `*[_type == "post" && defined(slug.current) && seo.noIndex != true] | order(publishedAt desc)[0...5]{
-    title, "slug": slug.current, publishedAt, category
+    title, "slug": slug.current, publishedAt
   }`,
 );
 
@@ -48,21 +45,19 @@ const fmt = (d: string) =>
           <a class="aol-recent__all" href="/blog/">All posts →</a>
         </div>
 
+        {/* NO CATEGORY LABEL. A badge on every row put five coloured chips down
+            a column that is meant to be read as titles, and the category is not
+            what a reader is choosing on here — it is on the blog index, where
+            the filter makes it actionable. Title and date only. */}
         <ul>
-          {posts.map((p) => {
-            const c = toCategory(p.category);
-            return (
-              <li>
-                <a href={`/blog/${p.slug}/`}>
-                  <span class="aol-recent__title">{p.title}</span>
-                  <span class="aol-recent__row">
-                    <Badge variant={c.badge} class={c.key === "ai-newsletter" ? "aol-badge--verbatim" : undefined}>{c.labelShort}</Badge>
-                    <time class="aol-recent__meta" datetime={p.publishedAt}>{fmt(p.publishedAt)}</time>
-                  </span>
-                </a>
-              </li>
-            );
-          })}
+          {posts.map((p) => (
+            <li>
+              <a href={`/blog/${p.slug}/`}>
+                <span class="aol-recent__title">{p.title}</span>
+                <time class="aol-recent__meta" datetime={p.publishedAt}>{fmt(p.publishedAt)}</time>
+              </a>
+            </li>
+          ))}
         </ul>
       </div>
 
