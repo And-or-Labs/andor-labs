@@ -30,23 +30,30 @@ interface Props {
   width: number;
   height: number;
   /**
-   * How far up the section the dissolve reaches, 0-1. The hero wants the full
-   * screen; a section usually wants less, or the picture climbs into copy that
-   * has nothing to do with it.
+   * "band" (default) fades the PICTURE over its own height — what every section
+   * wants. "screen" fades the CONTAINER over the section's height, which only
+   * the hero wants, because only the hero needs the dissolve gone by the top of
+   * a viewport-tall section.
+   *
+   * Never both: they compound, and a container ramp that reaches zero below the
+   * picture's top multiplies the picture away. That is how Offers ended up
+   * visible across 10% of its own section.
    */
-  reach?: number;
+  mode?: "band" | "screen";
+  /** Where the band dissolve starts, as a fraction of the picture. */
+  fade?: number;
   /** Above the fold? Then it must not be lazy. */
   eager?: boolean;
   class?: string;
 }
-const { name, width, height, reach = 1, eager = false, class: className } = Astro.props;
+const { name, width, height, mode = "band", fade = 0.34, eager = false, class: className } = Astro.props;
 ---
 {/* DECORATIVE: aria-hidden with an empty alt. It carries no information a
     reader would miss, and announcing "researcher looking through a telescope"
     between a heading and its body is noise. */}
 <div
-  class={["aol-horizon", className].filter(Boolean).join(" ")}
-  style={`--horizon-reach:${reach}`}
+  class={["aol-horizon", mode === "screen" && "aol-horizon--screen", className].filter(Boolean).join(" ")}
+  style={`--horizon-fade:${fade}`}
   aria-hidden="true"
 >
   <img
