@@ -266,13 +266,17 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
   .aol-hero__subhead  { margin-bottom: var(--space-6); }
   /* Stay on the same line as Blockthrough & AdPushup — the pill is a qualifier
      on those two names, not a separate claim, and dropping it to its own row
-     read as a third bullet. Tightened a little so the whole phrase still fits
-     one line at 375px; .aol-badge's own white-space:nowrap means that if it
-     ever does wrap on a very narrow screen it moves as one unit rather than
-     splitting mid-phrase. */
-.aol-founderpill    { vertical-align: middle; margin-left: 6px; font-size: 10px; padding: 2px 6px; letter-spacing: 0.04em; }
+     read as a third bullet. .aol-badge's own white-space:nowrap means that if
+     it ever does wrap on a very narrow screen it moves as one unit rather than
+     splitting mid-phrase.
 
-  .aol-founderpill    { display: inline-flex; margin: 0 0 0 6px; font-size: 9.5px; padding: 2px 5px; letter-spacing: 0.02em; }
+     ONE RULE. There were two, identical in selector and specificity, four
+     declarations apart — the second silently won and the first said 10px and
+     0.04em to nobody. The surviving values are the second one's, so nothing
+     changes on screen. The comment claimed the phrase "still fits one line at
+     375px"; measured, it needed 344px against 327 available, so it had not fit
+     at 375 for as long as the claim had been there. See the block below. */
+  .aol-founderpill { display: inline-flex; margin: 0 0 0 6px; font-size: 9.5px; padding: 2px 5px; letter-spacing: 0.02em; }
   .aol-grid-2 { grid-template-columns: 1fr; }
   .aol-faq-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
 }
@@ -336,6 +340,49 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
    this only with a per-row measurement in front of you. */
 @media (max-width: 340px) {
   .aol-hero > .aol-hero-inner { padding-bottom: calc(clamp(110px, 22vh, 190px) + 34px); }
+}
+
+/* ── The launch-partners band on a phone ───────────────────────────────────
+   Two independent fits, both measured rather than guessed, and one of them is
+   only a partial win — see the note at the end.
+
+   THE LOGO ROW. Five marks measure 83+69+80+23+26 = 281px of ink and sit in a
+   24px gap, so one row needs 377px. The band offers viewport minus two 24px
+   gutters, which is 342 at 390 and 272 at 320 — so the fifth mark wrapped to a
+   row of its own on every phone. Scaling the marks to 0.78 and closing the gap
+   to --space-3 needs 267px, which fits at 320 with 5px to spare.
+
+   The scale multiplies --mark-h rather than replacing it, so the per-mark
+   sizing the row depends on survives intact: these are five different kinds of
+   asset at aspect ratios from 1:1 to nearly 3:1, and a single shared height
+   does not even them out. Smallest result is Snitcher at 12px, which is a
+   wordmark cropped tight to its letterforms, so 12px is cap height rather than
+   em box.
+
+   THE CREDENTIAL. The break after "marketing" is fixed copy, so line two is
+   "@ Blockthrough and AdPushup" plus the pill: 232 + 106 + 6 = 344px against
+   342 at 390. Two pixels, and the pill dropped to a third line. Below that it
+   is 17px over at 375 and 32px at 360.
+
+   --text-2xs is the fix, and it is the same 11px the assurance ticks above the
+   fold are set in rather than a number invented for this: line two comes to
+   293px and holds two lines from 360 up.
+
+   ⚠️ IT IS STILL THREE LINES AT 320. Line two needs 293px in 272, and the only
+   remaining lever is the pill — which would have to drop to about 6.6px to
+   close a 21px gap. That is not a size, it is a smudge. Two lines at 320
+   needs the pill's copy to get shorter, which is a copy decision and not one
+   to make here. Everything from 360 up is two lines.
+
+   ONE BREAKPOINT, at 424 — where the logo row stops fitting (377 + 48). The
+   credential strictly only needs it below 392, but the band should change once
+   as it narrows rather than twice in a 32px window, and 11px in that window
+   costs nothing. */
+@media (max-width: 424px) {
+  .aol-partners__item img { height: calc(var(--mark-h, 24px) * 0.78); }
+  .aol-partners__row { gap: var(--space-2) var(--space-3); }
+  .aol-partners__founder { font-size: var(--text-2xs); }
+  .aol-founderpill { font-size: 9px; }
 }
 
 /* ── Contact drawer ───────────────────────────────────────── */

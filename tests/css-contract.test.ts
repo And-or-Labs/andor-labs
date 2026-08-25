@@ -130,6 +130,42 @@ describe("the hero horizon", () => {
     expect(css).toMatch(/\.aol-has-horizon\{\s*position:relative;\s*\}/);
   });
 
+  it("fits the launch-partners band on a phone", () => {
+    // TWO INDEPENDENT FITS, both measured.
+    //
+    // The five marks are 83+69+80+23+26 = 281px of ink in a 24px gap, so one
+    // row needs 377px. A phone offers viewport minus two 24px gutters — 342 at
+    // 390, 272 at 320 — so the fifth mark wrapped to a row of its own on every
+    // phone made. 0.78 with a --space-3 gap needs 267 and fits at 320.
+    //
+    // The scale MULTIPLIES --mark-h rather than replacing it. These are five
+    // different kinds of asset at aspect ratios from 1:1 to nearly 3:1 and a
+    // single shared height does not even them out, which is why the per-mark
+    // value exists at all; a rule that hardcoded one height would undo it.
+    expect(site).toMatch(/@media \(max-width: 424px\)[\s\S]{0,400}calc\(var\(--mark-h, 24px\) \* 0\.78\)/);
+    expect(site).toMatch(/@media \(max-width: 424px\)[\s\S]{0,400}gap: var\(--space-2\) var\(--space-3\)/);
+
+    // The credential's second line — "@ Blockthrough and AdPushup" plus the
+    // pill — is 344px against 342 available at 390. Two pixels, and the pill
+    // dropped to a third line; 17 over at 375 and 32 at 360. --text-2xs is the
+    // same 11px the assurance ticks are set in, and holds two lines from 360 up.
+    //
+    // Still three lines at 320, where line two needs 293 in 272: the only lever
+    // left is the pill, which would have to reach about 6.6px. That is a copy
+    // decision, not a CSS one.
+    expect(site).toMatch(/@media \(max-width: 424px\)[\s\S]{0,400}font-size: var\(--text-2xs\)/);
+  });
+
+  it("declares the founder pill once", () => {
+    // There were two rules, identical in selector and specificity, four
+    // declarations apart inside the same media block. The second won and the
+    // first set 10px and 0.04em to nobody — the kind of thing that survives
+    // because editing either one appears to work.
+    const inMobile = /@media \(max-width: 880px\)\{?([\s\S]*?)\n\}/.exec(site)?.[1] ?? site;
+    const decls = [...inMobile.matchAll(/\.aol-founderpill\s*\{/g)];
+    expect(decls.length, "one .aol-founderpill rule per breakpoint").toBeLessThanOrEqual(1);
+  });
+
   it("keeps the ground under the copy on a phone, not parked below it", () => {
     // TWO RULES, ONE COMPOSITION, and it has been wrong in both directions.
     //
