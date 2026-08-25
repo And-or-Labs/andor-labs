@@ -16,12 +16,17 @@ export const BOOKING_URL = "https://cal.com/jatain/book";
  * Change it here; every surface follows.
  *
  * Narrowed to adtech on 2026-08-21, then widened the same day to early-stage
- * technology. The narrowing was sound while PROMISE named advertising
- * technology and nothing else; the widening is a positioning decision, not a
- * drift, and PROMISE moved with it in the same commit. The rule that matters is
- * unchanged: this constant and the promise say the same thing, always.
+ * technology, then to plain early-stage on 2026-08-24. Each was a positioning
+ * decision rather than a drift, and each moved every surface at once because
+ * they all read this constant. The rule that matters is unchanged: this
+ * constant and the promise say the same thing, always.
+ *
+ * The last one arrived as a hero copy edit that quietly dropped "technology"
+ * from the subhead. Applied to the hero alone it would have put two different
+ * answers to "is this for me?" on one page — the FAQ asks the question using
+ * this constant — which is the exact fault the centralising was for.
  */
-export const ICP = "early-stage technology";
+export const ICP = "early-stage";
 
 /** The ICP as a noun phrase, e.g. "We help {ICP_STARTUPS} lead their category". */
 export const ICP_STARTUPS = `${ICP} startups`;
@@ -41,4 +46,4 @@ export const ICP_STARTUPS = `${ICP} startups`;
  * is no longer needed and the hazard is retired with it: change ICP and this
  * sentence follows, like every other surface.
  */
-export const PROMISE = `We're a boutique consultancy helping ${ICP_STARTUPS} find product-market fit, accelerate revenue growth, and win their category.`;
+export const PROMISE = `We help ${ICP_STARTUPS} find product-market fit, accelerate revenue growth, and win their category.`;

@@ -31,7 +31,7 @@
  *                  "The founder, directly. No account layers and no handoff
  *                   once the pitch is over."
  *   credential 3 src/components/sections/SiteFooter.astro:21
- *                  "Don't just go-to-market. Win it."
+ *                  "Don't just go to market. Win it."
  *   sameAs[0]    src/layouts/Base.astro:75  twitter:creator @eclecticV
  *   sameAs[1]    src/components/sections/SiteFooter.astro:11
  *
@@ -96,7 +96,7 @@ async function main() {
     credentials: [
       "Ran product marketing and sales operations through two exits above $100M",
       "Works with clients directly — no account layers, no handoff once the pitch is over",
-      "Don't just go-to-market. Win it.",
+      "Don't just go to market. Win it.",
     ],
     // Feeds Person.sameAs. Both URLs already exist in the repo; nothing is
     // guessed or reconstructed from a name.
