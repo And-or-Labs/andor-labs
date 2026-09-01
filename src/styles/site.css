@@ -279,6 +279,7 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
   .aol-founderpill { display: inline-flex; margin: 0 0 0 6px; font-size: 9.5px; padding: 2px 5px; letter-spacing: 0.02em; }
   .aol-grid-2 { grid-template-columns: 1fr; }
   .aol-faq-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+  .aol-faq-section{ padding-top:var(--space-10); padding-bottom:var(--space-10); }
 }
 @media (max-width: 620px) {
   .aol-grid-3 { grid-template-columns: 1fr; }
@@ -404,14 +405,25 @@ section[id] { scroll-margin-top: calc(57px + 24px); }
 .contact-overlay.is-open .contact-drawer { transform: translateX(0); }
 body.no-scroll { overflow: hidden; }
 
-/* ── FAQ accordion (native <details>, exclusive via name=) ──── */
-.faq-frame { position: relative; border: 1px solid var(--ink-900); border-radius: var(--radius-md); background: var(--paper-pure); padding-block: var(--space-1); }
-.faq-crop { position: absolute; width: 9px; height: 9px; pointer-events: none; }
-.faq-crop--tl { top: -1px; left: -1px; border-top: 1.5px solid var(--ink-900); border-left: 1.5px solid var(--ink-900); }
-.faq-crop--tr { top: -1px; right: -1px; border-top: 1.5px solid var(--ink-900); border-right: 1.5px solid var(--ink-900); }
-.faq-crop--bl { bottom: -1px; left: -1px; border-bottom: 1.5px solid var(--ink-900); border-left: 1.5px solid var(--ink-900); }
-.faq-crop--br { bottom: -1px; right: -1px; border-bottom: 1.5px solid var(--ink-900); border-right: 1.5px solid var(--ink-900); }
-.faq-item { border-top: 1px solid var(--ink-200); }
+/* ── FAQ open two-column layout ─────────────────────────────── */
+.faq-frame { position: relative; background: transparent; padding-block: var(--space-1); }
+.aol-faq-heading{ margin-bottom:var(--space-10); max-width:48rem; }
+.aol-faq-heading .aol-display{ margin-bottom:16px !important; text-wrap:balance; }
+.aol-faq-lead{ margin:0 0 18px; max-width:42ch; font-family:var(--font-serif); font-size:var(--text-base); line-height:var(--leading-relaxed); color:var(--text-muted); }
+.aol-faq-heading{ margin-bottom:var(--space-10); max-width:48rem; }
+.aol-faq-heading .aol-display{ margin-bottom:16px !important; text-wrap:balance; }
+.aol-faq-lead{ margin:0 0 18px; max-width:42ch; font-family:var(--font-serif); font-size:var(--text-base); line-height:var(--leading-relaxed); color:var(--text-muted); }
+
+.faq-open-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:var(--space-10); row-gap:0; }
+.faq-open-item{ padding:var(--space-6) 0; border-top:1px solid var(--border-hairline); }
+.faq-open-item:nth-child(-n+2){ border-top:1px solid var(--border-hairline); }
+.faq-open-item:nth-child(even){ border-left:0; }
+.faq-q{ display:grid; grid-template-columns:34px minmax(0,1fr); gap:14px; align-items:start; }
+.faq-idx{ font-family:var(--font-mono); font-size:var(--text-xs); color:var(--signal); position:relative; top:5px; letter-spacing:var(--tracking-mono); font-variant-numeric:tabular-nums; }
+.faq-text{ margin:0; font-family:var(--font-display); font-size:var(--text-lg); line-height:var(--leading-tight); font-weight:var(--weight-regular); color:var(--text-strong); text-wrap:balance; }
+.faq-a{ font-family:var(--font-serif); font-size:var(--text-base); line-height:var(--leading-relaxed); color:var(--text-body); margin:var(--space-4) 0 0 48px; text-wrap:pretty; }
+.faq-a > :last-child{ margin-bottom:0; }
+
 .faq-item:first-of-type { border-top: none; }
 .faq-q {
   list-style: none; cursor: pointer;
@@ -450,6 +462,11 @@ body.no-scroll { overflow: hidden; }
 .site-mobilemenu { display: none; }
 
 /* ── Small-screen safeguards (not in the kit; keep chrome from overflowing) ── */
+@media (max-width:720px){
+  .aol-faq-heading{ margin-bottom:var(--space-8); }
+  .faq-open-grid{ grid-template-columns:1fr; }
+}
+
 @media (max-width: 560px) {
   .site-nav-link { display: none; }
   /* Header CTA moves into the dropdown so it can't collide with the wordmark.

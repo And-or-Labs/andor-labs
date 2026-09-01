@@ -3,7 +3,6 @@ import Card from "../ds/Card.astro";
 import Button from "../ds/Button.astro";
 import Link from "../ds/Link.astro";
 import StatusMark from "../ds/StatusMark.astro";
-import PixelIcon from "../ds/PixelIcon.astro";
 import { BOOKING_URL } from "../../config";
 
 // Icons key off STAGE, the axis that actually separates the tiers: seedlings for
@@ -14,26 +13,29 @@ import { BOOKING_URL } from "../../config";
 // the two sections do not rhyme.
 const plans = [
   {
-    kind: "Advisory", icon: "seedlings" as const, name: "GTM Advisor",
+    kind: "Advisory", name: "Advisor",
+    image: { src: "/scenes/map-valley.png", alt: "A map representing direction and market strategy" },
     blurb: "For idea / pre-seed stage startups who want to sharpen their pitch for investors and build their early go-to-market strategy.",
-    price: "$1,000", per: "/mo + equity", cta: "Book a call",
-    feats: ["Full audit & 30/60/90 POA", "Hands-on assistance with board prep, fundraising & hiring", "Monthly strategy call"],
+    price: "$995", per: "/mo + advisor equity", cta: "Discuss Advisor",
+    feats: ["SaaS & GTM benchmark", "Crawl → walk → run roadmap", "Board, hiring & fundraising", "Early And/or tool access", "Slack, email + monthly call"],
     raised: false,
     accent: "blue" as "blue" | "copper",
   },
   {
-    kind: "Sprint", icon: "refresh" as const, name: "Modernization Sprint",
+    kind: "Sprint", name: "GTM Refresh",
+    image: { src: "/scenes/lab-03.png", alt: "A modern lab scene representing a focused build sprint" },
     blurb: "For startups of any stage who want a modern, AI-native brand & marketing foundation to build their growth engine.",
-    price: "$10,000", per: "one-time", cta: "Book a call",
-    feats: ["Brand & positioning refresh", "New, AI-ready site you can update with Claude, Codex, etc.", "CMS & tag manager set up"],
+    price: "$9,995", per: "one-time", cta: "Scope GTM Refresh",
+    feats: ["Brand system overhaul", "Pitch-to-page messaging", "New AI-ready website", "CMS + analytics setup", "Social launch kit"],
     raised: false,
     accent: "copper" as "blue" | "copper",
   },
   {
-    kind: "Fractional", icon: "users-crown" as const, name: "Fractional CMO",
+    kind: "Fractional", name: "GTM Copilot",
+    image: { src: "/scenes/telescope-ridge.png", alt: "A telescope view representing leadership and a wider market perspective" },
     blurb: "For seed / series A startups who have signs of product-market fit and are looking to scale to the next set of growth milestones.",
-    price: "$5,000", per: "/mo · 3-month min", cta: "Book a call",
-    feats: ["GTM roadmap development", "Covers product marketing, content strategy & sales enablement", "Weekly strategy call"],
+    price: "$4,995", per: "/mo · 3-mon min", cta: "Discuss GTM Copilot",
+    feats: ["GTM roadmap development", "Ghostwritten founder content", "Managed SEO/AEO growth", "Quarterly custom project", "Slack, email + weekly call"],
     raised: false,
     accent: "copper" as "blue" | "copper",
   },
@@ -46,16 +48,14 @@ const plans = [
 <section id="how-we-work" style="border-bottom:1px solid var(--ink-200);background:var(--paper)">
   <div style="max-width:var(--container-width);margin:0 auto;padding:var(--section-pad-y) var(--gutter)">
     <div class="aol-eyebrow" style="margin-bottom:14px">how we work</div>
-    <h2 class="aol-display" style="font-size:40px;margin:0 0 36px">We have something for every stage</h2>
+    <h2 class="aol-display" style="font-size:40px;margin:0 0 30px">Choose the right GTM support for your stage</h2>
     <div class="aol-grid-3" style="display:grid;gap:20px;align-items:start">
       {plans.map((p) => (
-        <Card variant={p.raised ? "raised" : "flat"} padding="lg" style="display:flex;flex-direction:column;position:relative;background:var(--surface-card)">
-          <div class="aol-offer__ruled">
-            <span class="aol-offer__rule"></span>
-            <span class="aol-offer__icon"><PixelIcon name={p.icon} size={26} /></span>
-            <span class="aol-offer__rule"></span>
+        <Card variant={p.raised ? "raised" : "flat"} padding="lg" class="aol-offer-card" style="display:flex;flex-direction:column;position:relative;background:var(--surface-card)">
+          <div class="aol-offer__image">
+            <img src={p.image.src} alt={p.image.alt} width="640" height="360" loading="lazy" decoding="async" />
+            <h3 class="aol-offer__title">{p.name}</h3>
           </div>
-          <h3 style="font-family:var(--font-serif);font-weight:600;font-size:25px;letter-spacing:-0.01em;margin:0 0 8px;text-align:center">{p.name}</h3>
           <p style="font-size:16px;color:var(--ink-600);line-height:1.5;margin:0 0 20px;text-align:center">{p.blurb}</p>
           <div style="margin-bottom:20px;background-image:radial-gradient(var(--ink-300) 0.9px, transparent 1.1px);background-size:6px 3px;background-position:left top;background-repeat:repeat-x">
             {p.feats.map((f) => (

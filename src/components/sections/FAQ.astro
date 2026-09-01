@@ -19,34 +19,24 @@ const faqs: [string, string][] = [
      directly above it is white, so the alternation lands here on grid — the
      same slot RecentStories occupied before the two swapped places. -->
 <section id="faq" style="border-bottom:1px solid var(--ink-200);background:var(--paper)">
-  <div class="aol-faq-grid" style="max-width:var(--container-width);margin:0 auto;padding:var(--section-pad-y) var(--gutter);display:grid;grid-template-columns:0.82fr 1.18fr;gap:56px;align-items:start">
-    <div>
+  <div class="aol-faq-section" style="max-width:var(--container-width);margin:0 auto;padding:var(--section-pad-y) var(--gutter)">
+    <header class="aol-faq-heading">
       <div class="aol-eyebrow" style="margin-bottom:14px">ICYMI</div>
       <h2 class="aol-display" style="font-size:40px;margin:0 0 16px">Frequently asked questions</h2>
-      <p style="font-family:var(--font-serif);font-size:16.5px;line-height:1.55;color:var(--ink-600);margin:0 0 18px;max-width:32ch">Still unsure where you'd start? Most founders begin with the GTM Advisor.</p>
+      <p class="aol-faq-lead">Still unsure where you'd start? Most founders begin with the GTM Advisor.</p>
       <Link arrow href={BOOKING_URL} target="_blank" rel="noopener">Book a call</Link>
-    </div>
+    </header>
 
-    <div class="faq-frame">
-      <span class="faq-crop faq-crop--tl"></span>
-      <span class="faq-crop faq-crop--tr"></span>
-      <span class="faq-crop faq-crop--bl"></span>
-      <span class="faq-crop faq-crop--br"></span>
-      {/* The details below carry NO `name` attribute on purpose. A shared name
-          makes the group exclusive, so opening one answer silently collapses
-          the one already open, and the two questions a buyer most wants to
-          weigh together ("Which engagement should I start with?" and "How
-          quickly will we see results?") could never be read side by side. */}
-      {faqs.map(([q, a], i) => (
-        <details class="faq-item" open={i === 0}>
-          <summary class="faq-q">
-            <span class="faq-idx">{String(i + 1).padStart(2, "0")}</span>
-            <span class="faq-text">{q}</span>
-            <span class="faq-toggle"></span>
-          </summary>
-          <div class="faq-a">{a}</div>
-        </details>
-      ))}
+    <div class="faq-open-grid">
+        {faqs.map(([q, a], i) => (
+          <article class="faq-open-item">
+            <div class="faq-q">
+              <span class="faq-idx">{String(i + 1).padStart(2, "0")}</span>
+              <h3 class="faq-text">{q}</h3>
+            </div>
+            <p class="faq-a">{a}</p>
+          </article>
+        ))}
     </div>
   </div>
 </section>

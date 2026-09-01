@@ -1,6 +1,6 @@
 ---
 /**
- * Homepage strip: the five most recent posts as a list, subscribe box beside it.
+ * Homepage strip: the latest post as a featured story, followed by a compact list.
  *
  * Fetched here rather than passed down from index.astro so the section is
  * self-contained — it can be dropped onto any page without that page having to
@@ -8,20 +8,20 @@
  * build time, not one per visitor.
  */
 import { sanityClient } from "sanity:client";
-import SubscribeBox from "../blog/SubscribeBox.astro";
+import { imageUrl } from "../../lib/sanityImage";
 
-/** A row renders a title and a date. Nothing else is rendered, so nothing else
-    is fetched — the thumbnails, excerpts, tags and category the card grid used
-    are all out of the query. */
+/* * The featured story also carries its Sanity image; the compact list stays
+    deliberately text-first. */
 interface RecentPost {
   title: string;
   slug: string;
   publishedAt: string;
+  heroImage?: { asset?: { _ref?: string } | null; alt?: string } | null;
 }
 
 const posts: RecentPost[] = await sanityClient.fetch(
   `*[_type == "post" && defined(slug.current) && seo.noIndex != true] | order(publishedAt desc)[0...5]{
-    title, "slug": slug.current, publishedAt
+    title, "slug": slug.current, publishedAt, heroImage
   }`,
 );
 
@@ -39,31 +39,46 @@ const fmt = (d: string) =>
 {posts.length > 0 && (
   <section id="writing" class="aol-recent aol-grid-blue" style="border-bottom:1px solid var(--ink-200)">
     <div class="aol-recent__inner">
-      <div class="aol-recent__list">
-        <div class="aol-recent__head">
+      <div class="aol-recent__head">
+        <div>
+          <div class="aol-eyebrow aol-recent__eyebrow-label">writing</div>
           <h2 class="aol-recent__h">Hot off the press</h2>
-          <a class="aol-recent__all" href="/blog/">All posts →</a>
         </div>
+        <a class="aol-recent__all" href="/blog/">All posts →</a>
+      </div>
 
-        {/* NO CATEGORY LABEL. A badge on every row put five coloured chips down
-            a column that is meant to be read as titles, and the category is not
-            what a reader is choosing on here — it is on the blog index, where
-            the filter makes it actionable. Title and date only. */}
-        <ul>
-          {posts.map((p) => (
+      <div class="aol-recent__stories">
+        {posts[0] && (
+          <a class="aol-recent__featured" href={`/blog/${posts[0].slug}/`}>
+            <div class="aol-recent__featured-image">
+              {(() => {
+                const src = imageUrl(posts[0].heroImage, { width: 960, height: 540, fit: "crop", format: "auto" }) || "/scenes/lab-06.png";
+                return <img src={src} alt={posts[0].heroImage?.alt ?? ""} width="960" height="540" loading="lazy" decoding="async" />;
+              })()}
+            </div>
+            <div class="aol-recent__featured-copy">
+              <span class="aol-recent__eyebrow">01 · Latest story</span>
+              <span class="aol-recent__title">{posts[0].title}</span>
+              <time class="aol-recent__meta" datetime={posts[0].publishedAt}>{fmt(posts[0].publishedAt)}</time>
+            </div>
+          </a>
+        )}
+
+        <ol class="aol-recent__list">
+          {posts.slice(1).map((p, i) => (
             <li>
               <a href={`/blog/${p.slug}/`}>
-                <span class="aol-recent__title">{p.title}</span>
-                <time class="aol-recent__meta" datetime={p.publishedAt}>{fmt(p.publishedAt)}</time>
+                <span class="aol-recent__index">{String(i + 2).padStart(2, "0")}</span>
+                <span class="aol-recent__row-copy">
+                  <span class="aol-recent__title">{p.title}</span>
+                  <time class="aol-recent__meta" datetime={p.publishedAt}>{fmt(p.publishedAt)}</time>
+                </span>
               </a>
             </li>
           ))}
-        </ul>
+        </ol>
       </div>
 
-      <div class="aol-recent__aside">
-        <SubscribeBox source="homepage" compact />
-      </div>
     </div>
   </section>
 )}

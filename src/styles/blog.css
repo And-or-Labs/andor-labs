@@ -1260,17 +1260,15 @@
   max-width: var(--container-width);
   margin: 0 auto;
   padding: var(--section-pad-y) var(--gutter);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-10);
 }
 .aol-recent__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-8);
 }
+.aol-recent__eyebrow-label{ margin-bottom:14px; }
 .aol-recent__h {
   margin: 0;
   font-family: var(--font-display);
@@ -1290,22 +1288,20 @@
 @media (hover: hover) and (pointer: fine) {
   .aol-recent__all:hover { text-decoration: underline; text-underline-offset: 3px; }
 }
-/* TWO COLUMNS, row-major: the five read 1-2 / 3-4 / 5, newest across the top.
-   `columns: 2` would flow them down the left column and back up the right,
-   which puts the second-newest post at the bottom of the block. */
-.aol-recent ul {
-  list-style: none; margin: 0; padding: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-6) var(--space-10);
-}
-.aol-recent a {
-  text-decoration: none;
-  display: grid;
-  gap: 6px;
-  /* Padding, not a border. The row's hit area grows without drawing a line. */
-  padding: 2px 0;
-}
+.aol-recent__stories{ display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); gap:var(--space-10); align-items:stretch; }
+.aol-recent__featured{ display:flex; flex-direction:column; min-width:0; text-decoration:none; background:var(--surface-card); border:1px solid var(--border-hairline); border-radius:var(--radius-md); overflow:hidden; }
+.aol-recent__featured-image{ aspect-ratio:16 / 9; background:var(--ink-100); overflow:hidden; }
+.aol-recent__featured-image img{ display:block; width:100%; height:100%; object-fit:cover; filter:saturate(.8); transition:transform var(--dur-base) var(--ease-out), filter var(--dur-base) var(--ease-out); }
+.aol-recent__featured:hover .aol-recent__featured-image img{ transform:scale(1.025); filter:saturate(1); }
+.aol-recent__featured-copy{ display:grid; gap:8px; padding:var(--space-6); }
+.aol-recent__eyebrow,.aol-recent__index{ font-family:var(--font-mono); font-size:var(--text-2xs); letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--blue-600); }
+.aol-recent__featured .aol-recent__title{ font-size:var(--text-xl); line-height:1.25; }
+.aol-recent__list{ list-style:none; margin:0; padding:0; display:grid; align-content:start; }
+.aol-recent__list li{ border-bottom:1px solid var(--border-hairline); }
+.aol-recent__list li:first-child{ border-top:1px solid var(--border-hairline); }
+.aol-recent__list a{ display:grid; grid-template-columns:36px minmax(0,1fr); gap:var(--space-4); align-items:start; padding:var(--space-5) 0; text-decoration:none; }
+.aol-recent__row-copy{ display:grid; gap:6px; min-width:0; }
+.aol-recent__list .aol-recent__title{ font-size:var(--text-lg); }
 .aol-recent__title {
   font-family: var(--font-serif);
   font-size: var(--text-lg);
@@ -1323,15 +1319,16 @@
   letter-spacing: var(--tracking-mono);
   color: var(--ink-500);
 }
-/* The subscribe box is a component; only its position is set here. Full width
-   under the posts — it was a sticky right-hand column when the list was a
-   single stack. */
-.aol-recent__aside { width: 100%; }
+/* The subscribe box is a separate conversion block beneath the editorial unit. */
+.aol-recent__aside { width:100%; margin-top:var(--space-10); display:grid; grid-template-columns:minmax(0,1fr) minmax(0,672px); gap:var(--space-8); align-items:center; }
+.aol-recent__subscribe-intro{ max-width:34ch; }
+.aol-recent__subscribe-intro p{ margin:8px 0 0; font-family:var(--font-serif); font-size:18px; line-height:1.45; color:var(--ink-800); }
+.aol-recent__aside .aol-sub{ margin:0; }
 
 @media (max-width: 720px) {
-  /* One column of posts. Two columns of titles below this wrap to two or three
-     lines each and stop reading as a list. */
-  .aol-recent ul { grid-template-columns: 1fr; gap: var(--space-5); }
+  .aol-recent__stories{ grid-template-columns:1fr; gap:var(--space-6); }
+  .aol-recent__aside{ margin-top:var(--space-8); grid-template-columns:1fr; gap:var(--space-5); }
+  .aol-recent__subscribe-intro{ max-width:42ch; }
 }
 
 
