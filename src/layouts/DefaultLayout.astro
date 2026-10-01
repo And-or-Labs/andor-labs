@@ -1,38 +1,19 @@
 ---
-import { AndorMark, SiteFooter, SiteHeader } from "@andor/ds";
-import BaseHead from "@/components/BaseHead.astro";
-import { CTA, NAV, SITE, SOCIALS } from "@/data/site";
+import BaseHead from '@/components/BaseHead.astro';
+import { Footer } from '@/components/blocks/footer';
+import { Navbar } from '@/components/blocks/navbar';
 
-interface Props {
-  title?: string;
-  description?: string;
-  image?: string;
-  type?: "website" | "article";
-}
-
-const brand = { name: SITE.name, href: "/" };
+const { title, description } = Astro.props;
 ---
 
 <html lang="en">
-  <head>
-    <BaseHead {...Astro.props} />
-    <slot name="head" />
-  </head>
-  <body>
-    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:shadow-float">Skip to content</a>
-    <SiteHeader client:load brand={brand} nav={NAV} cta={CTA}><AndorMark slot="logo" size={26} /></SiteHeader>
-    <main id="main"><slot /></main>
-    <SiteFooter
-      brand={brand}
-      tagline={SITE.tagline}
-      current="And/or Labs"
-      columns={[
-        { title: "Site", links: NAV },
-        { title: "Products", links: [{ label: "MediaContext", href: "https://mediacontext.dev" }] },
-        { title: "Elsewhere", links: SOCIALS },
-      ]}
+    <head>		
+        <BaseHead title={title} description={description}  />
+    </head>
+    <body class={`h-screen antialiased`}
     >
-      <AndorMark slot="logo" size={24} />
-    </SiteFooter>
-  </body>
+        <Navbar client:only='react' />
+        <main><slot /></main>
+        <Footer />
+    </body>
 </html>

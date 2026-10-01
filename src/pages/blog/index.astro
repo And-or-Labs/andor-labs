@@ -1,49 +1,21 @@
 ---
-import { Label, Panel } from "@andor/ds";
-import { getCollection } from "astro:content";
-import { Subscribe } from "@/components/subscribe";
-import DefaultLayout from "@/layouts/DefaultLayout.astro";
-import { formatDate } from "@/lib/format";
+import { getCollection } from 'astro:content';
 
-const posts = (await getCollection("blog", (p) => !p.data.draft)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-const [lead, ...rest] = posts;
-const categoryLabel = { "field-notes": "Field notes", resources: "Resources", explainer: "Explainer" } as const;
+import { Background } from '@/components/background';
+import { BlogPosts } from '@/components/blocks/blog-posts';
+import { SITE_TITLE, SITE_DESCRIPTION } from '@/consts';
+import DefaultLayout from '@/layouts/DefaultLayout.astro';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
 ---
 
-<DefaultLayout title="Writing | And/or Labs" description="Occasional posts and rants about marketing, startups, media, and adtech; always handwritten by the author.">
-  <Panel>
-    <header class="container pb-12 pt-32 md:pt-40">
-      <Label marker={3}>Writing</Label>
-      <h1 class="mt-5 text-4xl font-semibold tracking-[-0.035em] md:text-6xl">Field notes</h1>
-      <p class="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">Occasional posts and rants about marketing, startups, media, and adtech; always handwritten by the author.</p>
-      <div class="mt-8 max-w-md"><Subscribe client:visible /></div>
-    </header>
-  </Panel>
-
-  <section class="container pb-24 pt-8" aria-label="Posts">
-    {lead && (
-      <a href={`/blog/${lead.id}/`} class="group grid gap-8 rounded-2xl bg-card p-4 shadow-[0_0_0_1px_var(--border)] transition-shadow hover:shadow-[0_0_0_1px_var(--border),var(--shadow-panel)] md:grid-cols-2 md:p-5">
-        {lead.data.heroImage && <img src={lead.data.heroImage} alt={lead.data.heroAlt} class="aspect-[16/10] w-full rounded-xl object-cover" />}
-        <div class="flex flex-col justify-center p-2 md:pr-6">
-          <Label marker={3}>{categoryLabel[lead.data.category]} · {formatDate(lead.data.pubDate)}</Label>
-          <h2 class="mt-4 text-3xl font-semibold leading-tight tracking-[-0.03em] transition-colors group-hover:text-primary">{lead.data.title}</h2>
-          <p class="mt-3 text-[15px] leading-relaxed text-muted-foreground">{lead.data.description}</p>
-        </div>
-      </a>
-    )}
-
-    <ul class="mt-10 divide-y border-y">
-      {rest.map((p) => (
-        <li>
-          <a href={`/blog/${p.id}/`} class="group grid gap-2 py-6 md:grid-cols-[10rem_1fr] md:gap-8">
-            <span class="font-label text-[11px] uppercase tracking-[0.08em] text-muted-foreground md:pt-1.5">{formatDate(p.data.pubDate)}</span>
-            <span>
-              <span class="block text-xl font-semibold tracking-[-0.02em] transition-colors group-hover:text-primary">{p.data.title}</span>
-              <span class="mt-1.5 block max-w-2xl text-[15px] leading-relaxed text-muted-foreground">{p.data.description}</span>
-            </span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  </section>
+<DefaultLayout title={SITE_TITLE} description={SITE_DESCRIPTION} >
+	<Background>
+		<div class="py-28 lg:pt-44 lg:pb-32">
+			<BlogPosts posts={posts} client:only='react' />
+		</div>
+	</Background>
 </DefaultLayout>
+

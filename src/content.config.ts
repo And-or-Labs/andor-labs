@@ -1,25 +1,19 @@
 import { glob } from "astro/loaders";
-import { defineCollection } from "astro:content";
-import { z } from "astro/zod";
+import { defineCollection, z } from "astro:content";
 
 const blog = defineCollection({
+  // Load Markdown and MDX files in the `src/content/blog/` directory.
   loader: glob({ base: "./src/content/blog", pattern: "**/*.{md,mdx}" }),
+  // Type-check frontmatter using a schema
   schema: z.object({
     title: z.string(),
     description: z.string(),
-    standfirst: z.string().optional(),
+    // Transform string to Date object
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
-    category: z.enum(["field-notes", "resources", "explainer"]).default("field-notes"),
-    author: z.string().default("Vishveshwar Jatain"),
-    heroImage: z.string().optional(),
-    heroAlt: z.string().default(""),
-    heroCredit: z.string().optional(),
-    keyTakeaways: z.array(z.string()).optional(),
-    faq: z.array(z.object({ question: z.string(), answer: z.string() })).optional(),
-    tags: z.array(z.string()).optional(),
-    noIndex: z.boolean().optional(),
-    draft: z.boolean().optional(),
+    image: z.string().optional(),
+    authorImage: z.string().optional(),
+    authorName: z.string().optional(),
   }),
 });
 
