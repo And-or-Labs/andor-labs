@@ -7,3 +7,4 @@
 /admin/*      /           301
 /work         /           301
 /work/*       /           301
+/blog/rss.xml /rss.xml 301
