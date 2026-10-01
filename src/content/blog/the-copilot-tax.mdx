@@ -1,0 +1,79 @@
+---
+title: "Fighting the Copilot Tax"
+description: "There's a meme going around that compares AI copilots to coin slot machines. After building 5 products in 6 weeks... I'm starting to see the merit of that…"
+standfirst: "There's a meme going around that compares AI copilots to coin slot machines. After building 5 products in 6 weeks... I'm starting to see the merit of that…"
+pubDate: 2026-03-03
+category: "field-notes"
+author: "Vishveshwar Jatain"
+heroImage: "/blog/the-copilot-tax/hero.png"
+heroAlt: "A single upright arcade cabinet standing alone against a plain background."
+heroCredit: "Photo by Al, CC BY-SA 4.0"
+keyTakeaways:
+  - "The copilot tax is what you pay when speed outpaces judgment."
+  - "The bottleneck was never writing code."
+  - "The bottleneck was exercising good judgment in what to build, what to cut, and when to stop."
+tags: ["Tech stack","lab-notes"]
+---
+In my last post, I talked about how the ability to build software is being commoditized to zero. This post is the receipts.
+
+Over the past six weeks, I built a browser game, a Chrome extension, a consulting website, an iOS app, and two Claude Code plugins. Every commit was co-authored with Claude. Some were authored entirely by Claude, no human in the loop at all.
+
+Yes, it made me build things faster. Unfortunately in many cases, it also helped me build the wrong thing faster... something I'm calling "the copilot tax".
+
+Here are the three most expensive mistakes I made and what I learnt in the process.
+
+## Mistake 1: Building before planning
+
+[Void Patrol](https://void.nazdar.games) is a browser-based shoot-em-up I built with Phaser 3. I went from v0.1 to v0.70.1 in two weeks. **73 version bumps.**
+
+That sounds impressive until you look at what I deleted: a full progression system with upgradeable weapons, branching dialogue with 6 player choices, a debug panel, a Star Wars-style text crawl. All coded, tested, and ripped out.
+
+The game got better every time I removed something. But those deleted features introduced bugs (physics freezes, timer cleanup issues) that took real time to fix.
+
+Same pattern on my consulting site, [andorlabs.ca](https://andorlabs.ca). I went through three content management systems in 10 days. TinaCMS first (pulled after 3 days). Then Sanity (two days fighting build failures before stripping it). The final setup? Local markdown files. The simplest approach. The one I should've started with.
+
+<PullQuote>The game got better every time I removed something.</PullQuote>
+
+AI made adding each CMS trivial. A few minutes of work, every time. But the constraint was never _building speed_. It was knowing when to stop adding things. For a single-author consulting site, three CMS migrations in 10 days is a sign you're solving the wrong problem.
+
+The counter-example is [Slop or Not](https://github.com/eclecticv/slop-or-not), a Chrome extension that detects AI-generated content in LinkedIn feeds. **1,540 lines of vanilla JavaScript.** No frameworks, no build step, no API calls. It shipped in a single commit because the scope was clear before I wrote a line of code. Zero copilot tax.
+
+## Mistake 2: Compiled ≠ done
+
+Tasky is an ADHD-friendly iOS task manager I built with SwiftUI. Claude turned my spec into a working app in one sitting. It compiled. It ran. And the interface looked like three different apps stitched together: mismatched colors, inconsistent spacing, buttons that didn't share the same design language.
+
+Same issue with Void Patrol's pixel art. Every sprite was AI-generated through PixelLab, which sounds simple until you realize telling the AI "top-down view" doesn't guarantee a top-down sprite. I ended up writing a 415-line production guide just to document which parameter combinations produce usable, consistent results.
+
+The fix in both cases was the same: define the system before generating the output. For Tasky, that meant building a design token system (color palette, spacing scale, typography) and migrating every screen to use it. For Void Patrol, it meant establishing a "style anchor" sprite and generating everything else to match it. And in both cases, I added human checkpoints where I'd visually approve the result before moving on. Because the compiler can't tell you your app looks generic.
+
+## Mistake 3: Scoring opinions vs. knowledge
+
+SaaS Grader is a Claude Code plugin that grades SaaS websites against published academic research. The first version had 6 commands and a subjective 100-point scoring system. "Rate your headline 1-10." That kind of thing. It was... fine. Not useful. "Your headline scores 6/10" doesn't mean anything to a founder trying to fix their positioning.
+
+The rewrite stripped it to 2 commands with explicit pass/fail criteria, every check traceable to a published source: Dunford, Moore, MECLABS, or peer-reviewed studies from Stanford, MIT, and Georgetown.
+
+"Your homepage doesn't name what the customer would use instead. Here's why that matters. Here's the research. Here's how to fix it." That's actionable.
+
+The surprising part: the entire plugin is text files. The "product" is structured knowledge and a set of instructions for Claude. Citations aren't just credibility. They're the product. Having fewer commands made the tool dramatically better.
+
+## What I'd do differently
+
+**Use plan mode.** Claude Code has a mode that forces the AI to outline its approach before writing anything. I didn't use it enough early on. When I did, the AI stopped generating code I'd delete an hour later. Planning isn't slower. Skipping planning is slower.
+
+**Build a design system first.** Tasky's UI looked like three apps stitched together because I let Claude generate each screen independently. The fix was a component-based design system: a shared set of colors, spacing, and button styles that every screen pulls from. One source of truth for how the app looks. Every new screen automatically matches.
+
+**Review early and often.** Code that compiles isn't code that works. I started adding checkpoints where I'd visually inspect the output before moving on. For Void Patrol, that meant approving every sprite before it went into the game. For Tasky, it meant looking at every screen on a real device. The AI can't tell you something looks off. You can.
+
+**Cut features in the doc, not the codebase.** I deleted a full progression system, branching dialogue, and a Star Wars-style text crawl from Void Patrol, all after they were built. Every one of those features introduced bugs while it existed. It's cheaper to cross something off a planning doc than to rip it out of working code. Be ruthless early.
+
+**Find plugins for the specialist work.** SaaS Grader went from mediocre to useful when I stopped trying to make Claude do everything and found the right plugins for specific jobs. PixelLab for consistent sprites. Structured research prompts for marketing analysis. The AI is a generalist. For anything that needs domain expertise, find a tool that's purpose-built for it.
+
+## The real bottleneck
+
+The bottleneck was never writing code. Claude Code handled that part well.
+
+The bottleneck was exercising good judgment in what to build, what to cut, and when to stop. Three CMS migrations happened because each one was easy to start. Seventy-three game versions happened because each one was easy to ship. AI-generated design compiled but looked generic until I added human checkpoints.
+
+<PullQuote>The expensive part is asking for the right thing.</PullQuote>
+
+The copilot tax is what you pay when speed outpaces judgment. The tool will build whatever you ask for. The expensive part is asking for the right thing.

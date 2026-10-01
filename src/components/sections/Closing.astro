@@ -1,0 +1,21 @@
+---
+import { Button, Label, Panel } from "@andor/ds";
+import { Faq } from "@/components/faq";
+import { BOOKING_URL, FAQS, SITE } from "@/data/site";
+---
+
+<Panel variant="bottom">
+  <section id="faq" class="container grid gap-10 py-20 lg:grid-cols-[1fr_1.4fr] lg:gap-20 lg:py-28" aria-labelledby="faq-title">
+    <div>
+      <Label>FAQ</Label>
+      <h2 id="faq-title" class="mt-4 text-3xl font-semibold leading-[1.1] md:text-4xl">Frequently asked questions</h2>
+    </div>
+    <Faq client:visible items={FAQS} />
+  </section>
+
+  <section class="container pb-24 pt-4 text-center lg:pb-32" aria-labelledby="closing-title">
+    <h2 id="closing-title" class="mx-auto max-w-3xl text-4xl font-semibold leading-[1.05] tracking-[-0.035em] md:text-6xl">{SITE.tagline}</h2>
+    <p class="mx-auto mt-5 max-w-lg text-lg text-muted-foreground">Thirty minutes with the founder. Bring the problem you are stuck on.</p>
+    <Button href={BOOKING_URL} target="_blank" rel="noopener noreferrer" size="lg" className="mt-9">Book a call</Button>
+  </section>
+</Panel>

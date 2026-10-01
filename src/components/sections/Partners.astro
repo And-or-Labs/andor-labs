@@ -1,0 +1,17 @@
+---
+import { Label } from "@andor/ds";
+import { PARTNERS } from "@/data/site";
+---
+
+<section class="container" aria-label="Launch partners">
+  <div class="flex flex-col gap-6 border-y py-8 md:flex-row md:items-center md:gap-12">
+    <Label className="shrink-0">Launch partners</Label>
+    <ul class="flex flex-1 flex-wrap items-center justify-between gap-x-10 gap-y-6">
+      {PARTNERS.map((p) => (
+        <li class="flex items-center">
+          <img src={p.src} alt={p.name} style={`height:${p.h}px;width:auto`} class="max-w-none opacity-55 grayscale transition-opacity duration-200 hover:opacity-100" loading="lazy" />
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

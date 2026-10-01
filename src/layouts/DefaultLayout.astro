@@ -1,0 +1,38 @@
+---
+import { AndorMark, SiteFooter, SiteHeader } from "@andor/ds";
+import BaseHead from "@/components/BaseHead.astro";
+import { CTA, NAV, SITE, SOCIALS } from "@/data/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: "website" | "article";
+}
+
+const brand = { name: SITE.name, href: "/" };
+---
+
+<html lang="en">
+  <head>
+    <BaseHead {...Astro.props} />
+    <slot name="head" />
+  </head>
+  <body>
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:shadow-float">Skip to content</a>
+    <SiteHeader client:load brand={brand} nav={NAV} cta={CTA}><AndorMark slot="logo" size={26} /></SiteHeader>
+    <main id="main"><slot /></main>
+    <SiteFooter
+      brand={brand}
+      tagline={SITE.tagline}
+      current="And/or Labs"
+      columns={[
+        { title: "Site", links: NAV },
+        { title: "Products", links: [{ label: "MediaContext", href: "https://mediacontext.dev" }] },
+        { title: "Elsewhere", links: SOCIALS },
+      ]}
+    >
+      <AndorMark slot="logo" size={24} />
+    </SiteFooter>
+  </body>
+</html>

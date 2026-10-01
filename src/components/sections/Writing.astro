@@ -1,0 +1,38 @@
+---
+import { Label, SectionHeader } from "@andor/ds";
+import { ArrowRight } from "lucide-react";
+import { getCollection } from "astro:content";
+import { Subscribe } from "@/components/subscribe";
+import { formatDate } from "@/lib/format";
+
+const posts = (await getCollection("blog")).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 3);
+---
+
+<section id="writing" class="border-t py-20 lg:py-28" aria-labelledby="writing-title">
+  <div class="container">
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <SectionHeader id="writing-title" label="Writing" marker={3} title="Field notes" lede="Occasional posts and rants about marketing, startups, media, and adtech; always handwritten by the author." />
+      <a href="/blog/" class="inline-flex items-center gap-1.5 text-sm font-medium">All posts <ArrowRight className="size-4" /></a>
+    </div>
+
+    <ul class="mt-12 grid gap-4 md:grid-cols-3">
+      {posts.map((p) => (
+        <li>
+          <a href={`/blog/${p.id}/`} class="group flex h-full flex-col rounded-2xl bg-card p-6 shadow-[0_0_0_1px_var(--border)] transition-shadow hover:shadow-[0_0_0_1px_var(--border),var(--shadow-panel)]">
+            <Label>{formatDate(p.data.pubDate)}</Label>
+            <h3 class="mt-4 text-lg font-semibold leading-snug tracking-[-0.015em] transition-colors group-hover:text-primary">{p.data.title}</h3>
+            <p class="mt-2 line-clamp-3 text-[15px] leading-relaxed text-muted-foreground">{p.data.description}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div class="mt-6 grid items-center gap-6 rounded-2xl bg-muted/70 p-6 shadow-[0_0_0_1px_var(--border)] md:grid-cols-[1fr_minmax(0,26rem)] md:p-8">
+      <div>
+        <h3 class="text-lg font-semibold tracking-[-0.015em]">Get field notes by email.</h3>
+        <p class="mt-1 text-[15px] text-muted-foreground">New posts only. Unsubscribe in one click.</p>
+      </div>
+      <Subscribe client:visible />
+    </div>
+  </div>
+</section>

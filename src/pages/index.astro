@@ -1,46 +1,26 @@
 ---
-import Base from "../layouts/Base.astro";
-import SiteHeader from "../components/sections/SiteHeader.astro";
-import Hero from "../components/sections/Hero.astro";
-import AuditReport from "../components/sections/AuditReport.astro";
-import FounderNote from "../components/sections/FounderNote.astro";
-import Capabilities from "../components/sections/Capabilities.astro";
-import Offers from "../components/sections/Offers.astro";
-import FAQ from "../components/sections/FAQ.astro";
-import RecentStories from "../components/sections/RecentStories.astro";
-// Newsletter hidden until the Beehiiv email capture is wired (Newsletter.astro is ready).
-// import Newsletter from "../components/sections/Newsletter.astro";
-import SiteFooter from "../components/sections/SiteFooter.astro";
-import SiteMotion from "../components/SiteMotion.astro";
-import CopyDiffer from "../components/CopyDiffer.astro";
+import About from "@/components/sections/About.astro";
+import Closing from "@/components/sections/Closing.astro";
+import Hero from "@/components/sections/Hero.astro";
+import Lines from "@/components/sections/Lines.astro";
+import Partners from "@/components/sections/Partners.astro";
+import Press from "@/components/sections/Press.astro";
+import Services from "@/components/sections/Services.astro";
+import Testimonials from "@/components/sections/Testimonials.astro";
+import Work from "@/components/sections/Work.astro";
+import Writing from "@/components/sections/Writing.astro";
+import DefaultLayout from "@/layouts/DefaultLayout.astro";
 ---
-<Base>
-  <SiteHeader />
-  <main>
-    <Hero />
-    {/* Prints below the hero when a run finishes, and the page scrolls to it. */}
-    <AuditReport />
-    <FounderNote />
-    <Capabilities />
-    <Offers />
-    {/* Compare ("the alternatives") removed 2026-08-24. The component is still in
-        src/components/sections/ and its "Why us" nav entry went with it, so
-        restoring is an import, a tag and two nav lines. Its removal swapped the
-        two sections below it: the grid<->white alternation belongs to the
-        POSITION, not to the section, so RecentStories takes the grid Compare
-        vacated and the FAQ goes to paper. */}
-    {/* Replaces the old <Newsletter />, which was hidden "until email capture is
-        wired". It now is — RecentStories carries the Loops-backed subscribe box.
-        Sits ahead of the FAQ: the ask a reader can act on immediately should not
-        be the last thing on the page, and the FAQ is the better closer anyway —
-        it ends on "book a call" right above the footer's own contact block.
-        Moving it swapped the two sections' surfaces as well, since the grid<->
-        white alternation belongs to the position, not to the section. */}
-    <RecentStories />
-    {/* Temporarily hidden while the homepage content hierarchy is refined. */}
-    {/* <FAQ /> */}
-  </main>
-  <SiteFooter />
-  <SiteMotion />
-  {import.meta.env.DEV && <CopyDiffer />}
-</Base>
+
+<DefaultLayout>
+  <Hero />
+  <Partners />
+  <Lines />
+  <Services />
+  <Work />
+  <Testimonials />
+  <About />
+  <Press />
+  <Writing />
+  <Closing />
+</DefaultLayout>

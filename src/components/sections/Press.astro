@@ -1,0 +1,30 @@
+---
+import { Label, SectionHeader } from "@andor/ds";
+import { PRESS } from "@/data/site";
+
+const groups = [
+  { title: "Bylines", marker: 3, items: PRESS.bylines },
+  { title: "Coverage of work VJ led", marker: 2, items: PRESS.coverage },
+] as const;
+---
+
+<section id="press" class="container pb-20 lg:pb-28" aria-labelledby="press-title">
+  <SectionHeader id="press-title" label="Press" title="Bylines and coverage." />
+  <div class="mt-12 grid gap-10 lg:grid-cols-2 lg:gap-16">
+    {groups.map((g) => (
+      <div>
+        <Label marker={g.marker}>{g.title}</Label>
+        <ul class="mt-4 divide-y border-y">
+          {g.items.map((it) => (
+            <li>
+              <a href={it.href} target="_blank" rel="noopener noreferrer" class="group flex items-baseline justify-between gap-6 py-4">
+                <span class="text-[15px] leading-snug transition-colors group-hover:text-primary">{it.title}</span>
+                <span class="shrink-0 font-label text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{it.source}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+</section>

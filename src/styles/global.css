@@ -1,0 +1,4 @@
+@import "tailwindcss";
+@import "@andor/ds/styles.css";
+@import "@andor/ds/themes/andor.css";
+@plugin "@tailwindcss/typography";

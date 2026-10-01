@@ -1,226 +1,49 @@
 ---
-import { sanityClient } from "sanity:client";
-import { ICP } from "../../config";
-import Base from "../../layouts/Base.astro";
-import SiteHeader from "../../components/sections/SiteHeader.astro";
-import SiteFooter from "../../components/sections/SiteFooter.astro";
-import SiteMotion from "../../components/SiteMotion.astro";
-import SubscribeBox from "../../components/blog/SubscribeBox.astro";
-import { imageUrl, type SanityImageSource } from "../../lib/sanityImage";
-import { breadcrumbJsonLd } from "../../lib/seo";
-import { toCategory, CATEGORY_ORDER, CATEGORIES } from "../../lib/categories";
-import Badge from "../../components/ds/Badge.astro";
+import { Label, Panel } from "@andor/ds";
+import { getCollection } from "astro:content";
+import { Subscribe } from "@/components/subscribe";
+import DefaultLayout from "@/layouts/DefaultLayout.astro";
+import { formatDate } from "@/lib/format";
 
-interface PostCard {
-  title: string;
-  slug: string;
-  standfirst?: string;
-  excerpt: string;
-  publishedAt: string;
-  tags?: string[];
-  heroImage?: (SanityImageSource & { alt?: string }) | null;
-  authorName?: string;
-  category?: string;
-}
-
-const posts: PostCard[] = await sanityClient.fetch(
-  `*[_type == "post" && defined(slug.current) && seo.noIndex != true] | order(publishedAt desc){
-    title, "slug": slug.current, standfirst, excerpt, publishedAt, tags, heroImage, category,
-    "authorName": coalesce(array::join(authors[]->name, ", "), author->name)
-  }`,
-);
-
+const posts = (await getCollection("blog", (p) => !p.data.draft)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 const [lead, ...rest] = posts;
-
-const fmt = (d: string) =>
-  new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
-const fmtShort = (d: string) =>
-  new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
-
-// Tags, most-used first, so the filter bar leads with the ones that actually
-// partition the archive rather than one-off labels.
-//
-// Grouped case-insensitively. The archive was written across two sites and
-// carries both "ai" and "AI", "SaaS" and "saas" — as distinct strings they
-// produced two chips that `text-transform: lowercase` then rendered
-// identically, so the bar showed "ai" twice and each one filtered out the
-// other's posts. Lowercase is the canonical key everywhere: here, on the
-// buttons, and in each row's `data-tags`.
-const tagKey = (t: string) => t.trim().toLowerCase();
-const tagCounts = new Map<string, number>();
-for (const p of posts) for (const t of p.tags ?? []) tagCounts.set(tagKey(t), (tagCounts.get(tagKey(t)) ?? 0) + 1);
-const tags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([t]) => t);
-
-// Only categories that actually have posts, and only shown when there is a
-// real choice to make. The whole archive is currently `field-notes`, so a bar
-// reading "Everything | Field notes" would be two buttons that do the same
-// thing. It appears on its own once the newsletter starts publishing.
-const presentCategories = CATEGORY_ORDER.filter((k) =>
-  posts.some((p) => toCategory(p.category).key === k),
-);
-
-const crumbsLd = breadcrumbJsonLd([
-  { name: "Home", url: new URL("/", Astro.site).href },
-  { name: "Writing", url: new URL("/blog/", Astro.site).href },
-]);
-
-const description = `Essays and explainers on GTM engineering, positioning, and content strategy for ${ICP} founders.`;
+const categoryLabel = { "field-notes": "Field notes", resources: "Resources", explainer: "Explainer" } as const;
 ---
-<Base title="Writing | And/or Labs" description={description}>
-  <script is:inline type="application/ld+json" set:html={JSON.stringify(crumbsLd)} />
-  <SiteHeader />
 
-  <main class="aol-blog">
-    <div style="max-width:var(--container-width);margin:0 auto;padding:0 var(--gutter)">
-      <header class="aol-blog-head">
-        <p class="aol-a__eyebrow">Writing</p>
-        <h1 class="aol-blog-head__h">Written from inside the machine.</h1>
-        <p class="aol-blog-head__sub">
-          Three things get published here. A weekly AI newsletter written by machines.
-          Occasional posts written by hand. Explainers, for questions that deserve a
-          straight answer.
-        </p>
-        {presentCategories.length > 1 && (
-          <div class="aol-catbar" role="group" aria-label="Filter by type">
-            <button type="button" data-cat="__all" aria-pressed="true">Everything</button>
-            {presentCategories.map((k) => (
-              <button type="button" data-cat={k} aria-pressed="false">{CATEGORIES[k].labelShort}</button>
-            ))}
-          </div>
-        )}
-        {tags.length > 1 && (
-          <div class="aol-tagbar" role="group" aria-label="Filter posts by topic">
-            <button type="button" data-tag="__all" aria-pressed="true">all</button>
-            {tags.map((t) => <button type="button" data-tag={t} aria-pressed="false">{t}</button>)}
-          </div>
-        )}
-      </header>
+<DefaultLayout title="Writing | And/or Labs" description="Occasional posts and rants about marketing, startups, media, and adtech; always handwritten by the author.">
+  <Panel>
+    <header class="container pb-12 pt-32 md:pt-40">
+      <Label marker={3}>Writing</Label>
+      <h1 class="mt-5 text-4xl font-semibold tracking-[-0.035em] md:text-6xl">Field notes</h1>
+      <p class="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">Occasional posts and rants about marketing, startups, media, and adtech; always handwritten by the author.</p>
+      <div class="mt-8 max-w-md"><Subscribe client:visible /></div>
+    </header>
+  </Panel>
 
-      {lead && (
-        <a class="aol-lead" href={`/blog/${lead.slug}/`} data-tags={(lead.tags ?? []).map(tagKey).join("|")} data-category={toCategory(lead.category).key}>
-          <div class="aol-lead__text">
-            {(() => { const c = toCategory(lead.category); return (
-              <p class="aol-lead__eyebrow"><Badge variant={c.badge} class={c.key === "ai-newsletter" ? "aol-badge--verbatim" : undefined}>{c.labelShort}</Badge></p>
-            ); })()}
-            <h2 class="aol-lead__title">{lead.title}</h2>
-            <p class="aol-lead__dek">{lead.standfirst ?? lead.excerpt}</p>
-            <p class="aol-lead__meta">
-              {lead.authorName && <>{lead.authorName}<span class="sep">·</span></>}
-              <time datetime={lead.publishedAt}>{fmt(lead.publishedAt)}</time>
-            </p>
-          </div>
-          {(() => {
-            const src = imageUrl(lead.heroImage, { width: 960, height: 600, fit: "crop", format: "auto" });
-            return src ? (
-              <figure class="aol-lead__media">
-                {/* The lead image is above the fold — eager, high priority. */}
-                <img src={src} alt={lead.heroImage?.alt ?? ""} width="960" height="600" fetchpriority="high" decoding="async" />
-              </figure>
-            ) : null;
-          })()}
-        </a>
-      )}
+  <section class="container pb-24 pt-8" aria-label="Posts">
+    {lead && (
+      <a href={`/blog/${lead.id}/`} class="group grid gap-8 rounded-2xl bg-card p-4 shadow-[0_0_0_1px_var(--border)] transition-shadow hover:shadow-[0_0_0_1px_var(--border),var(--shadow-panel)] md:grid-cols-2 md:p-5">
+        {lead.data.heroImage && <img src={lead.data.heroImage} alt={lead.data.heroAlt} class="aspect-[16/10] w-full rounded-xl object-cover" />}
+        <div class="flex flex-col justify-center p-2 md:pr-6">
+          <Label marker={3}>{categoryLabel[lead.data.category]} · {formatDate(lead.data.pubDate)}</Label>
+          <h2 class="mt-4 text-3xl font-semibold leading-tight tracking-[-0.03em] transition-colors group-hover:text-primary">{lead.data.title}</h2>
+          <p class="mt-3 text-[15px] leading-relaxed text-muted-foreground">{lead.data.description}</p>
+        </div>
+      </a>
+    )}
 
-      {rest.length > 0 && (
-        <ul class="aol-list" data-list>
-          {rest.map((p) => (
-            <li data-tags={(p.tags ?? []).map(tagKey).join("|")} data-category={toCategory(p.category).key}>
-              <a class="aol-row" href={`/blog/${p.slug}/`}>
-                {(() => {
-                  const src = imageUrl(p.heroImage, { width: 264, height: 198, fit: "crop", format: "auto" });
-                  return src ? (
-                    <img class="aol-row__thumb" src={src} alt="" width="264" height="198" loading="lazy" decoding="async" />
-                  ) : (
-                    <span class="aol-row__thumb" aria-hidden="true"></span>
-                  );
-                })()}
-                <div>
-                  {(() => { const c = toCategory(p.category); return (
-                    <p class="aol-row__eyebrow"><Badge variant={c.badge} class={c.key === "ai-newsletter" ? "aol-badge--verbatim" : undefined}>{c.labelShort}</Badge></p>
-                  ); })()}
-                  <h2 class="aol-row__title">{p.title}</h2>
-                  <p class="aol-row__dek">{p.excerpt}</p>
-                </div>
-                <p class="aol-row__meta"><time datetime={p.publishedAt}>{fmtShort(p.publishedAt)}</time></p>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <p class="aol-list__empty" data-empty hidden>Nothing here yet.</p>
-
-      <SubscribeBox source="blog-index" />
-    </div>
-  </main>
-
-  <SiteFooter />
-  <SiteMotion />
-</Base>
-
-<style>
-  .aol-blog { padding-bottom: var(--space-20); }
-  .aol-list__empty {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    color: var(--text-faint);
-    padding: var(--space-16) 0;
-    text-align: center;
-  }
-</style>
-
-<script>
-  // Client-side tag filter. Deliberately not routed — with an archive this
-  // size, a per-tag page would be a dozen near-empty pages competing with the
-  // index for the same queries. It also degrades safely: no JS, all posts show.
-  const bar = document.querySelector<HTMLElement>(".aol-tagbar");
-  const rows = [...document.querySelectorAll<HTMLElement>("[data-list] > li")];
-  const lead = document.querySelector<HTMLElement>(".aol-lead");
-  const empty = document.querySelector<HTMLElement>("[data-empty]");
-
-  // Two independent axes, ANDed. Category is who wrote this and why; tags are
-  // what it is about. Collapsing them into one bar would lose the distinction
-  // and make picking one silently clear the other.
-  const catbar = document.querySelector<HTMLElement>(".aol-catbar");
-  let activeCat = "__all";
-  let activeTag = "__all";
-
-  const tagOk = (el: HTMLElement | null) =>
-    activeTag === "__all" || (el?.dataset.tags ?? "").split("|").includes(activeTag);
-  const catOk = (el: HTMLElement | null) =>
-    activeCat === "__all" || el?.dataset.category === activeCat;
-
-  const apply = () => {
-    let shown = 0;
-    const test = (el: HTMLElement | null) => {
-      if (!el) return;
-      const on = catOk(el) && tagOk(el);
-      el.hidden = !on;
-      if (on) shown++;
-    };
-    test(lead);
-    rows.forEach(test);
-    if (empty) empty.hidden = shown > 0;
-  };
-
-  const press = (group: HTMLElement | null, attr: string, value: string) =>
-    group?.querySelectorAll<HTMLButtonElement>(`[data-${attr}]`).forEach((b) =>
-      b.setAttribute("aria-pressed", String(b.dataset[attr] === value)),
-    );
-
-  catbar?.addEventListener("click", (e) => {
-    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-cat]");
-    if (!btn) return;
-    activeCat = btn.dataset.cat!;
-    press(catbar, "cat", activeCat);
-    apply();
-  });
-
-  bar?.addEventListener("click", (e) => {
-    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-tag]");
-    if (!btn) return;
-    activeTag = btn.dataset.tag!;
-    press(bar, "tag", activeTag);
-    apply();
-  });
-</script>
+    <ul class="mt-10 divide-y border-y">
+      {rest.map((p) => (
+        <li>
+          <a href={`/blog/${p.id}/`} class="group grid gap-2 py-6 md:grid-cols-[10rem_1fr] md:gap-8">
+            <span class="font-label text-[11px] uppercase tracking-[0.08em] text-muted-foreground md:pt-1.5">{formatDate(p.data.pubDate)}</span>
+            <span>
+              <span class="block text-xl font-semibold tracking-[-0.02em] transition-colors group-hover:text-primary">{p.data.title}</span>
+              <span class="mt-1.5 block max-w-2xl text-[15px] leading-relaxed text-muted-foreground">{p.data.description}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</DefaultLayout>

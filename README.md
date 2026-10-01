@@ -1,39 +1,39 @@
-# And/or Labs — website
+# andorlabs.ca
 
-The And/or Labs homepage (andorlabs.ca). A fast, static, one-page marketing site
-built with **Astro** and deployed to **Cloudflare Pages**.
+The And/or Labs site: a single-scroll parent-company landing page plus an MDX blog.
 
-## Design system
+- **Stack:** Astro 7, Tailwind CSS 4, React islands, MDX. Started from the [Mainline](https://github.com/shadcnblocks/mainline-astro-template) template.
+- **Design system:** [`@andor/ds`](https://github.com/eclecticv/andor-ds), pinned by git tag in `package.json`, with the `andor` theme. The header, footer, buttons, labels and section primitives all come from there. Don't restyle them here; change the DS and bump the tag.
+- **Hosting:** Cloudflare Pages project `andorlabs`. Every push to `main` builds `npm run build` into `dist/`.
+- **Functions:** `functions/api/subscribe.ts` forwards newsletter signups to Loops (`LOOPS_API_KEY` is a Pages secret).
 
-The visual language — retro-technical / editorial: white page, literary serif
-(Newsreader) + Departure Mono, a faint engineering dot-grid, and a single
-technical-blue accent (`#1B4DFF`) — comes from the **And/or Labs Design System**
-(a Claude Design project). The React UI kit was ported to a zero-runtime static
-implementation here:
+## Where things live
 
-- `src/styles/tokens/*` — the design tokens (colors, type, spacing, effects, fonts), verbatim.
-- `src/styles/components.css` — component styles lifted from each DS component's `injectCSS` block.
-- `src/components/ds/*` — the DS primitives re-authored as `.astro` (Button, Card, Quote, ComparisonTable, …).
-- `src/components/sections/*` — the page sections (hero, founder note, comparison, offers, FAQ, chrome).
+| Thing | Path |
+|---|---|
+| All landing page copy | `src/data/site.ts` |
+| Landing sections | `src/components/sections/` |
+| Blog posts | `src/content/blog/*.mdx` (images in `public/blog/<slug>/`) |
+| MDX components (`Figure`, `Callout`, `KeyStat`, `PullQuote`) | `src/components/blog/mdx.tsx` |
+| Blog routes and RSS | `src/pages/blog/` |
+| Theme import | `src/styles/global.css` |
 
-Only two things ship client JS: the contact drawer toggle and the founder-photo
-Bayer dither. The FAQ is native `<details name="faq">` (exclusive accordion, no JS).
+## Develop
 
-## Commands
+```sh
+npm install
+npm run dev      # http://localhost:4321
+npm run build
+```
 
-| Command            | Action                                       |
-| :----------------- | :------------------------------------------- |
-| `npm install`      | Install dependencies                         |
-| `npm run dev`      | Local dev server at `localhost:4321`         |
-| `npm run build`    | Build the static site to `./dist/`           |
-| `npm run preview`  | Preview the production build locally          |
+To work on the design system and the site together, install the local checkout as a copy (a symlink duplicates React):
 
-## Deploy
+```sh
+npm install --install-links ../andor-ds
+```
 
-Continuous deploy via GitHub → Cloudflare Pages.
+Switch back to the pinned tag before committing.
 
-- **Build command:** `npm run build`
-- **Build output directory:** `dist`
-- **Framework preset:** Astro
+## Writing a post
 
-Every push to `main` triggers a Cloudflare Pages build.
+Add `src/content/blog/<slug>.mdx` with `title`, `description` and `pubDate` frontmatter. Optional: `standfirst`, `heroImage`, `heroAlt`, `heroCredit`, `keyTakeaways`, `faq`, `tags`, `draft`. The slug is the URL.

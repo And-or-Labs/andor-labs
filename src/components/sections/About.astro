@@ -1,0 +1,55 @@
+---
+import { Button, Label } from "@andor/ds";
+import { ArrowUpRight } from "lucide-react";
+import { FOUNDER as f, PRESS } from "@/data/site";
+---
+
+<section id="about" class="border-t py-20 lg:py-28" aria-labelledby="about-title">
+  <div class="container grid gap-12 lg:grid-cols-[1fr_1.3fr] lg:gap-20">
+    <div>
+      <Label>About</Label>
+      <h2 id="about-title" class="mt-4 text-3xl font-semibold leading-[1.1] md:text-4xl">Founded by an operator.</h2>
+      <div class="mt-8 flex items-center gap-4">
+        <img src={f.photo} alt={f.name} width="64" height="64" class="size-16 rounded-2xl object-cover shadow-[0_0_0_1px_var(--border)]" loading="lazy" />
+        <div>
+          <p class="font-semibold">{f.name}</p>
+          <p class="text-sm text-muted-foreground">{f.role}, And/or Labs</p>
+        </div>
+      </div>
+      <p class="mt-6 text-lg leading-relaxed text-muted-foreground">{f.bio}</p>
+      <Button href={f.linkedin} target="_blank" rel="noopener noreferrer" variant="outline" className="mt-8">LinkedIn <ArrowUpRight /></Button>
+    </div>
+
+    <div class="grid gap-10">
+      {[
+        { title: "Projects", items: f.projects.map((p) => ({ name: p.name, meta: p.role, body: p.body, href: p.href })) },
+        { title: "Angel investments", items: f.investments.map((p) => ({ name: p.name, meta: p.location, body: p.body, href: p.href })) },
+      ].map((group) => (
+        <div>
+          <Label>{group.title}</Label>
+          <ul class="mt-4 divide-y border-y">
+            {group.items.map((it) => (
+              <li>
+                <a href={it.href} target="_blank" rel="noopener noreferrer" class="group grid gap-1 py-4 sm:grid-cols-[12rem_1fr] sm:gap-6">
+                  <span class="flex items-baseline gap-2 font-medium">
+                    {it.name}
+                    <ArrowUpRight className="size-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                  </span>
+                  <span class="text-[15px] text-muted-foreground"><span class="font-label text-[11px] uppercase tracking-[0.08em]">{it.meta}</span> · {it.body}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      <div>
+        <Label>Author pages</Label>
+        <ul class="mt-4 flex flex-wrap gap-2">
+          {PRESS.archives.map((a) => (
+            <li><a href={a.href} target="_blank" rel="noopener noreferrer" class="inline-flex min-h-9 items-center gap-1 rounded-lg px-3 text-sm shadow-[0_0_0_1px_var(--border)] transition-colors hover:bg-accent">{a.name}<ArrowUpRight className="size-3.5 text-muted-foreground" /></a></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

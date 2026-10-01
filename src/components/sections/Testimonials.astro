@@ -1,0 +1,24 @@
+---
+import { SectionHeader } from "@andor/ds";
+import { TESTIMONIALS } from "@/data/site";
+---
+
+<section class="container py-20 lg:py-28" aria-labelledby="testimonials-title">
+  <SectionHeader id="testimonials-title" label="Testimonials" title="In their words." />
+  <ul class="mt-12 columns-1 gap-4 md:columns-2 lg:columns-3">
+    {TESTIMONIALS.map((t) => (
+      <li class="mb-4 break-inside-avoid rounded-2xl bg-card p-6 shadow-[0_0_0_1px_var(--border)]">
+        <figure>
+          <blockquote class="text-[15px] leading-relaxed">“{t.quote}”</blockquote>
+          <figcaption class="mt-5 flex items-center gap-3">
+            <img src={t.headshot} alt="" width="40" height="40" loading="lazy" class="size-10 rounded-full object-cover shadow-[0_0_0_1px_var(--border)]" />
+            <span class="text-sm leading-tight">
+              <span class="block font-medium">{t.author}</span>
+              <span class="text-muted-foreground">{t.role}</span>
+            </span>
+          </figcaption>
+        </figure>
+      </li>
+    ))}
+  </ul>
+</section>

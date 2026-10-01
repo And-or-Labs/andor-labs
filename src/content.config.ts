@@ -1,58 +1,26 @@
-import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
+import { defineCollection } from "astro:content";
 import { z } from "astro/zod";
 
-const caseStudies = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/case-studies" }),
+const blog = defineCollection({
+  loader: glob({ base: "./src/content/blog", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
-    client: z.object({
-      name: z.string(),
-      logo: z.string().optional(),
-      url: z.string().url(),
-      industry: z.string(),
-    }),
-    serviceLine: z.string(),
-    summary: z.string(),
-    ogImage: z.string().optional(), // 1200×630 social card; falls back to the site og.png
-    before: z.object({
-      image: z.string(),
-      alt: z.string(),
-    }),
-    after: z.object({
-      type: z.enum(["image", "video", "site"]),
-      src: z.string(),
-      alt: z.string(),
-    }),
-    stack: z.array(
-      z.object({
-        label: z.string(),
-        value: z.string(),
-      }),
-    ),
-    performance: z
-      .array(
-        z.object({
-          metric: z.string(),
-          value: z.string(),
-          source: z.string(),
-        }),
-      )
-      .optional(),
-    changes: z.array(
-      z.object({
-        before: z.string(),
-        after: z.string(),
-      }),
-    ),
-    testimonial: z
-      .object({
-        quote: z.string(),
-        name: z.string(),
-        title: z.string(),
-      })
-      .optional(),
-    publishedAt: z.coerce.date(),
+    title: z.string(),
+    description: z.string(),
+    standfirst: z.string().optional(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+    category: z.enum(["field-notes", "resources", "explainer"]).default("field-notes"),
+    author: z.string().default("Vishveshwar Jatain"),
+    heroImage: z.string().optional(),
+    heroAlt: z.string().default(""),
+    heroCredit: z.string().optional(),
+    keyTakeaways: z.array(z.string()).optional(),
+    faq: z.array(z.object({ question: z.string(), answer: z.string() })).optional(),
+    tags: z.array(z.string()).optional(),
+    noIndex: z.boolean().optional(),
+    draft: z.boolean().optional(),
   }),
 });
 
-export const collections = { caseStudies };
+export const collections = { blog };

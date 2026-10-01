@@ -1,0 +1,89 @@
+---
+title: "How to get started with Claude Code"
+description: "How I learned to stop worrying and love my virtual CTO."
+standfirst: "How I learned to stop worrying and love my virtual CTO."
+pubDate: 2025-11-07
+category: "field-notes"
+author: "Vishveshwar Jatain"
+heroImage: "/blog/how-to-get-started-with-claude-code/hero.png"
+heroAlt: "An articulated industrial robot arm."
+heroCredit: "Photo by olofunot, CC BY 4.0"
+keyTakeaways:
+  - "You’ll either need a Claude Pro plan or an API subscription to get started, I chose the Pro plan because it also gives me access to all of Claude’s integrations and features."
+  - "Don’t worry about breaking anything, the worst thing that can happen is a failed installation."
+  - "Claude Code is more like a hired hand, you keep the assets even if you decide to cancel."
+tags: ["Tech stack"]
+---
+At some point, most non-technical people will hit a problem that they can’t fix on their own and need to call in a developer for, like:
+
+- Restoring a crashed site
+- Fixing a broken contact form
+- Applying a CSS/JS fix
+
+Or… maybe that’s too elementary for you. Maybe—like me—you’ve wrangled enough code to figure out those things and now you want to do more.
+
+Design a landing page without a WYSIWYG builder? Build an app from scratch? Modifying the code that’s running a site? Claude Code is here to help. As a general-purpose coding assistant, Claude Code runs in the terminal (a term I’ll get to later) to help you build whatever you want, wherever you want it.
+
+In this post, I’ll share setup instructions for Claude Code, my initial impressions, pros and cons, and leave you with some ideas on how to put it to use.
+
+## Setting up Claude Code
+
+I mentioned that Claude Code can run in your “terminal”, which is the command line interface connected to your OS. As I’ll cover later, doing a native installation and running in the terminal gives it several advantages vs. a web app or specific IDE.
+
+I found the setup to be fairly straightforward—simply a matter of copy-pasting the following commands from the Native Install section in their [quick start guide](https://docs.claude.com/en/docs/claude-code/quickstart).
+
+**macOS, Linux, WSL:**
+
+`curl -fsSL https://claude.ai/install.sh | bash`
+
+**Windows:**
+
+`curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd`
+
+The rest of the installation is guided and includes on-screen instructions. Don’t worry about breaking anything, the worst thing that can happen is a failed installation.
+
+I did run into a snag related to the file structure on my Mac but Claude was smart enough to provide me with the fix as we went through the process.
+
+You’ll either need a Claude Pro plan or an API subscription to get started, I chose the Pro plan because it also gives me access to all of Claude’s integrations and features.
+
+## My initial impressions
+
+Interacting with Claude Code in the terminal is fun in a way that the terminal usually isn’t. I like that it injects a little personality into that space with its fun UI, quick shortcuts (/) for help, and playful task progress labels once you get going with a project.
+
+**The biggest unlock is that you can just chat with Claude in the terminal.** In some ways, it’s the anti-thesis of what “coding” is supposed to look like. You can just show up there with your natural language skills and Claude Code will be your translator.
+
+<PullQuote>You can just show up there with your natural language skills and Claude Code will be your translator.</PullQuote>
+
+Post the installation, it has access to your local file system, so it can immediately start advising you and developing on any locally-hosted codebase. For my own use case, I had it develop an Xcode project for an iOS app, which has been fun so far.
+
+For complex and distributed projects, you can connect it with your GitHub or GitLab account. Its MCP connector will integrate with Asana, ClickUp, Jira, etc., and then it can read tickets, plan work, commit code, and even close the ticket once the job is done.
+
+## Pros and cons
+
+**Pros**
+
+- **Language agnostic:** Doesn’t matter if your project is written in C, Python, Ruby on Rails, PHP, Swift, or any other language. Claude Code knows them all. If you’re not sure, it will advise you on the pros and cons of development choices.
+- **Platform agnostic:** Being in the terminal means that Claude Code will work across your preferred local- or cloud-based IDE. You can use it to develop HTML templates, landing pages, websites, SaaS, mobile apps, etc.
+- **You own the codebase:** With other subscription-based vibe-coding tools, you typically need to keep paying in order to keep your project private. Claude Code is more like a hired hand, you keep the assets even if you decide to cancel.
+- **Beginner-friendly:** I really like the conversational aspect of Claude applied to development. Other vibe-coding tools, which are geared towards taking your input and head directly to code generation, seem monotone in comparison.
+
+**Cons**
+
+- **Code bloat:** Claude Code isn’t continuously monitoring your codebase. As a result, after a few cycles, you’re end up with dead code, unused files, and clunky implementation. Asking it to review and refactor the code works well.
+- **Design inconsistency:** I had a really hard time getting Claude Code to stick to a standard system of design, which includes things like a colour palette, UI components, animations, spacing, etc. Its tendency is to treat every design request as a “fresh one” and fall back on its training data to generate the spec.
+- **Occasional frustration:** Sometimes, it’s hard to get it to create what you’re visualizing. This is a fundamental limitation of using language as a translation layer. You’ll never reach the precise control enjoyed by a human developer.
+- **Hitting usage limits:** It’s quite easy to hit the weekly usage limits on the Pro plan. You can mitigate that to some extent with better planning, explicit guardrails for development, and improving your prompts, but Claude Code does make it easy to “go with the flow”, and that’s when you end up being wasteful.
+
+## Now, over to you
+
+I really think Claude Code is something that must be experienced. I can tell you all about how it works, but at some point… it’s better to just try the thing.
+
+I’m the type of person who’s more energized about learning something when I know the result that I am working toward. To spark your imagination, here’s a list of things you could potentially try building with Claude Code:
+
+- A personal portfolio site to showcase your skills
+- A browser extension for a use case that interests you
+- A mobile app that you want… but can’t find
+- A custom, quiz-style lead generation tool
+- A SaaS MVP that targets an underserved market
+
+**So, what do you want to build?** Send me a reply and tell me your idea. I’d be more than happy to share my feedback on whether Claude Code could help you with it.

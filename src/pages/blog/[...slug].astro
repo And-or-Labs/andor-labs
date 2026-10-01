@@ -1,0 +1,98 @@
+---
+import { Button, Label } from "@andor/ds";
+import { ArrowLeft } from "lucide-react";
+import { getCollection, render } from "astro:content";
+import { Callout, Figure, KeyStat, PullQuote } from "@/components/blog/mdx";
+import { Subscribe } from "@/components/subscribe";
+import { BOOKING_URL, FOUNDER, SITE } from "@/data/site";
+import DefaultLayout from "@/layouts/DefaultLayout.astro";
+import { formatDate, readingTime } from "@/lib/format";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", (p) => !p.data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const d = post.data;
+const minutes = readingTime(post.body ?? "");
+const canonical = new URL(`/blog/${post.id}/`, SITE.url).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: d.title,
+  description: d.description,
+  datePublished: d.pubDate.toISOString(),
+  dateModified: (d.updatedDate ?? d.pubDate).toISOString(),
+  author: { "@type": "Person", name: d.author, url: `${SITE.url}/#about` },
+  publisher: { "@type": "Organization", name: SITE.name, url: SITE.url },
+  mainEntityOfPage: canonical,
+  ...(d.heroImage ? { image: new URL(d.heroImage, SITE.url).href } : {}),
+};
+const faqLd = d.faq?.length
+  ? { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: d.faq.map((f) => ({ "@type": "Question", name: f.question, acceptedAnswer: { "@type": "Answer", text: f.answer } })) }
+  : null;
+---
+
+<DefaultLayout title={`${d.title} | ${SITE.name}`} description={d.description} image={d.heroImage} type="article">
+  <Fragment slot="head">
+    {d.noIndex && <meta name="robots" content="noindex" />}
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {faqLd && <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />}
+  </Fragment>
+
+  <article class="pb-24 pt-32 md:pt-40">
+    <header class="container max-w-3xl">
+      <a href="/blog/" class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="size-4" /> Writing</a>
+      <div class="mt-8"><Label marker={3}>{formatDate(d.pubDate)} · {minutes} min read</Label></div>
+      <h1 class="mt-5 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] md:text-5xl">{d.title}</h1>
+      {d.standfirst && d.standfirst !== d.description ? <p class="mt-5 text-xl leading-relaxed text-muted-foreground">{d.standfirst}</p> : <p class="mt-5 text-xl leading-relaxed text-muted-foreground">{d.description}</p>}
+      <div class="mt-8 flex items-center gap-3 text-sm">
+        <img src={FOUNDER.photo} alt="" width="36" height="36" class="size-9 rounded-full object-cover shadow-[0_0_0_1px_var(--border)]" />
+        <span><span class="font-medium">{d.author}</span><span class="text-muted-foreground"> · Founder, And/or Labs</span></span>
+      </div>
+    </header>
+
+    {d.heroImage && (
+      <figure class="container mt-12 max-w-4xl">
+        <img src={d.heroImage} alt={d.heroAlt} class="aspect-[16/9] w-full rounded-2xl object-cover shadow-[0_0_0_1px_var(--border)]" />
+        {d.heroCredit && <figcaption class="mt-3 font-label text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{d.heroCredit}</figcaption>}
+      </figure>
+    )}
+
+    <div class="container mt-12 max-w-3xl">
+      {d.keyTakeaways?.length && (
+        <aside class="mb-12 rounded-xl bg-muted p-6 shadow-[0_0_0_1px_var(--border)]">
+          <Label>Key takeaways</Label>
+          <ul class="mt-4 grid gap-2.5">
+            {d.keyTakeaways.map((k) => <li class="flex gap-3 text-[15px] leading-relaxed"><span class="mt-2 size-1.5 shrink-0 bg-primary" aria-hidden="true" />{k}</li>)}
+          </ul>
+        </aside>
+      )}
+
+      <div class="prose prose-lg prose-neutral max-w-none prose-headings:font-semibold prose-headings:tracking-[-0.025em] prose-a:text-primary prose-a:underline-offset-4 prose-img:rounded-xl prose-code:before:content-none prose-code:after:content-none">
+        <Content components={{ Figure, Callout, KeyStat, PullQuote }} />
+      </div>
+
+      {d.faq?.length && (
+        <section class="mt-16 border-t pt-10" aria-labelledby="post-faq">
+          <h2 id="post-faq" class="text-2xl font-semibold">Frequently asked questions</h2>
+          <dl class="mt-6 grid gap-6">
+            {d.faq.map((f) => <div><dt class="font-semibold">{f.question}</dt><dd class="mt-1.5 text-muted-foreground leading-relaxed">{f.answer}</dd></div>)}
+          </dl>
+        </section>
+      )}
+
+      <aside class="mt-16 grid gap-6 rounded-2xl bg-muted/70 p-6 shadow-[0_0_0_1px_var(--border)] md:p-8">
+        <div>
+          <h2 class="text-lg font-semibold tracking-[-0.015em]">Get field notes by email.</h2>
+          <p class="mt-1 text-[15px] text-muted-foreground">New posts only. Unsubscribe in one click.</p>
+        </div>
+        <Subscribe client:visible />
+        <p class="text-sm text-muted-foreground">Working on something this applies to? <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer" class="font-medium text-foreground underline underline-offset-4">Book a call</a>.</p>
+      </aside>
+    </div>
+  </article>
+</DefaultLayout>
