@@ -4,13 +4,13 @@ import { cn } from "@/lib/utils";
 
 const topItems = [
   {
-    title: "Reusable issue templates.",
+    title: "Positioning & narrative.",
     description:
-      "Draft lightning-fast documents with our Smart Instructions and Templates.",
+      "Audit your pitch against research on brand, messaging and pricing, then put it on the page.",
     images: [
       {
         src: "/resource-allocation/templates.webp",
-        alt: "Issue template interface",
+        alt: "Positioning brief interface",
         width: 495,
         height: 186,
       },
@@ -20,37 +20,37 @@ const topItems = [
     fade: [""],
   },
   {
-    title: "Simplify your stack.",
-    description: "No more Confluence, SharePoint, or Microsoft Word.",
+    title: "Organic growth.",
+    description: "Share of voice in search, AI answers and social.",
     images: [
-      { src: "/logos/jira.svg", alt: "Jira logo", width: 48, height: 48 },
-      { src: "/logos/excel.svg", alt: "Excel logo", width: 48, height: 48 },
+      { src: "/logos/google.svg", alt: "Google logo", width: 48, height: 48 },
+      { src: "/logos/openai-mark.svg", alt: "ChatGPT logo", width: 48, height: 48 },
       {
-        src: "/logos/notion.svg",
-        alt: "Notion logo",
+        src: "/logos/perplexity-mark.svg",
+        alt: "Perplexity logo",
         width: 48,
         height: 48,
       },
-      { src: "/logos/word.svg", alt: "Word logo", width: 48, height: 48 },
+      { src: "/logos/claude-mark.svg", alt: "Claude logo", width: 48, height: 48 },
       {
-        src: "/logos/monday.svg",
-        alt: "Monday logo",
-        width: 48,
-        height: 48,
-      },
-      {
-        src: "/logos/drive.svg",
-        alt: "Google Drive logo",
+        src: "/logos/linkedin.svg",
+        alt: "LinkedIn logo",
         width: 48,
         height: 48,
       },
       {
-        src: "/logos/jira.svg",
-        alt: "Jira logo",
+        src: "/logos/reddit.svg",
+        alt: "Reddit logo",
         width: 48,
         height: 48,
       },
-      { src: "/logos/asana.svg", alt: "Asana logo", width: 48, height: 48 },
+      {
+        src: "/logos/youtube.svg",
+        alt: "YouTube logo",
+        width: 48,
+        height: 48,
+      },
+      { src: "/logos/x.svg", alt: "X logo", width: 48, height: 48 },
     ],
     className:
       "flex-1 [&>.title-container]:mb-5 md:[&>.title-container]:mb-8 md:[&>.title-container]:translate-x-2 xl:[&>.title-container]:translate-x-4 [&>.title-container]:translate-x-0",
@@ -60,13 +60,13 @@ const topItems = [
 
 const bottomItems = [
   {
-    title: "Graveyard it.",
+    title: "GTM engineering.",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do.",
+      "Custom skills, plugins and agents for every step of the revenue process.",
     images: [
       {
         src: "/resource-allocation/graveyard.webp",
-        alt: "Graveyard interface",
+        alt: "GTM workflow board interface",
         width: 305,
         height: 280,
       },
@@ -76,13 +76,13 @@ const bottomItems = [
     fade: ["bottom"],
   },
   {
-    title: "Task discussions.",
+    title: "Research & IP.",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod.",
+      "Industry reports and white papers that earn press and pipeline.",
     images: [
       {
         src: "/resource-allocation/discussions.webp",
-        alt: "Task discussions interface",
+        alt: "Research review message interface",
         width: 320,
         height: 103,
       },
@@ -92,13 +92,13 @@ const bottomItems = [
     fade: [""],
   },
   {
-    title: "Notifications.",
+    title: "Stack & analytics.",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod.",
+      "Tags, pipes and dashboards you can make decisions on.",
     images: [
       {
         src: "/resource-allocation/notifications.webp",
-        alt: "Notifications interface",
+        alt: "Analytics alerts interface",
         width: 305,
         height: 280,
       },
@@ -117,7 +117,7 @@ export const ResourceAllocation = () => {
     >
       <div className="">
         <h2 className="container text-center text-3xl tracking-tight text-balance sm:text-4xl md:text-5xl lg:text-6xl">
-          Mainline your resource allocation and execution
+          Fractional GTM, from narrative to engineering
         </h2>
 
         <div className="mt-8 md:mt-12 lg:mt-20">

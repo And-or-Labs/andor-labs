@@ -12,23 +12,23 @@ import { GITHUB_URL } from "@/consts";
 
 const features = [
   {
-    title: "Tailored workflows",
-    description: "Track progress across custom issue flows for your team.",
+    title: "MediaContext",
+    description: "Market intelligence for the premium open web.",
     icon: CircleDot,
   },
   {
-    title: "Cross-team projects",
-    description: "Collaborate across teams and departments.",
+    title: "Positioning & narrative",
+    description: "A pitch your buyers repeat back to their boss.",
     icon: Blend,
   },
   {
-    title: "Milestones",
-    description: "Break projects down into concrete phases.",
+    title: "Organic growth",
+    description: "Share of voice in search, AI answers and social.",
     icon: Diamond,
   },
   {
-    title: "Progress insights",
-    description: "Track scope, velocity, and progress over time.",
+    title: "GTM engineering",
+    description: "Agents and workflows across the revenue process.",
     icon: ChartNoAxesColumn,
   },
 ];
@@ -40,17 +40,17 @@ export const Hero = () => {
         {/* Left side - Main content */}
         <div className="flex-1">
           <h1 className="text-foreground max-w-160 text-3xl tracking-tight md:text-4xl lg:text-5xl xl:whitespace-nowrap">
-            Mainline Astro template
+            An applied AI lab
           </h1>
 
           <p className="text-muted-foreground text-1xl mt-5 md:text-3xl">
-            Mainline is an open-source website template built with shadcn/ui,
-            Tailwind 4 & Astro 5
+            We build products for media and adtech, and help early-stage
+            startups win their category
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4 lg:flex-nowrap">
             <Button asChild>
-              <a href={GITHUB_URL}>Get template</a>
+              <a href="https://cal.com/jatain/book">Book a call</a>
             </Button>
             <Button
               variant="outline"
@@ -58,10 +58,10 @@ export const Hero = () => {
               asChild
             >
               <a
-                href="https://shadcnblocks.com"
+                href="#feature-modern-teams"
                 className="max-w-56 truncate text-start md:max-w-none"
               >
-                Built by shadcnblocks.com
+                See what we do
                 <ArrowRight className="stroke-3" />
               </a>
             </Button>
@@ -101,7 +101,7 @@ export const Hero = () => {
         <div className="relative h-[793px] w-full">
           <img
             src="/hero.webp"
-            alt="hero"
+            alt="MediaContext Publishers view: premium publishers ranked by traffic"
             className="w-full rounded-2xl object-cover object-left-top shadow-lg max-lg:rounded-tr-none"
           />
         </div>

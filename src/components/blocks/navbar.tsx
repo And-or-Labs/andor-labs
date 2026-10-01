@@ -17,26 +17,24 @@ import { cn } from "@/lib/utils";
 
 const ITEMS = [
   {
-    label: "Features",
+    label: "What we do",
     href: "#features",
     dropdownItems: [
       {
-        title: "Modern product teams",
+        title: "MediaContext",
         href: "/#feature-modern-teams",
-        description:
-          "Mainline is built on the habits that make the best product teams successful",
+        description: "Market intelligence for the premium open web",
       },
       {
-        title: "Resource Allocation",
+        title: "Fractional GTM",
         href: "/#resource-allocation",
-        description: "Mainline your resource allocation and execution",
+        description:
+          "Positioning, organic growth and GTM engineering for early-stage startups",
       },
     ],
   },
-  { label: "About Us", href: "/about" },
-  { label: "Pricing", href: "/pricing" },
+  { label: "Writing", href: "/blog" },
   { label: "FAQ", href: "/faq" },
-  { label: "Contact", href: "/contact" },
 ];
 
 export const Navbar = () => {
@@ -59,7 +57,7 @@ export const Navbar = () => {
         <a href="/" className="flex shrink-0 items-center gap-2">
           <img
             src="/logo.svg"
-            alt="logo"
+            alt="And/or Labs"
             width={94}
             height={18}
             className="dark:invert"
@@ -117,9 +115,9 @@ export const Navbar = () => {
         {/* Auth Buttons */}
         <div className="flex items-center gap-2.5">
           <ThemeToggle />
-          <a href="/login" className="max-lg:hidden">
+          <a href="https://cal.com/jatain/book" className="max-lg:hidden">
             <Button variant="outline">
-              <span className="relative z-10">Login</span>
+              <span className="relative z-10">Book a call</span>
             </Button>
           </a>
           <a

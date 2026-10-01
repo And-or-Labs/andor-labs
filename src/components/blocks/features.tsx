@@ -6,16 +6,16 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const items = [
   {
-    title: "Purpose-built for product development",
-    image: "/features/triage-card.svg",
+    title: "MediaContext, intelligence for the open web",
+    image: "/features/mediacontext-card.webp",
   },
   {
-    title: "Manage projects end-to-end",
-    image: "/features/cycle-card.svg",
+    title: "Fractional GTM for early-stage startups",
+    image: "/features/gtm-card.webp",
   },
   {
-    title: "Build momentum and healthy habits",
-    image: "/features/overview-card.svg",
+    title: "Field notes on marketing and adtech",
+    image: "/features/field-notes-card.webp",
   },
 ];
 
@@ -27,19 +27,19 @@ export const Features = () => {
         <div className="relative flex items-center justify-center">
           <DashedLine className="text-muted-foreground" />
           <span className="bg-muted text-muted-foreground absolute px-3 font-mono text-sm font-medium tracking-wide max-md:hidden">
-            MEASURE TWICE. CUT ONCE.
+            BUILD THE TOOL. USE THE TOOL.
           </span>
         </div>
 
         {/* Content */}
         <div className="mx-auto mt-10 grid max-w-4xl items-center gap-3 md:gap-0 lg:mt-24 lg:grid-cols-2">
           <h2 className="text-2xl tracking-tight md:text-4xl lg:text-5xl">
-            Made for modern product teams
+            One lab, two lines of work
           </h2>
           <p className="text-muted-foreground leading-snug">
-            Mainline is built on the habits that make the best product teams
-            successful: staying focused, moving quickly, and always aiming for
-            high-quality work.
+            We build our own products for media and adtech, then use what we
+            learn to help early-stage startups find product-market fit,
+            accelerate revenue growth, and win their category.
           </p>
         </div>
 

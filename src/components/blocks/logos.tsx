@@ -13,70 +13,70 @@ type Company = {
 export const Logos = () => {
   const topRowCompanies = [
     {
-      name: "Mercury",
-      logo: "/logos/mercury.svg",
-      width: 143,
-      height: 26,
-      href: "https://mercury.com",
-    },
-    {
-      name: "Watershed",
-      logo: "/logos/watershed.svg",
-      width: 154,
-      height: 31,
-      href: "https://watershed.com",
-    },
-    {
-      name: "Retool",
-      logo: "/logos/retool.svg",
-      width: 113,
-      height: 22,
-      href: "https://retool.com",
-    },
-    {
-      name: "Descript",
-      logo: "/logos/descript.svg",
+      name: "Digiday",
+      logo: "/logos/digiday.svg",
       width: 112,
-      height: 27,
-      href: "https://descript.com",
+      height: 26,
+      href: "https://digiday.com/media/can-money-printing-machine-incredible-revival-auto-refreshing-ads/",
+    },
+    {
+      name: "Adweek",
+      logo: "/logos/adweek.svg",
+      width: 112,
+      height: 26,
+      href: "https://www.adweek.com/programmatic/how-cafemedia-recouped-millions-through-ad-block-recovery/",
+    },
+    {
+      name: "AdExchanger",
+      logo: "/logos/adexchanger.svg",
+      width: 150,
+      height: 26,
+      href: "https://www.adexchanger.com/online-advertising/how-accuweather-shored-up-revenue-by-monetizing-its-ad-blocking-audience/",
+    },
+    {
+      name: "ExchangeWire",
+      logo: "/logos/exchangewire.svg",
+      width: 160,
+      height: 26,
+      href: "https://www.exchangewire.com/blog/2025/08/13/advertisings-gen-z-obsession-misses-the-bigger-picture/",
     },
   ];
 
   const bottomRowCompanies = [
     {
-      name: "Perplexity",
-      logo: "/logos/perplexity.svg",
-      width: 141,
+      name: "NVIDIA Inception",
+      logo: "/logos/nvidia-inception.svg",
+      width: 120,
       height: 32,
-      href: "https://perplexity.com",
+      href: "https://www.nvidia.com/en-us/startups/",
     },
     {
-      name: "Monzo",
-      logo: "/logos/monzo.svg",
+      name: "AirOps",
+      logo: "/logos/airops.svg",
       width: 104,
+      height: 24,
+      href: "https://www.airops.com",
+    },
+    {
+      name: "Snitcher",
+      logo: "/logos/snitcher.svg",
+      width: 110,
       height: 18,
-      href: "https://monzo.com",
+      href: "https://www.snitcher.com",
     },
     {
-      name: "Ramp",
-      logo: "/logos/ramp.svg",
-      width: 105,
-      height: 28,
-      href: "https://ramp.com",
-    },
-    {
-      name: "Raycast",
-      logo: "/logos/raycast.svg",
+      name: "Superdesign",
+      logo: "/logos/superdesign.svg",
       width: 128,
-      height: 33,
-      href: "https://raycast.com",
+      height: 26,
+      href: "https://www.superdesign.dev",
     },
     {
-      name: "Arc",
-      logo: "/logos/arc.svg",
-      width: 90,
+      name: "Boardy",
+      logo: "/logos/boardy.svg",
+      width: 96,
       height: 28,
-      href: "https://arc.com",
+      href: "https://www.boardy.ai",
     },
   ];
 
@@ -85,10 +85,10 @@ export const Logos = () => {
       <div className="container space-y-10 lg:space-y-16">
         <div className="text-center">
           <h2 className="mb-4 text-xl text-balance md:text-2xl lg:text-3xl">
-            Powering the world's best product teams.
+            Launch partners and trade press.
             <br className="max-md:hidden" />
             <span className="text-muted-foreground">
-              From next-gen startups to established enterprises.
+              Backed by the tools we build on, published where adtech reads.
             </span>
           </h2>
         </div>

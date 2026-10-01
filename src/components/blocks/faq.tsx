@@ -8,37 +8,37 @@ import { cn } from "@/lib/utils";
 
 const categories = [
   {
-    title: "Support",
+    title: "Fractional GTM",
     questions: [
       {
-        question: "How do I update my account without breaking my laptop?",
+        question: "How is this different from a typical marketing agency?",
         answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
+          "Agencies staff you with a junior account team and run the same playbook. Here you work directly with an operator who led marketing and sales ops at two adtech startups through their acquisitions. The work spans the whole GTM rather than one slice of it.",
       },
       {
-        question: "Is support free, or do I need to Google everything?",
+        question: "Who will I actually be working with?",
         answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
+          "The founder, directly. No account layers and no handoff once the pitch is over.",
       },
       {
-        question: "Are you going to be subsumed by AI?",
+        question: "Do you only work with early-stage startups?",
         answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
+          "The operator track record was earned in adtech: a technically literate buyer, hard to impress, quick to spot a bluff. That transfers to most technical categories. Book a call and you will get an honest read on fit before anyone signs anything.",
       },
     ],
   },
   {
-    title: "Your account",
+    title: "MediaContext",
     questions: [
       {
-        question: "Is support free, or do I need to Google everything?",
+        question: "What is MediaContext?",
         answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
+          "Market intelligence for the premium open web, built by And/or Labs.",
       },
       {
-        question: "Are you going to be subsumed by AI?",
+        question: "How do I get access?",
         answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
+          "It is invite-only. Request access at mediacontext.dev.",
       },
     ],
   },
@@ -46,14 +46,14 @@ const categories = [
     title: "Other questions",
     questions: [
       {
-        question: "Is support free, or do I need to Google everything?",
+        question: "Where do you write?",
         answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
+          "Field notes on this site, plus bylines in ExchangeWire, Forbes Councils and Digital Content Next.",
       },
       {
         question: "Are you going to be subsumed by AI?",
         answer:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus voluptates deserunt officia temporibus dignissimos.",
+          "We are an applied AI lab, so we would like to think we are doing the subsuming.",
       },
     ],
   },
@@ -84,8 +84,8 @@ export const FAQ = ({
             )}
             <p className="text-muted-foreground max-w-md leading-snug lg:mx-auto">
               If you can't find what you're looking for,{" "}
-              <a href="/contact" className="underline underline-offset-4">
-                get in touch
+              <a href="https://cal.com/jatain/book" className="underline underline-offset-4">
+                book a call
               </a>
               .
             </p>
