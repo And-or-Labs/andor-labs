@@ -20,3 +20,14 @@
 
 - Delete the `andor-rankings` D1 database, the Pages D1 binding, the `GEMINI_API_KEY` secret and the Sanity project (awaiting VJ's go-ahead)
 - MediaContext adopts `@andor/ds` header, footer and `mediacontext` theme
+
+## Rebuild on Mainline, verbatim (2026-10-01, later)
+
+- [x] Reset to upstream Mainline f92afce (commit 10ffa9b)
+- [x] Colour and font values only (00ee986)
+- [x] Content swaps: strings, links, data entries, images at Mainline dimensions (4608b01)
+- [x] Pricing removed from the homepage (no plans shown); block untouched
+- [x] @andor/ds v0.2.0: Mainline verbatim + themes + `scripts/check.mjs`
+- [x] Checker passes; preview at https://rebuild-preview.andorlabs.pages.dev
+
+Review: the first rebuild re-authored Mainline's primitives in a new DS. This one is Mainline plus values and content; `check.mjs` enforces it.
