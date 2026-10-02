@@ -1,0 +1,126 @@
+/* ============================================================
+   And/or Labs — Color tokens
+   System: high-contrast black-on-WHITE, one signal color (technical blue).
+   Like the makingsoftware source: pure-white page, near-black neutral ink, blue line-art.
+   The neutral grey ramp leans very slightly cool so it sits cleanly under the electric blue.
+   ============================================================ */
+
+:root {
+  /* ---- Neutral ink ramp (near-black → white) ---- */
+  --ink-900: #14151A;  /* primary text, strong borders */
+  --ink-800: #25272E;
+  --ink-700: #393C44;
+  --ink-600: #52555F;
+  --ink-500: #6D717B;  /* muted text */
+  --ink-400: #9398A1;  /* faint text, captions */
+  --ink-300: #B9BDC5;
+  --ink-200: #D8DAE0;  /* hairline borders */
+  --ink-100: #E9EBEF;  /* subtle fills */
+  --ink-050: #F4F5F7;  /* sunken surface */
+
+  --paper:      #FFFFFF;  /* page background — pure white, like the source */
+  --paper-pure: #FFFFFF;  /* inputs, full-bleed surfaces */
+
+  /* ---- Warm surface + copper accent (Financial Times paper) ---- */
+  --pink-050:   #FCF4F4;  /* FT-inspired paper — soft, faint pink */
+  --pink-100:   #F7EAEA;  /* deeper pink tint — borders, hover on pink */
+  --pink-200:   #EAD9D9;  /* warm hairline — the border to use ON pink surfaces */
+  --copper-700: #7E4A24;  /* copper, active/text-strong on pink */
+  --copper-600: #9A5A2D;  /* copper accent — warm counterpart to the blue signal */
+  --copper-400: #C08A5B;  /* faint copper — hairlines, muted marks */
+
+  /* Warm layer semantics, mirrored from the design system so both vocabularies
+     stay in sync. These were referenced by DS components (the capability ledger
+     among them) but never defined here; an undefined var() is invalid at
+     computed-value time, so the warm hairlines simply would not have drawn.
+     Same failure mode as the --blue-300 incident noted below. */
+  --surface-warm:       var(--pink-050);   /* set-apart panels: cards, footer, bands */
+  --surface-warm-deep:  var(--pink-100);   /* hover / nested fill inside a warm panel */
+  --border-warm:        var(--pink-200);   /* hairline drawn ON a warm surface */
+  --text-on-warm:       var(--ink-900);    /* body ink on pink — still near-black */
+  --text-on-warm-muted: var(--ink-600);    /* ink-500 goes hazy on pink; step darker */
+  --text-warm:          var(--copper-700); /* copper text, only on a warm surface */
+  --accent-warm:        var(--copper-600); /* marks and labels, never actions */
+  --accent-warm-strong: var(--copper-700);
+  --accent-warm-faint:  var(--copper-400);
+
+  /* Card + footer + section-band fill. Held a cool grey (#F7F9FB) between
+     283f1f3 and this change. That commit was a Rank My AdTech critique pass, and
+     re-pointing this shared token was how one tool's surface choice repainted the
+     founder note, offer cards, footer and newsletter block site-wide. The warm
+     paper is the brand; a surface that wants grey should say so in its own rules
+     rather than move the token everything else reads. */
+  --surface-card: var(--surface-warm);
+
+  /* ---- Signal: technical blue ---- */
+  --blue-700: #0A2EBF;  /* active / pressed */
+  --blue-600: #123CE0;  /* hover */
+  --blue-500: #1B4DFF;  /* primary signal */
+  --blue-400: #5377FF;
+  /* The ramp used to jump 400 -> 200, but two places author against --blue-300:
+     the nav hover underline and the terminal's live-status blink. An undefined
+     var() is invalid at computed-value time — so `background` fell back to
+     transparent and the nav hover underline scaled in *invisible*, while the
+     inherited `color` blink resolved to body ink instead of a dim blue. */
+  --blue-300: #8AA3FF;
+  --blue-200: #BBC8FF;
+  --blue-100: #DCE4FF;  /* tint fill */
+  --blue-050: #EEF1FF;  /* faint tint background */
+
+  /* ---- Status (used sparingly; system stays monotone) ---- */
+  --green-600: #1B6E45;
+  --green-100: #DCEEE2;
+  --amber-600: #9A6400;
+  /* A GRAPHIC amber, for fills only — never for text.
+     600 is the amber that passes AA as type on paper, which is why it is dark
+     enough to read brown the moment it is used as a large area of colour. The
+     status ramp had no true amber because until now nothing needed one that was
+     not text. 400 is that colour: it fails as body type on paper by design and
+     must not be used for any. */
+  --amber-400: #F5A623;
+  /* Border tint for the warning callout, mirroring how --blue-200 borders the
+     info callout. Was an inline #E8CE8A, the only off-palette hex on the site. */
+  --amber-200: #E8CE8A;
+  --amber-100: #F5E9CC;
+  --red-600:   #C23121;
+  --red-100:   #F6DAD3;
+
+  /* ---- Semantic surfaces ---- */
+  --color-bg:             var(--paper);
+  --color-surface:        var(--paper-pure);
+  --color-surface-sunken: var(--ink-050);
+  --color-surface-inverse:var(--ink-900);
+
+  /* ---- Semantic text ---- */
+  --text-strong:  var(--ink-900);
+  --text-body:    var(--ink-800);
+  --text-muted:   var(--ink-500);
+  /* Faint text resolves to ink-500, NOT ink-400. ink-400 measures 2.90:1 on
+     paper and 2.68:1 on the warm surface: it fails AA 4.5:1 and even the 3.0
+     large-text floor. There is no room for an intermediate ramp step either —
+     every value between 400 and 500 still fails on warm, and ink-500 clears it
+     by 0.01 (4.51:1). So the "faint" tier cannot exist as body text on this
+     palette; it survives only for hairlines, borders and marks, which is what
+     ink-400 is now reserved for. Authors should reach for this token rather
+     than ink-400 whenever the value paints text. */
+  --text-faint:   var(--ink-500);
+  --text-inverse: var(--paper);
+  --text-link:    var(--blue-500);
+
+  /* ---- Semantic lines ---- */
+  --border-hairline: var(--ink-200);
+  --border-default:  var(--ink-300);
+  --border-strong:   var(--ink-900);
+
+  /* ---- Signal aliases ---- */
+  --signal:        var(--blue-500);
+  --signal-hover:  var(--blue-600);
+  --signal-active: var(--blue-700);
+  --signal-tint:   var(--blue-050);
+  --signal-fill:   var(--blue-100);
+
+  /* ---- Status semantics ---- */
+  --color-positive: var(--green-600);
+  --color-warning:  var(--amber-600);
+  --color-danger:   var(--red-600);
+}

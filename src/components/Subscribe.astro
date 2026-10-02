@@ -1,0 +1,13 @@
+---
+interface Props { source: "homepage" | "blog-post" | "blog-index" | "footer"; label?: string; }
+const { source, label = "Get new notes by email. Weekly at most, unsubscribe in one click." } = Astro.props;
+const id = `sub-${source}`;
+---
+<div class="sub">
+  <label class="label" for={id}>{label}</label>
+  <form data-subscribe={source} novalidate>
+    <input id={id} name="email" type="email" required autocomplete="email" placeholder="you@startup.com" />
+    <button type="submit">Subscribe</button>
+  </form>
+  <output aria-live="polite"></output>
+</div>

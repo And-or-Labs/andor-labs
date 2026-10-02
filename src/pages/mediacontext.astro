@@ -1,0 +1,22 @@
+---
+import Sheet from "../layouts/Sheet.astro";
+import Crumb from "../components/Crumb.astro";
+import ItemNav from "../components/ItemNav.astro";
+import { MEDIACONTEXT as M } from "../data/site";
+---
+<Sheet title="MediaContext" description={M.title + " " + M.lede} fig="radar" color="blue">
+  <Crumb slot="crumb" />
+  <p class="eyebrow"><span class="br">[1]</span> MediaContext</p>
+  <h1 class="title">{M.title}</h1>
+  <p class="lede">{M.lede}</p>
+  <div class="body">
+    <dl class="facts">
+      {M.facts.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
+    </dl>
+    <div class="ctas">
+      <a class="btn primary" href={M.href} target="_blank" rel="noopener">Visit mediacontext.dev &nearr;</a>
+    </div>
+    <img class="shot" src={M.image.src} alt={M.image.alt} width="2880" height="1800" loading="lazy" decoding="async" />
+  </div>
+  <ItemNav current={1} />
+</Sheet>

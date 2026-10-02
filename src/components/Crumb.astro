@@ -1,0 +1,5 @@
+---
+interface Props { href?: string; label?: string; }
+const { href = "/", label = "Index" } = Astro.props;
+---
+<a class="crumb" href={href} data-back><kbd>[Esc]</kbd> {label}</a>

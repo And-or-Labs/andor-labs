@@ -1,0 +1,39 @@
+---
+import Sheet from "../layouts/Sheet.astro";
+import Crumb from "../components/Crumb.astro";
+import ItemNav from "../components/ItemNav.astro";
+import { BOOKING_URL, GTM as G, TESTIMONIALS } from "../data/site";
+const [lead, ...rest] = TESTIMONIALS;
+---
+<Sheet title="GTM Consulting" description={G.lede} fig="growth" color="coral">
+  <Crumb slot="crumb" />
+  <p class="eyebrow"><span class="br">[2]</span> GTM Consulting</p>
+  <h1 class="title">{G.title}</h1>
+  <p class="lede">{G.lede}</p>
+  <div class="body">
+    <div class="ctas">
+      <a class="btn primary" href={BOOKING_URL} target="_blank" rel="noopener">Book a call &nearr;</a>
+    </div>
+    <figure class="quote">
+      <p>{lead.quote}</p>
+      <cite>{lead.author}, {lead.role}</cite>
+    </figure>
+    <div>
+      <p class="label" style="margin-bottom:8px">Engagements</p>
+      <div class="offers">
+        {G.offers.map(o => <div><b>{o.name}</b><span>{o.for}</span><span class="price">{o.price}</span></div>)}
+      </div>
+    </div>
+    <div>
+      <p class="label" style="margin-bottom:8px">What we work on</p>
+      <ul class="list">
+        {G.capabilities.map((c, i) => <li><div><span class="k">0{i + 1}</span><span class="v">{c}</span><span></span></div></li>)}
+      </ul>
+    </div>
+    <ul class="list">
+      <li><a href={G.caseStudy.href} target="_blank" rel="noopener"><span class="k">Case study</span><span class="v">{G.caseStudy.client}. {G.caseStudy.line} <span class="label">{G.caseStudy.metrics.join(" / ")}</span></span><span class="x">&nearr;</span></a></li>
+    </ul>
+    {rest.map(t => <figure class="quote"><p>{t.quote}</p><cite>{t.author}, {t.role}</cite></figure>)}
+  </div>
+  <ItemNav current={2} />
+</Sheet>

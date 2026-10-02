@@ -1,28 +1,43 @@
 ---
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
-
-import { Background } from '@/components/background';
-import { FAQ } from '@/components/blocks/faq';
-import { Features } from '@/components/blocks/features';
-import { Hero } from '@/components/blocks/hero';
-import { Logos } from '@/components/blocks/logos';
-import { ResourceAllocation } from '@/components/blocks/resource-allocation';
-import { Testimonials } from '@/components/blocks/testimonials';
-import DefaultLayout from '@/layouts/DefaultLayout.astro';
-
-
-
+import Sheet from "../layouts/Sheet.astro";
+import { HOME, MENU, PARTNERS, PRINTED_IN } from "../data/site";
+const [before, after] = HOME.title.split(HOME.emphasis);
+const idle = "Pick a line of work, or press 1 to 5.";
 ---
+<Sheet fig="ripple">
+  <h1 class="display">{before}<em>{HOME.emphasis}</em>{after}</h1>
+  <p class="founder">{HOME.founder}</p>
 
-<DefaultLayout title={SITE_TITLE} description={SITE_DESCRIPTION} >
-  <Background className="via-muted to-muted/80">
-    <Hero />
-    <Logos client:only="react"/> 
-    <Features />
-    <ResourceAllocation />
-  </Background>
-  <Testimonials client:only='react'/>
-  <Background variant="bottom">
-    <FAQ client:only='react'/>
-  </Background>
-</DefaultLayout>
+  <nav aria-label="Lines of work">
+    <ol class="menu">
+      {MENU.map(m => (
+        <li>
+          <a href={m.href} data-n={m.n} data-fig={m.fig} data-hint={m.hint} style={`--c: var(--${m.color})`}>
+            <span class="br" aria-hidden="true">[{m.n}]</span>
+            <span class="t">{m.label}<span class="sr-hint"><span class="sep">. </span>{m.hint}</span></span>
+            <span class="go" aria-hidden="true">&#9656;</span>
+            <span class="lead" aria-hidden="true"></span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+  <p class="readout" aria-hidden="true"><span class="p">&gt;</span><span><span id="readout-text" data-idle={idle}>{idle}</span><span class="cur"></span></span></p>
+
+  <section class="proof" aria-label="Partners and press">
+    <p class="label">Launch partners</p>
+    <ul class="partners">
+      {PARTNERS.map(p => <li><img src={p.src} alt={p.name} height={p.h} style={`height:${p.h}px`} loading="lazy" decoding="async" /></li>)}
+    </ul>
+    <p class="printed"><span class="label">Printed in</span>&nbsp; {PRINTED_IN.map((p, i) => <><b>{p}</b>{i < PRINTED_IN.length - 1 ? ", " : ""}</>)}</p>
+  </section>
+</Sheet>
+
+<style>
+  .sr-hint { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (hover: none) {
+    .sr-hint { position: static; width: auto; height: auto; clip: auto; white-space: normal; display: block; margin-top: 4px; font: 12px/1.45 var(--mono); color: var(--dim); letter-spacing: 0; }
+    .sr-hint .sep { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .readout { display: none; }
+  }
+</style>

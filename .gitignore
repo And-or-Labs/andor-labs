@@ -31,3 +31,8 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 .superpowers/
+
+# Megafly build output (built from megafly/ by npm run build)
+public/megafly/
+megafly/node_modules/
+megafly/dist/

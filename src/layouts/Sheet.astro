@@ -1,0 +1,71 @@
+---
+import { ClientRouter } from "astro:transitions";
+import "../styles/site.css";
+import Icon from "../components/Icon.astro";
+import { BOOKING_URL, SITE, SOCIALS, type Color, type Fig } from "../data/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+  fig: Fig;
+  color?: Color;
+  image?: string;
+  type?: "website" | "article";
+  publishedTime?: Date;
+}
+const { title, description = SITE.description, fig, color = "blue", image = "/og-image.jpg", type = "website", publishedTime } = Astro.props;
+const fullTitle = title ? `${title} | ${SITE.name}` : SITE.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(image, Astro.site);
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f7fa" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon/favicon.ico" sizes="48x48" />
+  <link rel="apple-touch-icon" href="/favicon/apple-touch-icon.png" />
+  <link rel="alternate" type="application/rss+xml" title="And/or Labs field notes" href="/rss.xml" />
+  <link rel="preload" href="/fonts/newsreader/Newsreader-latin-var.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/departure-mono/DepartureMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
+  <meta property="og:type" content={type} />
+  <meta property="og:site_name" content={SITE.name} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={ogImage} />
+  {publishedTime && <meta property="article:published_time" content={publishedTime.toISOString()} />}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:creator" content="@eclecticV" />
+  <ClientRouter fallback="swap" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="sheet">
+    <div class="frame">
+      <main id="main" class="pane" data-fig={fig} style={`--c: var(--${color})`}>
+        <header class="pane-head">
+          <a class="mark" href="/" aria-label="And/or Labs, home"><b aria-hidden="true">&amp;</b>And/or Labs</a>
+          <slot name="crumb" />
+        </header>
+        <slot />
+      </main>
+      <aside class="viz" transition:persist="figure" aria-hidden="true"><canvas id="figure"></canvas></aside>
+      <nav class="bar" aria-label="Contact" transition:persist="bar">
+        <a class="book" href={BOOKING_URL} target="_blank" rel="noopener">Book a call <span class="arr" aria-hidden="true">&nearr;</span></a>
+        {SOCIALS.map(s => (
+          <a class="ico" href={s.href} aria-label={s.label} title={s.label} {...(s.id === "email" ? {} : { target: "_blank", rel: "noopener" })}><Icon name={s.id} /></a>
+        ))}
+      </nav>
+    </div>
+  </div>
+  <script>
+    import "../scripts/site.ts";
+  </script>
+</body>
+</html>

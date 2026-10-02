@@ -1,0 +1,24 @@
+---
+import { getCollection } from "astro:content";
+import Sheet from "../../layouts/Sheet.astro";
+import Crumb from "../../components/Crumb.astro";
+import ItemNav from "../../components/ItemNav.astro";
+import Subscribe from "../../components/Subscribe.astro";
+import { NOTES } from "../../data/site";
+const posts = (await getCollection("blog", p => !p.data.draft)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const fmt = (d: Date) => d.toISOString().slice(0, 10).replaceAll("-", ".");
+---
+<Sheet title="Notes" description={NOTES.lede} fig="notes" color="butter">
+  <Crumb slot="crumb" />
+  <p class="eyebrow"><span class="br">[5]</span> Notes</p>
+  <h1 class="title">{NOTES.title}</h1>
+  <p class="lede">{NOTES.lede}</p>
+  <div class="body">
+    <Subscribe source="blog-index" />
+    <ol class="posts">
+      {posts.map(p => <li><a href={`/notes/${p.id}/`}><time datetime={p.data.pubDate.toISOString()}>{fmt(p.data.pubDate)}</time><span>{p.data.title}</span></a></li>)}
+    </ol>
+    <p class="label"><a href="/rss.xml">RSS feed</a></p>
+  </div>
+  <ItemNav current={5} />
+</Sheet>

@@ -5,10 +5,14 @@
   "useTabs": false,
   "singleQuote": false,
   "printWidth": 80,
-  "plugins": ["prettier-plugin-tailwindcss"],
+  "plugins": [
+    "prettier-plugin-astro"
+  ],
   "overrides": [
     {
-      "files": ["src/styles/globals.css"],
+      "files": [
+        "src/styles/globals.css"
+      ],
       "options": {
         "printWidth": 180
       }
