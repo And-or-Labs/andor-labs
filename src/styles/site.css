@@ -93,12 +93,6 @@ button, input { font: inherit; color: inherit; }
 .list .x { font: 12px var(--mono); color: var(--faint); transition: color .2s var(--ease), transform .2s var(--ease); }
 .list a:hover { background: var(--sky); }
 .list a:hover .x { color: var(--blue); transform: translate(2px, -2px); }
-.offers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border: 1px solid var(--rule); }
-.offers div { padding: 14px; border-right: 1px solid var(--rule); display: grid; gap: 4px; align-content: start; }
-.offers div:last-child { border-right: 0; }
-.offers b { font-weight: 500; font-size: 18px; }
-.offers span { font-size: 14px; color: var(--dim); line-height: 1.35; }
-.offers .price { font: 12px/1.5 var(--mono); color: var(--ink); margin-top: 6px; }
 .quote { border-left: 2px solid var(--c); padding-left: 16px; }
 .quote p { font-style: italic; font-size: 19px; line-height: 1.4; text-wrap: pretty; }
 .quote cite { display: block; margin-top: 8px; font: 11px/1.5 var(--mono); letter-spacing: .1em; text-transform: uppercase; font-style: normal; color: var(--dim); }
@@ -188,9 +182,6 @@ button, input { font: inherit; color: inherit; }
   .pane-head { margin-bottom: 22px; }
   .viz { border-left: 0; border-top: 1px solid var(--hair); }
   .menu .lead { display: none; }
-  .offers { grid-template-columns: 1fr; }
-  .offers div { border-right: 0; border-bottom: 1px solid var(--rule); }
-  .offers div:last-child { border-bottom: 0; }
   .bar { position: sticky; bottom: 0; z-index: 2; }
   .bar .book { padding: 0 18px; font-size: 13px; }
   .bar .ico { width: 54px; }
@@ -201,4 +192,45 @@ button, input { font: inherit; color: inherit; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; animation: none !important; }
+}
+
+/* Service content uses the drawing-sheet type, rules, and spacing. */
+.section-stack { display: grid; gap: 16px; scroll-margin-top: 24px; }
+.section-stack + .section-stack { padding-top: 24px; }
+.section-title { font: 400 clamp(25px, 2.2vw, 32px)/1.15 var(--serif); letter-spacing: -.02em; text-wrap: balance; }
+.experience { display: grid; gap: 20px; }
+.experience h3 { font-size: 24px; line-height: 1.2; }
+.experience .result { font-size: 24px; line-height: 1.2; color: var(--blue-ink); }
+.experience .label { font: 11px/1.5 var(--mono); color: var(--dim); }
+.engagement { display: grid; gap: 12px; border-top: 1px solid var(--rule); padding-top: 20px; }
+.engagement + .engagement { margin-top: 12px; }
+.engagement h3 { font: 500 26px/1.15 var(--serif); letter-spacing: -.02em; }
+.engagement-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; font-size: 32px; line-height: 1.15; }
+.engagement-price span { font: 12px/1.5 var(--mono); color: var(--dim); }
+.engagement-headline { font-size: 21px; line-height: 1.3; }
+.scope { padding-left: 20px; display: grid; gap: 8px; }
+.scope li::marker { color: var(--coral-ink); }
+.text-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--blue-ink); text-decoration-thickness: 1px; text-underline-offset: 4px; width: fit-content; max-width: 100%; overflow-wrap: anywhere; }
+.text-link:hover { color: var(--ink); }
+.comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.comparison figure { display: grid; gap: 8px; min-width: 0; }
+.site-preview { height: clamp(220px, 26vw, 380px); overflow-y: auto; border: 1px solid var(--rule); scrollbar-width: thin; }
+.site-preview img { width: 100%; height: auto; }
+.evidence-note { color: var(--dim); font-size: 14px; line-height: 1.5; }
+.capabilities .k { min-width: 2ch; }
+.capabilities .v { display: grid; gap: 6px; }
+.capabilities strong { font-weight: 500; font-size: 20px; }
+.capabilities .v > span { color: var(--dim); }
+.project-form { display: grid; gap: 8px; }
+.project-form label { font: 12px/1.5 var(--mono); margin-top: 12px; }
+.project-form input, .project-form textarea, .project-form select { width: 100%; min-width: 0; min-height: 48px; padding: 12px; border: 1px solid var(--dim); border-radius: 0; background: var(--white); color: var(--ink); font: 16px/1.5 var(--serif); }
+.project-form textarea { resize: vertical; }
+.project-form .btn { margin-top: 16px; justify-content: center; white-space: normal; line-height: 1.5; padding-block: 12px; }
+.project-form input:focus, .project-form textarea:focus, .project-form select:focus { outline: 2px solid var(--blue); outline-offset: 2px; }
+@media (max-width: 480px) {
+  .comparison { grid-template-columns: 1fr; }
+  .site-preview { height: 320px; }
+  .bar { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .bar .book { grid-column: 1 / -1; min-height: 48px; }
+  .bar .ico { width: auto; min-height: 44px; }
 }

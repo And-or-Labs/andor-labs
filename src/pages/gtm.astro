@@ -1,39 +1,110 @@
 ---
-import Sheet from "../layouts/Sheet.astro";
+import { Image } from "astro:assets";
+
+import afterImage from "../assets/gtm/filament-after.png";
+import beforeImage from "../assets/gtm/filament-before.png";
 import Crumb from "../components/Crumb.astro";
 import ItemNav from "../components/ItemNav.astro";
-import { BOOKING_URL, GTM as G, TESTIMONIALS } from "../data/site";
-const [lead, ...rest] = TESTIMONIALS;
+import ProjectInquiry from "../components/ProjectInquiry.astro";
+import { GTM as G, TESTIMONIALS } from "../data/site";
+import Sheet from "../layouts/Sheet.astro";
+const [scott, marty] = TESTIMONIALS;
 ---
 <Sheet title="GTM Consulting" description={G.lede} fig="growth" color="coral">
   <Crumb slot="crumb" />
-  <p class="eyebrow"><span class="br">[2]</span> GTM Consulting</p>
+  <p class="eyebrow"><span class="br">[1]</span> GTM Consulting</p>
   <h1 class="title">{G.title}</h1>
   <p class="lede">{G.lede}</p>
+  <p class="founder">{G.founder}</p>
   <div class="body">
     <div class="ctas">
-      <a class="btn primary" href={BOOKING_URL} target="_blank" rel="noopener">Book a call &nearr;</a>
+      <a class="btn primary" href="#project">Discuss your project <span aria-hidden="true">↘</span></a>
+      <a class="text-link" href="#engagements">See engagements</a>
     </div>
-    <figure class="quote">
-      <p>{lead.quote}</p>
-      <cite>{lead.author}, {lead.role}</cite>
-    </figure>
-    <div>
-      <p class="label" style="margin-bottom:8px">Engagements</p>
-      <div class="offers">
-        {G.offers.map(o => <div><b>{o.name}</b><span>{o.for}</span><span class="price">{o.price}</span></div>)}
+
+    <section class="section-stack" aria-labelledby="experience-title">
+      <h2 class="label" id="experience-title">Operating experience</h2>
+      <div class="experience">
+        {G.experience.map(e => (
+          <article class="exp">
+            <h3>{e.company}</h3>
+            <p class="label">{e.role}</p>
+            <p class="result">{e.result}</p>
+            <p>{e.work}</p>
+          </article>
+        ))}
       </div>
-    </div>
-    <div>
-      <p class="label" style="margin-bottom:8px">What we work on</p>
-      <ul class="list">
-        {G.capabilities.map((c, i) => <li><div><span class="k">0{i + 1}</span><span class="v">{c}</span><span></span></div></li>)}
+      <figure class="quote">
+        <blockquote><p>{marty.quote}</p></blockquote>
+        <figcaption><cite>{marty.author}, {marty.role}</cite></figcaption>
+      </figure>
+    </section>
+
+    <section class="section-stack" id="engagements" aria-labelledby="engagements-title">
+      <h2 class="label" id="engagements-title">Two ways to work together</h2>
+      {G.offers.map((o, i) => (
+        <article class="engagement" aria-labelledby={`${o.id}-title`}>
+          <p class="label">[0{i + 1}] {o.label}</p>
+          <h3 id={`${o.id}-title`}>{o.name}</h3>
+          <p class="engagement-price">{o.price}<span>{o.term}</span></p>
+          <p class="label">{o.commitment}</p>
+          <p class="engagement-headline">{o.headline}</p>
+          <p>{o.for}</p>
+          <p>{o.description}</p>
+          <ul class="scope">{o.scope.map(item => <li>{item}</li>)}</ul>
+          <a class="text-link" href="#project" data-offer={o.name}>{o.cta} <span aria-hidden="true">↘</span></a>
+        </article>
+      ))}
+    </section>
+
+    <section class="section-stack" aria-labelledby="filament-title">
+      <p class="label">Selected client work</p>
+      <h2 class="section-title" id="filament-title">Filament. From positioning to a shipped site.</h2>
+      <p>{G.caseStudy.line}</p>
+      <div class="comparison">
+        <figure>
+          <figcaption class="label">Before / WordPress</figcaption>
+          <div class="site-preview" tabindex="0" role="region" aria-label="Filament before redesign, scroll to explore">
+            <Image src={beforeImage} alt="Filament's previous website with a white background, uppercase headline, and purple YouTube advertising graphics." width={900} format="webp" quality={75} loading="lazy" />
+          </div>
+        </figure>
+        <figure>
+          <figcaption class="label">After / Redesign</figcaption>
+          <div class="site-preview" tabindex="0" role="region" aria-label="Filament after redesign, scroll to explore">
+            <Image src={afterImage} alt="Filament's redesigned website with a navy background, serif product messaging, and a clearer product interface preview." width={900} format="webp" quality={75} loading="lazy" />
+          </div>
+        </figure>
+      </div>
+      <p class="evidence-note">Redesign captures, March 2026. Scroll each image to explore.</p>
+      <dl class="facts">
+        <div><dt>Delivery</dt><dd>9 days</dd></div>
+        <div><dt>SEO audit</dt><dd>100 Lighthouse SEO score</dd></div>
+        <div><dt>Load time</dt><dd>1.09s largest contentful paint</dd></div>
+      </dl>
+      <p class="evidence-note">Technical measurements recorded at launch.</p>
+      <figure class="quote">
+        <blockquote><p>{scott.quote}</p></blockquote>
+        <figcaption><cite>{scott.author}, {scott.role}</cite></figcaption>
+      </figure>
+      <a class="text-link" href={G.caseStudy.href} target="_blank" rel="noopener">Visit Filament <span aria-hidden="true">↗</span></a>
+    </section>
+
+    <section class="section-stack" aria-labelledby="capabilities-title">
+      <h2 class="label" id="capabilities-title">What I build</h2>
+      <ul class="list capabilities">
+        {G.capabilities.map((c, i) => (
+          <li><div><span class="k">0{i + 1}</span><span class="v"><strong>{c.name}</strong><span>{c.work}</span></span></div></li>
+        ))}
       </ul>
-    </div>
-    <ul class="list">
-      <li><a href={G.caseStudy.href} target="_blank" rel="noopener"><span class="k">Case study</span><span class="v">{G.caseStudy.client}. {G.caseStudy.line} <span class="label">{G.caseStudy.metrics.join(" / ")}</span></span><span class="x">&nearr;</span></a></li>
-    </ul>
-    {rest.map(t => <figure class="quote"><p>{t.quote}</p><cite>{t.author}, {t.role}</cite></figure>)}
+      <a class="text-link" href="/mediacontext/">See what I'm building at MediaContext <span aria-hidden="true">↗</span></a>
+    </section>
+
+    <section class="section-stack" id="project" aria-labelledby="project-title">
+      <p class="label">Next step</p>
+      <h2 class="section-title" id="project-title">Discuss your project.</h2>
+      <p>{G.process}</p>
+      <ProjectInquiry />
+    </section>
   </div>
-  <ItemNav current={2} />
+  <ItemNav current={1} />
 </Sheet>

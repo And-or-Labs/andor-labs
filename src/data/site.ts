@@ -1,6 +1,7 @@
 // Every piece of copy on the site, in one place.
 // Sources: VJ's Homepage v2 note, the October 2026 long-form build (08891d2:src/data/site.ts),
-// and the MediaContext / Megafly / zero-click READMEs. Claims rule: VJ led marketing and
+// the MediaContext / Megafly / zero-click READMEs, and CV_VJ_Mozilla_Firefox.md
+// for Blockthrough and AdPushup career results. Claims rule: VJ led marketing and
 // sales ops at Blockthrough and AdPushup through their acquisitions. He did not found or exit them.
 
 export const BOOKING_URL = "https://cal.com/jatain/book";
@@ -9,9 +10,9 @@ export const EMAIL = "vj@andorlabs.ca";
 export const SITE = {
   name: "And/or Labs",
   url: "https://andorlabs.ca",
-  title: "And/or Labs | Applied AI lab for early-stage tech startups",
+  title: "And/or Labs | Hands-on GTM for adtech companies",
   description:
-    "An applied AI lab enabling early-stage tech startups. We build products like MediaContext, run GTM consulting, and publish field notes.",
+    "Senior GTM experience and hands-on delivery for adtech companies. Positioning, websites, organic growth, and custom automation with Vishveshwar Jatain.",
 };
 
 export const SOCIALS = [
@@ -22,8 +23,9 @@ export const SOCIALS = [
 ] as const;
 
 export const HOME = {
-  title: "We're an applied AI lab enabling early-stage tech startups.",
-  emphasis: "applied AI lab",
+  title: "Senior GTM experience. Hands-on delivery.",
+  emphasis: "Hands-on delivery.",
+  lede: "Positioning, websites, organic growth, and custom automation for adtech companies. Strategy and implementation, handled together.",
   founder: "Founded by Vishveshwar Jatain, who led marketing and sales ops at Blockthrough and AdPushup through their acquisitions.",
 };
 
@@ -31,8 +33,8 @@ export type Fig = "ripple" | "radar" | "growth" | "flask" | "press" | "notes";
 export type Color = "blue" | "coral" | "green" | "lilac" | "butter";
 
 export const MENU: { n: number; href: string; label: string; hint: string; fig: Fig; color: Color }[] = [
-  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "radar", color: "blue" },
-  { n: 2, href: "/gtm/", label: "GTM Consulting", hint: "Positioning, sites and pipeline for early-stage startups. Three ways to engage.", fig: "growth", color: "coral" },
+  { n: 1, href: "/gtm/", label: "GTM Consulting", hint: "Work directly with VJ. Ongoing implementation or a website refresh.", fig: "growth", color: "coral" },
+  { n: 2, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "radar", color: "blue" },
   { n: 3, href: "/experiments/", label: "Experiments", hint: "A fly that trades ad budgets, and a clock counting down the click.", fig: "flask", color: "green" },
   { n: 4, href: "/published/", label: "Published work", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "press", color: "lilac" },
   { n: 5, href: "/notes/", label: "Notes", hint: "Field notes on GTM, AI and the post-software era. Newest first.", fig: "notes", color: "butter" },
@@ -61,21 +63,25 @@ export const MEDIACONTEXT = {
 };
 
 export const GTM = {
-  title: "Don't just go to market. Win it.",
-  lede: "We help early-stage startups find product-market fit, accelerate revenue growth, and win their category. You work with the founder directly. No account layers.",
+  title: "Senior GTM experience. Hands-on delivery.",
+  lede: "I help adtech companies improve how they present their products, attract buyers, and run their marketing. Positioning, websites, organic growth, and custom automation, with the strategy and implementation handled together.",
+  founder: "I led marketing and sales operations at Blockthrough and AdPushup through their acquisitions. At And/or Labs, you work directly with me.",
+  experience: [
+    { company: "Blockthrough", role: "Director, Marketing & Sales Operations", result: "3× organic traffic", work: "Built and led the marketing and revenue operations team. Ran search experiments, research-led campaigns, and brand modernization." },
+    { company: "AdPushup", role: "Product Marketing Manager", result: "50k+ monthly visits", work: "Built a content engine spanning 150+ articles, email courses, and webinars, alongside CRM and account-based marketing work." },
+  ],
   capabilities: [
-    "Positioning and web design",
-    "Tech stack and analytics",
-    "Research, data and IP creation",
-    "Search, AI and social growth",
-    "AI x GTM transformation",
+    { name: "Positioning & websites", work: "A clear product story and a website that helps buyers take the next step." },
+    { name: "Organic growth", work: "SEO, AI search visibility, and content built around relevant buyer questions." },
+    { name: "GTM engineering", work: "Account research, CRM workflows, and automation that improve follow-through." },
+    { name: "Custom AI agents", work: "A recurring marketing task turned into a deployed, measurable workflow." },
   ],
   offers: [
-    { name: "Advisor", for: "Idea and pre-seed", price: "$995/mo + advisor equity" },
-    { name: "GTM Refresh", for: "Any stage", price: "$9,995 one-time" },
-    { name: "GTM Copilot", for: "Seed and Series A", price: "$4,995/mo, 3-month min" },
+    { id: "copilot", name: "GTM Copilot", label: "Ongoing implementation", price: "$4,995", term: "/ month", commitment: "Initial three-month engagement", headline: "A senior operator who also builds.", for: "For a company with customers and important marketing work that isn't getting shipped.", description: "We agree on the most important problem, define the first deliverable, and get to work. The roadmap can include your website, SEO/AEO, account research, CRM workflows, and custom AI agents.", scope: ["One major implementation initiative at a time", "Priorities and progress reviewed regularly", "First-month deliverable, capacity, and responsibilities agreed before signing"], cta: "Discuss Copilot" },
+    { id: "refresh", name: "Website & Positioning Refresh", label: "Fixed-scope project", price: "$9,995", term: "/ project", commitment: "Scope and schedule agreed before kickoff", headline: "Bring your website up to the standard of your product.", for: "For a company whose website no longer reflects the quality of its product.", description: "Positioning, design, and implementation in one engagement. A clear product story, a cohesive site, and a foundation your team can maintain.", scope: ["Positioning, responsive design, and implementation", "Analytics and a maintainable handoff", "Pages, content, functionality, revisions, and delivery schedule agreed before signing"], cta: "Discuss a refresh" },
   ],
   caseStudy: { client: "Filament", line: "A WordPress site rebuilt as a Next.js brand in nine days.", metrics: ["9 days", "100 Lighthouse SEO", "1.09s LCP"], href: "https://www.wearefilament.com" },
+  process: "We'll discuss what needs to change, confirm fit and budget, and identify the first piece of work. If there's a fit, you'll receive a defined scope and next steps.",
 };
 
 export const TESTIMONIALS = [
