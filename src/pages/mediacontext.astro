@@ -6,7 +6,7 @@ import Sheet from "../layouts/Sheet.astro";
 ---
 <Sheet title="MediaContext" description={M.title + " " + M.lede} fig="radar" color="blue">
   <Crumb slot="crumb" />
-  <p class="eyebrow"><span class="br">[2]</span> MediaContext</p>
+  <p class="eyebrow"><span class="br">[1]</span> MediaContext</p>
   <h1 class="title">{M.title}</h1>
   <p class="lede">{M.lede}</p>
   <div class="body">
@@ -18,5 +18,5 @@ import Sheet from "../layouts/Sheet.astro";
     </div>
     <img class="shot" src={M.image.src} alt={M.image.alt} width="2880" height="1800" loading="lazy" decoding="async" />
   </div>
-  <ItemNav current={2} />
+  <ItemNav current={1} />
 </Sheet>

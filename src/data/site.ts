@@ -10,9 +10,9 @@ export const EMAIL = "vj@andorlabs.ca";
 export const SITE = {
   name: "And/or Labs",
   url: "https://andorlabs.ca",
-  title: "And/or Labs | Hands-on GTM for adtech companies",
+  title: "And/or Labs | Applied AI lab for early-stage tech startups",
   description:
-    "Senior GTM experience and hands-on delivery for adtech companies. Positioning, websites, organic growth, and custom automation with Vishveshwar Jatain.",
+    "An applied AI lab enabling early-stage tech startups. We build products like MediaContext, run GTM consulting, and publish field notes.",
 };
 
 export const SOCIALS = [
@@ -23,9 +23,8 @@ export const SOCIALS = [
 ] as const;
 
 export const HOME = {
-  title: "Senior GTM experience. Hands-on delivery.",
-  emphasis: "Hands-on delivery.",
-  lede: "Positioning, websites, organic growth, and custom automation for adtech companies. Strategy and implementation, handled together.",
+  title: "We're an applied AI lab enabling early-stage tech startups.",
+  emphasis: "applied AI lab",
   founder: "Founded by Vishveshwar Jatain, who led marketing and sales ops at Blockthrough and AdPushup through their acquisitions.",
 };
 
@@ -33,8 +32,8 @@ export type Fig = "ripple" | "radar" | "growth" | "flask" | "press" | "notes";
 export type Color = "blue" | "coral" | "green" | "lilac" | "butter";
 
 export const MENU: { n: number; href: string; label: string; hint: string; fig: Fig; color: Color }[] = [
-  { n: 1, href: "/gtm/", label: "GTM Consulting", hint: "Work directly with VJ. Ongoing implementation or a website refresh.", fig: "growth", color: "coral" },
-  { n: 2, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "radar", color: "blue" },
+  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "radar", color: "blue" },
+  { n: 2, href: "/gtm/", label: "GTM Consulting", hint: "Senior GTM experience and hands-on delivery. Two ways to engage.", fig: "growth", color: "coral" },
   { n: 3, href: "/experiments/", label: "Experiments", hint: "A fly that trades ad budgets, and a clock counting down the click.", fig: "flask", color: "green" },
   { n: 4, href: "/published/", label: "Published work", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "press", color: "lilac" },
   { n: 5, href: "/notes/", label: "Notes", hint: "Field notes on GTM, AI and the post-software era. Newest first.", fig: "notes", color: "butter" },

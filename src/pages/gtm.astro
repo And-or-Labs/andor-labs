@@ -5,106 +5,93 @@ import afterImage from "../assets/gtm/filament-after.png";
 import beforeImage from "../assets/gtm/filament-before.png";
 import Crumb from "../components/Crumb.astro";
 import ItemNav from "../components/ItemNav.astro";
-import ProjectInquiry from "../components/ProjectInquiry.astro";
-import { GTM as G, TESTIMONIALS } from "../data/site";
+import { BOOKING_URL, GTM as G, HOME, TESTIMONIALS } from "../data/site";
 import Sheet from "../layouts/Sheet.astro";
 const [scott, marty] = TESTIMONIALS;
 ---
 <Sheet title="GTM Consulting" description={G.lede} fig="growth" color="coral">
   <Crumb slot="crumb" />
-  <p class="eyebrow"><span class="br">[1]</span> GTM Consulting</p>
+  <p class="eyebrow"><span class="br">[2]</span> GTM Consulting</p>
   <h1 class="title">{G.title}</h1>
-  <p class="lede">{G.lede}</p>
-  <p class="founder">{G.founder}</p>
-  <div class="body">
-    <div class="ctas">
-      <a class="btn primary" href="#project">Discuss your project <span aria-hidden="true">↘</span></a>
-      <a class="text-link" href="#engagements">See engagements</a>
-    </div>
-
-    <section class="section-stack" aria-labelledby="experience-title">
+  <p class="lede">Positioning, websites, organic growth, and custom automation for adtech companies. Strategy and implementation, handled together.</p>
+  <p class="founder">{HOME.founder} You work directly with me.</p>
+  <div class="body service-content">
+    <section aria-labelledby="experience-title">
       <h2 class="label" id="experience-title">Operating experience</h2>
-      <div class="experience">
-        {G.experience.map(e => (
-          <article class="exp">
-            <h3>{e.company}</h3>
-            <p class="label">{e.role}</p>
-            <p class="result">{e.result}</p>
-            <p>{e.work}</p>
+      <dl class="facts career-facts">
+        {G.experience.map(e => <div><dt>{e.company}</dt><dd>{e.result}</dd></div>)}
+      </dl>
+    </section>
+
+    <section id="engagements" aria-labelledby="engagements-title">
+      <h2 class="label" id="engagements-title">Engagements</h2>
+      <div class="offers service-offers">
+        {G.offers.map(o => (
+          <article>
+            <h3>{o.name}</h3>
+            <p class="price">{o.price} {o.term}</p>
+            <p class="offer-term">{o.commitment}</p>
+            <p>{o.for}</p>
+            <details>
+              <summary>Scope &amp; working together</summary>
+              <div class="offer-detail">
+                <p>{o.description}</p>
+                <ul>{o.scope.map(item => <li>{item}</li>)}</ul>
+                <a class="text-link" href={BOOKING_URL} target="_blank" rel="noopener">{o.cta} <span aria-hidden="true">↘</span></a>
+              </div>
+            </details>
           </article>
         ))}
       </div>
-      <figure class="quote">
-        <blockquote><p>{marty.quote}</p></blockquote>
-        <figcaption><cite>{marty.author}, {marty.role}</cite></figcaption>
-      </figure>
+      <div class="ctas"><a class="btn primary" href={BOOKING_URL} target="_blank" rel="noopener">Discuss your project <span aria-hidden="true">↗</span></a></div>
     </section>
 
-    <section class="section-stack" id="engagements" aria-labelledby="engagements-title">
-      <h2 class="label" id="engagements-title">Two ways to work together</h2>
-      {G.offers.map((o, i) => (
-        <article class="engagement" aria-labelledby={`${o.id}-title`}>
-          <p class="label">[0{i + 1}] {o.label}</p>
-          <h3 id={`${o.id}-title`}>{o.name}</h3>
-          <p class="engagement-price">{o.price}<span>{o.term}</span></p>
-          <p class="label">{o.commitment}</p>
-          <p class="engagement-headline">{o.headline}</p>
-          <p>{o.for}</p>
-          <p>{o.description}</p>
-          <ul class="scope">{o.scope.map(item => <li>{item}</li>)}</ul>
-          <a class="text-link" href="#project" data-offer={o.name}>{o.cta} <span aria-hidden="true">↘</span></a>
-        </article>
-      ))}
+    <figure class="quote">
+      <blockquote><p>{marty.quote}</p></blockquote>
+      <figcaption><cite>{marty.author}, {marty.role}</cite></figcaption>
+    </figure>
+
+    <section aria-labelledby="capabilities-title">
+      <h2 class="label" id="capabilities-title">What I build</h2>
+      <ul class="list capabilities">
+        {G.capabilities.map((c, i) => <li><div><span class="k">0{i + 1}</span><span class="v">{c.name}<span class="capability-description">{c.work}</span></span></div></li>)}
+      </ul>
     </section>
 
-    <section class="section-stack" aria-labelledby="filament-title">
-      <p class="label">Selected client work</p>
-      <h2 class="section-title" id="filament-title">Filament. From positioning to a shipped site.</h2>
+    <section aria-labelledby="filament-title">
+      <h2 class="label" id="filament-title">Selected work / Filament</h2>
       <p>{G.caseStudy.line}</p>
-      <div class="comparison">
-        <figure>
-          <figcaption class="label">Before / WordPress</figcaption>
-          <div class="site-preview" tabindex="0" role="region" aria-label="Filament before redesign, scroll to explore">
-            <Image src={beforeImage} alt="Filament's previous website with a white background, uppercase headline, and purple YouTube advertising graphics." width={900} format="webp" quality={75} loading="lazy" />
-          </div>
-        </figure>
-        <figure>
-          <figcaption class="label">After / Redesign</figcaption>
-          <div class="site-preview" tabindex="0" role="region" aria-label="Filament after redesign, scroll to explore">
-            <Image src={afterImage} alt="Filament's redesigned website with a navy background, serif product messaging, and a clearer product interface preview." width={900} format="webp" quality={75} loading="lazy" />
-          </div>
-        </figure>
-      </div>
-      <p class="evidence-note">Redesign captures, March 2026. Scroll each image to explore.</p>
-      <dl class="facts">
-        <div><dt>Delivery</dt><dd>9 days</dd></div>
-        <div><dt>SEO audit</dt><dd>100 Lighthouse SEO score</dd></div>
-        <div><dt>Load time</dt><dd>1.09s largest contentful paint</dd></div>
-      </dl>
-      <p class="evidence-note">Technical measurements recorded at launch.</p>
-      <figure class="quote">
+      <p class="label case-metrics">{G.caseStudy.metrics.join(" / ")}</p>
+      <details class="case-details">
+        <summary>View the redesign</summary>
+        <div class="comparison">
+          <figure>
+            <figcaption class="label">Before / WordPress</figcaption>
+            <div class="site-preview" tabindex="0" role="region" aria-label="Filament before redesign, scroll to explore">
+              <Image src={beforeImage} alt="Filament's previous website with a white background, uppercase headline, and purple YouTube advertising graphics." width={900} format="webp" quality={75} loading="lazy" />
+            </div>
+          </figure>
+          <figure>
+            <figcaption class="label">After / Redesign</figcaption>
+            <div class="site-preview" tabindex="0" role="region" aria-label="Filament after redesign, scroll to explore">
+              <Image src={afterImage} alt="Filament's redesigned website with a navy background, serif product messaging, and a clearer product interface preview." width={900} format="webp" quality={75} loading="lazy" />
+            </div>
+          </figure>
+        </div>
+        <p class="evidence-note">Redesign captures, March 2026. Technical measurements recorded at launch.</p>
+        <a class="text-link" href={G.caseStudy.href} target="_blank" rel="noopener">Visit Filament <span aria-hidden="true">↗</span></a>
+      </details>
+      <figure class="quote client-quote">
         <blockquote><p>{scott.quote}</p></blockquote>
         <figcaption><cite>{scott.author}, {scott.role}</cite></figcaption>
       </figure>
-      <a class="text-link" href={G.caseStudy.href} target="_blank" rel="noopener">Visit Filament <span aria-hidden="true">↗</span></a>
     </section>
 
-    <section class="section-stack" aria-labelledby="capabilities-title">
-      <h2 class="label" id="capabilities-title">What I build</h2>
-      <ul class="list capabilities">
-        {G.capabilities.map((c, i) => (
-          <li><div><span class="k">0{i + 1}</span><span class="v"><strong>{c.name}</strong><span>{c.work}</span></span></div></li>
-        ))}
-      </ul>
-      <a class="text-link" href="/mediacontext/">See what I'm building at MediaContext <span aria-hidden="true">↗</span></a>
-    </section>
-
-    <section class="section-stack" id="project" aria-labelledby="project-title">
-      <p class="label">Next step</p>
-      <h2 class="section-title" id="project-title">Discuss your project.</h2>
+    <section id="project" aria-labelledby="project-title">
+      <h2 class="label" id="project-title">Next step</h2>
       <p>{G.process}</p>
-      <ProjectInquiry />
+      <a class="text-link" href={BOOKING_URL} target="_blank" rel="noopener">Book a call <span aria-hidden="true">↗</span></a>
     </section>
   </div>
-  <ItemNav current={1} />
+  <ItemNav current={2} />
 </Sheet>
