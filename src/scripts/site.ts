@@ -1,4 +1,5 @@
 import { navigate } from "astro:transitions/client";
+
 import { mountFigure, type FigName } from "./figure";
 
 type Figure = ReturnType<typeof mountFigure>;
@@ -121,7 +122,7 @@ document.addEventListener("keydown", e => {
     if (back) { rememberOrigin(back); navigate(back.href); }
     return;
   }
-  if (/^[1-5]$/.test(e.key)) {
+  if (/^[1-9]$/.test(e.key)) {
     const target = document.querySelector<HTMLAnchorElement>(`.menu a[data-n="${e.key}"]`) ?? document.querySelector<HTMLAnchorElement>(`[data-menu-key="${e.key}"]`);
     if (target) { rememberOrigin(target); navigate(target.href); }
   }

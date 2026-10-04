@@ -7,7 +7,7 @@ export type FigName = "ripple" | "radar" | "growth" | "flask" | "press" | "notes
 
 const RAMP = " .\u00b7:-=+*#%@";
 const C = { blue: "#1b4dff", coral: "#f0764f", green: "#19b37a", lilac: "#7c5cff", butter: "#f2b705", ink: "#0b1533" };
-const ACCENT: Record<FigName, string> = { ripple: C.blue, radar: C.blue, growth: C.coral, flask: C.green, press: C.lilac, notes: C.butter };
+const ACCENT: Record<FigName, string> = { ripple: C.blue, radar: C.blue, growth: C.coral, flask: C.green, press: C.lilac, notes: C.lilac };
 
 const hash = (i: number, j: number) => { const s = Math.sin(i * 12.9898 + j * 78.233) * 43758.5453; return s - Math.floor(s); };
 const seg = (px: number, py: number, ax: number, ay: number, bx: number, by: number) => {
@@ -112,7 +112,7 @@ const FIELDS: Record<FigName, Field> = {
       const x0 = -.55, x1 = .74, end = k < curLine ? x1 : x0 + (x1 - x0) * prog;
       if (u < x0 || u > end) continue;
       const wy = base - .035 * Math.sin(u * 23 + k * 3) - .018 * Math.sin(u * 53 + k);
-      if (Math.abs(v - wy) < .022) return [k === curLine && Math.abs(u - end) < .04 ? 1 : .75, k === curLine && Math.abs(u - end) < .04 ? C.butter : C.ink];
+      if (Math.abs(v - wy) < .022) return [k === curLine && Math.abs(u - end) < .04 ? 1 : .75, k === curLine && Math.abs(u - end) < .04 ? C.lilac : C.ink];
     }
     return [0];
   },

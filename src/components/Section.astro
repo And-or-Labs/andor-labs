@@ -1,0 +1,8 @@
+---
+interface Props { id: string; label: string; count?: number; }
+const { id, label, count } = Astro.props;
+---
+<section class="sec" id={id} aria-labelledby={`${id}-h`}>
+  <h2 class="sec-h" id={`${id}-h`}><span>{label}</span>{count !== undefined && <span class="n">{String(count).padStart(2, "0")}</span>}</h2>
+  <slot />
+</section>

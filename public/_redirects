@@ -19,3 +19,8 @@
 /login         /               301
 /signup        /               301
 /privacy       /               301
+# October 2026 consolidation: experiments retired, published work merged into Writing.
+/experiments   /              301
+/experiments/  /              301
+/published     /notes/        301
+/published/    /notes/        301

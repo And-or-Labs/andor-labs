@@ -5,31 +5,31 @@ import afterImage from "../assets/gtm/filament-after.png";
 import beforeImage from "../assets/gtm/filament-before.png";
 import Crumb from "../components/Crumb.astro";
 import ItemNav from "../components/ItemNav.astro";
+import Section from "../components/Section.astro";
 import { BOOKING_URL, GTM as G, HOME, TESTIMONIALS } from "../data/site";
 import Sheet from "../layouts/Sheet.astro";
 const [scott, marty] = TESTIMONIALS;
 ---
-<Sheet title="GTM Consulting" description={G.lede} fig="growth" color="coral">
+<Sheet title="GTM Packages" description={G.lede} fig="growth" color="coral">
   <Crumb slot="crumb" />
-  <p class="eyebrow"><span class="br">[2]</span> GTM Consulting</p>
+  <p class="eyebrow"><span class="br">[2]</span> GTM Packages</p>
   <h1 class="title">{G.title}</h1>
   <p class="lede">Positioning, websites, organic growth, and custom automation for adtech companies. Strategy and implementation, handled together.</p>
   <p class="founder">{HOME.founder} You work directly with me.</p>
   <div class="body service-content">
-    <section aria-labelledby="experience-title">
-      <h2 class="label" id="experience-title">Operating experience</h2>
+    <Section id="experience" label="Operating experience">
       <dl class="facts career-facts">
         {G.experience.map(e => <div><dt>{e.company}</dt><dd>{e.result}</dd></div>)}
       </dl>
-    </section>
+    </Section>
 
-    <section id="engagements" aria-labelledby="engagements-title">
-      <h2 class="label" id="engagements-title">Engagements</h2>
-      <div class="offers service-offers">
+    <Section id="packages" label="Packages" count={G.offers.length}>
+      <div class="pkgs">
         {G.offers.map(o => (
-          <article>
+          <article class="card pkg">
+            <p class="label c">{o.label}</p>
             <h3>{o.name}</h3>
-            <p class="price">{o.price} {o.term}</p>
+            <p class="price"><b>{o.price}</b> {o.term}</p>
             <p class="offer-term">{o.commitment}</p>
             <p>{o.for}</p>
             <details>
@@ -43,23 +43,21 @@ const [scott, marty] = TESTIMONIALS;
           </article>
         ))}
       </div>
-      <div class="ctas"><a class="btn primary" href={BOOKING_URL} target="_blank" rel="noopener">Discuss your project <span aria-hidden="true">↗</span></a></div>
-    </section>
+      <div class="ctas"><a class="btn primary" href={BOOKING_URL} target="_blank" rel="noopener">Discuss your project <span class="arr" aria-hidden="true">↗</span></a></div>
+    </Section>
 
     <figure class="quote">
       <blockquote><p>{marty.quote}</p></blockquote>
       <figcaption><cite>{marty.author}, {marty.role}</cite></figcaption>
     </figure>
 
-    <section aria-labelledby="capabilities-title">
-      <h2 class="label" id="capabilities-title">What I build</h2>
+    <Section id="capabilities" label="What I build" count={G.capabilities.length}>
       <ul class="list capabilities">
         {G.capabilities.map((c, i) => <li><div><span class="k">0{i + 1}</span><span class="v">{c.name}<span class="capability-description">{c.work}</span></span></div></li>)}
       </ul>
-    </section>
+    </Section>
 
-    <section aria-labelledby="filament-title">
-      <h2 class="label" id="filament-title">Selected work / Filament</h2>
+    <Section id="filament" label="Selected work / Filament">
       <p>{G.caseStudy.line}</p>
       <p class="label case-metrics">{G.caseStudy.metrics.join(" / ")}</p>
       <details class="case-details">
@@ -85,13 +83,12 @@ const [scott, marty] = TESTIMONIALS;
         <blockquote><p>{scott.quote}</p></blockquote>
         <figcaption><cite>{scott.author}, {scott.role}</cite></figcaption>
       </figure>
-    </section>
+    </Section>
 
-    <section id="project" aria-labelledby="project-title">
-      <h2 class="label" id="project-title">Next step</h2>
+    <Section id="next" label="Next step">
       <p>{G.process}</p>
       <a class="text-link" href={BOOKING_URL} target="_blank" rel="noopener">Book a call <span aria-hidden="true">↗</span></a>
-    </section>
+    </Section>
   </div>
   <ItemNav current={2} />
 </Sheet>

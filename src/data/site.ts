@@ -10,9 +10,9 @@ export const EMAIL = "vj@andorlabs.ca";
 export const SITE = {
   name: "And/or Labs",
   url: "https://andorlabs.ca",
-  title: "And/or Labs | Applied AI lab for early-stage tech startups",
+  title: "And/or Labs | We engineer growth for media & adtech companies",
   description:
-    "An applied AI lab enabling early-stage tech startups. We build products like MediaContext, run GTM consulting, and publish field notes.",
+    "We engineer growth for media & adtech companies. We build MediaContext, run fixed-price GTM packages, and publish field notes.",
 };
 
 export const SOCIALS = [
@@ -23,8 +23,8 @@ export const SOCIALS = [
 ] as const;
 
 export const HOME = {
-  title: "We're an applied AI lab enabling early-stage tech startups.",
-  emphasis: "applied AI lab",
+  title: "We engineer growth for media & adtech companies",
+  emphasis: "engineer growth",
   founder: "Founded by Vishveshwar Jatain, who led marketing and sales ops at Blockthrough and AdPushup through their acquisitions.",
 };
 
@@ -33,10 +33,8 @@ export type Color = "blue" | "coral" | "green" | "lilac" | "butter";
 
 export const MENU: { n: number; href: string; label: string; hint: string; fig: Fig; color: Color }[] = [
   { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "radar", color: "blue" },
-  { n: 2, href: "/gtm/", label: "GTM Consulting", hint: "Senior GTM experience and hands-on delivery. Two ways to engage.", fig: "growth", color: "coral" },
-  { n: 3, href: "/experiments/", label: "Experiments", hint: "A fly that trades ad budgets, and a clock counting down the click.", fig: "flask", color: "green" },
-  { n: 4, href: "/published/", label: "Published work", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "press", color: "lilac" },
-  { n: 5, href: "/notes/", label: "Notes", hint: "Field notes on GTM, AI and the post-software era. Newest first.", fig: "notes", color: "butter" },
+  { n: 2, href: "/gtm/", label: "GTM Packages", hint: "Senior GTM experience and hands-on delivery. Two fixed prices.", fig: "growth", color: "coral" },
+  { n: 3, href: "/notes/", label: "Writing", hint: "Field notes, bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "notes", color: "lilac" },
 ];
 
 export const PARTNERS = [
@@ -47,7 +45,7 @@ export const PARTNERS = [
   { name: "Boardy", src: "/partners/boardy.png", h: 22 },
 ];
 
-export const PRINTED_IN = ["Digiday", "Adweek", "AdExchanger", "ExchangeWire", "eMarketer", "Forbes"];
+export const PRINTED_IN = ["Digiday", "Adweek", "AdExchanger", "ExchangeWire", "eMarketer", "Forbes", "CNET"];
 
 export const MEDIACONTEXT = {
   title: "Market intelligence for the premium open web.",
@@ -90,37 +88,26 @@ export const TESTIMONIALS = [
   { quote: "VJ has an uncanny ability to say the most complex things in the most simple manner.", author: "Sudhiranjan Bannerjee", role: "Senior Trade Officer, Govt. of Alberta" },
 ];
 
-export const EXPERIMENTS = [
-  {
-    name: "Megafly",
-    file: "MEGAFLY.EXE",
-    body: "A Three.js fly at a laptop, driven by a computed replay of 1,045 real neurons from the MaleCNS connectome. It moves a paper ad budget between display, video and native. No returns are fabricated.",
-    cta: "Open Megafly",
-    href: "/megafly/",
-    external: false,
-  },
-  {
-    name: "Zero-click doomsday clock",
-    file: "DOOMSDAY.CLK",
-    body: "A TimesFM forecast of search-referral decay to publishers, 2015 to 2034, across all 29 IAB categories. A frozen artifact, not a curve fit.",
-    cta: "Open the clock",
-    href: "https://zeroclick.grok.me",
-    external: true,
-  },
-];
-
 export const PRESS = {
   bylines: [
     { title: "Advertising's Gen Z obsession misses the bigger picture", source: "ExchangeWire", href: "https://www.exchangewire.com/blog/2025/08/13/advertisings-gen-z-obsession-misses-the-bigger-picture/" },
     { title: "Consumer attitudes toward digital advertising 2021", source: "eMarketer", href: "https://www.emarketer.com/content/consumer-attitudes-toward-digital-advertising-2021" },
     { title: "'It can be a money-printing machine': the revival of auto-refreshing ads", source: "Digiday", href: "https://digiday.com/media/can-money-printing-machine-incredible-revival-auto-refreshing-ads/" },
     { title: "Facebook's not listening to you, its new ad disclosure feature screams", source: "TNW", href: "https://thenextweb.com/news/facebooks-totally-not-listening-to-you-its-new-ad-disclosure-feature-screams-desperately" },
+    { title: "Google Chrome's policy change won't stop targeted ads", source: "ConsumerAffairs", href: "https://www.consumeraffairs.com/news/google-chromes-recent-privacy-policy-change-wont-stop-targeted-ads-030821.html" },
+    { title: "10 UX tools marketers need to know about", source: "MarketingProfs", href: "https://www.marketingprofs.com/articles/2015/27842/10-user-experience-testing-tools-marketers-need-to-know-about" },
   ],
   coverage: [
     { title: "How CafeMedia recouped millions through adblock recovery", source: "Adweek", href: "https://www.adweek.com/programmatic/how-cafemedia-recouped-millions-through-ad-block-recovery/" },
     { title: "How AccuWeather shored up revenue with its ad-blocking audience", source: "AdExchanger", href: "https://www.adexchanger.com/online-advertising/how-accuweather-shored-up-revenue-by-monetizing-its-ad-blocking-audience/" },
     { title: "Ad blocking surges as millions more seek privacy", source: "CNET", href: "https://www.cnet.com/news/privacy/ad-blocking-surges-as-millions-more-seek-privacy-security-and-less-annoyance/" },
     { title: "Publishers forecast to lose $54B in revenue from ad blocking", source: "MediaPost", href: "https://www.mediapost.com/publications/article/391246/publishers-forecast-to-lose-54b-in-revenue-from-a.html" },
+    { title: "Why ad block users are not all 'militant ad haters'", source: "The Media Leader", href: "https://the-media-leader.com/why-ad-block-users-are-not-all-militant-ad-haters/" },
+    { title: "Working with web publishers, this startup has notched up $10M ARR", source: "YourStory", href: "https://yourstory.com/2020/01/startup-adtech-saas-ad-pushup-web-publishers" },
+  ],
+  media: [
+    { name: "PageFair Adblock Reports", role: "Editor", body: "Editor (2020, 2021, 2022, 2024), researcher and publisher of the annual report on ad blocking trends.", href: "https://blockthrough.com/blog/category/reports/" },
+    { name: "Slice of AdTech", role: "Host", body: "A podcast exploring the ad tech ecosystem.", href: "https://sliceofadtech.buzzsprout.com/2043731/episodes" },
   ],
   archives: [
     { name: "Forbes Communications Council", href: "https://www.forbes.com/councils/forbescommunicationscouncil/people/vishveshwarjatain/" },
@@ -130,6 +117,7 @@ export const PRESS = {
 };
 
 export const NOTES = {
-  title: "Field notes.",
+  title: "Field notes, bylines and coverage.",
   lede: "Working notes, operator playbooks, and post-mortems. No growth-hacking listicles.",
+
 };

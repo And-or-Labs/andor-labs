@@ -1,6 +1,7 @@
 ---
 import Crumb from "../components/Crumb.astro";
 import ItemNav from "../components/ItemNav.astro";
+import Section from "../components/Section.astro";
 import { MEDIACONTEXT as M } from "../data/site";
 import Sheet from "../layouts/Sheet.astro";
 ---
@@ -10,13 +11,18 @@ import Sheet from "../layouts/Sheet.astro";
   <h1 class="title">{M.title}</h1>
   <p class="lede">{M.lede}</p>
   <div class="body">
-    <dl class="facts">
-      {M.facts.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
-    </dl>
+    <Section id="glance" label="At a glance">
+      <dl class="facts">
+        {M.facts.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
+      </dl>
+    </Section>
     <div class="ctas">
-      <a class="btn primary" href={M.href} target="_blank" rel="noopener">Visit mediacontext.dev &nearr;</a>
+      <a class="btn primary" href={M.href} target="_blank" rel="noopener">Visit mediacontext.dev <span class="arr" aria-hidden="true">&nearr;</span></a>
     </div>
-    <img class="shot" src={M.image.src} alt={M.image.alt} width="2880" height="1800" loading="lazy" decoding="async" />
+    <figure class="card shot-card">
+      <img class="shot" src={M.image.src} alt={M.image.alt} width="2880" height="1800" loading="lazy" decoding="async" />
+      <figcaption class="label">Publishers view / ranked by traffic</figcaption>
+    </figure>
   </div>
   <ItemNav current={1} />
 </Sheet>

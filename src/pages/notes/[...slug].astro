@@ -1,10 +1,11 @@
 ---
 import { getCollection, render } from "astro:content";
-import Sheet from "../../layouts/Sheet.astro";
+
 import Crumb from "../../components/Crumb.astro";
 import Icon from "../../components/Icon.astro";
 import Subscribe from "../../components/Subscribe.astro";
 import { SITE } from "../../data/site";
+import Sheet from "../../layouts/Sheet.astro";
 
 export async function getStaticPaths() {
   const posts = (await getCollection("blog", p => !p.data.draft)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
@@ -18,10 +19,10 @@ const enc = encodeURIComponent;
 const minutes = remarkPluginFrontmatter?.minutes ?? Math.max(1, Math.round((post.body ?? "").split(/\s+/).length / 230));
 const fmt = (x: Date) => x.toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
 ---
-<Sheet title={d.title} description={d.description} fig="notes" color="butter" image={d.heroImage} type="article" publishedTime={d.pubDate}>
-  <Crumb slot="crumb" href="/notes/" label="Notes" />
+<Sheet title={d.title} description={d.description} fig="notes" color="lilac" image={d.heroImage} type="article" publishedTime={d.pubDate}>
+  <Crumb slot="crumb" href="/notes/" label="Writing" />
   <article>
-    <p class="eyebrow"><span class="br">[5]</span> Field notes</p>
+    <p class="eyebrow"><span class="br">[3]</span> Field notes</p>
     <h1 class="title" style="max-width:22ch">{d.title}</h1>
     {d.standfirst && <p class="lede">{d.standfirst}</p>}
     <p class="post-meta"><time datetime={d.pubDate.toISOString()}>{fmt(d.pubDate)}</time><span>{minutes} min read</span><span>Vishveshwar Jatain</span></p>
@@ -43,7 +44,7 @@ const fmt = (x: Date) => x.toLocaleDateString("en-CA", { year: "numeric", month:
       <button type="button" data-copy-link aria-label="Copy link" title="Copy link"><Icon name="link" /></button>
       <span class="copied" aria-live="polite"></span>
     </div>
-    <div style="margin-top:28px"><Subscribe source="blog-post" /></div>
+    <div class="card" style="margin-top:28px"><Subscribe source="blog-post" /></div>
     <nav class="pager" aria-label="More notes">
       {older ? <a href={`/notes/${older.id}/`}><span class="label">Older</span>{older.data.title}</a> : <span></span>}
       {newer ? <a href={`/notes/${newer.id}/`}><span class="label">Newer</span>{newer.data.title}</a> : <span></span>}
