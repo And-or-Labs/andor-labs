@@ -18,7 +18,7 @@
 
 ## Open
 
-- Delete the `andor-rankings` D1 database, the Pages D1 binding, the `GEMINI_API_KEY` secret and the Sanity project (awaiting VJ's go-ahead)
+- Delete the `GEMINI_API_KEY` secret and the Sanity project (awaiting VJ's go-ahead). Done 2026-10-05: the `andor-rankings` D1 database and the `RANKINGS` Pages binding (production and preview) were deleted; backup at `~/Developer/mediacontext/.scratch/infra-audit/andor-rankings-backup.sql`
 - MediaContext adopts `@andor/ds` header, footer and `mediacontext` theme
 
 ## Rebuild on Mainline, verbatim (2026-10-01, later)
