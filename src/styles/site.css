@@ -82,10 +82,12 @@ button, input { font: inherit; color: inherit; }
 .proof dt { line-height: 1.9; }
 .partners { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 26px; list-style: none; }
 .partners img { width: auto; filter: grayscale(1) contrast(1.1); opacity: .62; transition: opacity .2s var(--ease), filter .2s var(--ease); }
-.printed { font-size: 16px; line-height: 1.5; color: var(--ink); text-wrap: pretty; }
+.printed { container-type: inline-size; white-space: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; font-size: 16px; line-height: 1.5; color: var(--ink); }
+.printed::-webkit-scrollbar { display: none; }
+.printed[data-overflow] { mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
 .printed b { font-weight: 400; }
-.printed .pi { white-space: nowrap; }
-.printed .dot { color: var(--faint); font: 12px var(--mono); margin-right: .2em; }
+.printed .pi { white-space: nowrap; font-size: clamp(11px, 2.75cqi, 16px); }
+.printed .dot { color: var(--faint); font-size: .72em; font-family: var(--mono); margin: 0 .18em; }
 .proof > div:last-child { border-bottom: 0; }
 .home-menu { margin-top: auto; padding-top: clamp(24px, 5vh, 56px); }
 .home-menu .menu { margin-top: 0; }

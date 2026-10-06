@@ -19,7 +19,7 @@ const idle = `Pick a line of work, or press 1 to ${MENU.length}.`;
     </div>
     <div>
       <dt class="label">Printed in</dt>
-      <dd class="printed">{PRINTED_IN.map((p, i) => <><span class="pi"><b>{p}</b>{i < PRINTED_IN.length - 1 && <span class="dot" aria-hidden="true">&nbsp;/</span>}</span>{" "}</>)}</dd>
+      <dd class="printed">{PRINTED_IN.map((p, i) => <span class="pi"><b>{p}</b>{i < PRINTED_IN.length - 1 && <span class="dot" aria-hidden="true">/</span>}</span>)}</dd>
     </div>
   </dl>
 

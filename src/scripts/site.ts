@@ -90,6 +90,22 @@ function wireSubscribe() {
   });
 }
 
+let printedRO: ResizeObserver | null = null;
+function wirePrinted() {
+  printedRO?.disconnect(); printedRO = null;
+  const el = document.querySelector<HTMLElement>(".printed");
+  if (!el) return;
+  // Fade the right edge only while there is more list off to the right.
+  const update = () => {
+    el.toggleAttribute("data-overflow", el.scrollWidth - el.clientWidth - el.scrollLeft > 2);
+  };
+  printedRO = new ResizeObserver(update);
+  printedRO.observe(el);
+  el.addEventListener("scroll", update, { passive: true });
+  update();
+  document.fonts?.ready.then(update);
+}
+
 function wireShare() {
   document.querySelectorAll<HTMLButtonElement>("[data-copy-link]").forEach(b => {
     b.addEventListener("click", async () => {
@@ -107,6 +123,7 @@ document.addEventListener("astro:page-load", () => {
   wireMenu();
   wireSubscribe();
   wireShare();
+  wirePrinted();
 });
 
 document.addEventListener("click", e => {
