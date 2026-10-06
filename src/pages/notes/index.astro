@@ -17,8 +17,6 @@ const ext = { target: "_blank", rel: "noopener" };
   <h1 class="title">{NOTES.title}</h1>
   <p class="lede">{NOTES.lede}</p>
   <div class="body">
-    <div class="card"><Subscribe source="blog-index" /></div>
-
     <Section id="notes" label="Field notes" count={posts.length}>
       <ol class="posts">
         {posts.map(p => <li><a href={`/notes/${p.id}/`}><time datetime={p.data.pubDate.toISOString()}>{fmt(p.data.pubDate)}</time><span>{p.data.title}</span></a></li>)}
@@ -48,6 +46,10 @@ const ext = { target: "_blank", rel: "noopener" };
       <ul class="list">
         {PRESS.archives.map(a => <li><a href={a.href} {...ext}><span class="k">Archive</span><span class="v">{a.name}</span><span class="x">&nearr;</span></a></li>)}
       </ul>
+    </Section>
+
+    <Section id="next" label="Next step">
+      <div class="card"><Subscribe source="blog-index" /></div>
     </Section>
   </div>
   <ItemNav current={3} />

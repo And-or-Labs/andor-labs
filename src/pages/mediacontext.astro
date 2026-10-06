@@ -16,13 +16,17 @@ import Sheet from "../layouts/Sheet.astro";
         {M.facts.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
       </dl>
     </Section>
-    <div class="ctas">
-      <a class="btn primary" href={M.href} target="_blank" rel="noopener">Visit mediacontext.dev <span class="arr" aria-hidden="true">&nearr;</span></a>
-    </div>
-    <figure class="card shot-card">
-      <img class="shot" src={M.image.src} alt={M.image.alt} width="2880" height="1800" loading="lazy" decoding="async" />
-      <figcaption class="label">Publishers view / ranked by traffic</figcaption>
-    </figure>
+    <Section id="product" label="Product">
+      <figure class="card shot-card">
+        <img class="shot" src={M.image.src} alt={M.image.alt} width="2880" height="1800" loading="lazy" decoding="async" />
+        <figcaption class="label">Publishers view / ranked by traffic</figcaption>
+      </figure>
+    </Section>
+    <Section id="next" label="Next step">
+      <div class="ctas">
+        <a class="btn primary" href={M.href} target="_blank" rel="noopener">Visit mediacontext.dev <span class="arr" aria-hidden="true">&nearr;</span></a>
+      </div>
+    </Section>
   </div>
   <ItemNav current={1} />
 </Sheet>
