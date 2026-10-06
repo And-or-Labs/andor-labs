@@ -10,7 +10,7 @@ import Sheet from "../../layouts/Sheet.astro";
 const posts = (await getCollection("blog", p => !p.data.draft)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 const fmt = (d: Date) => d.toISOString().slice(0, 10).replaceAll("-", ".");
 ---
-<Sheet title="Lab notes" description="Experiments and field notes on GTM, AI and the post-software era." fig="fly" color="green">
+<Sheet title="Lab notes" description="Experiments and field notes on GTM, AI and the post-software era." fig="flask" color="green">
   <Crumb slot="crumb" />
   <p class="eyebrow"><span class="br">[3]</span> Lab notes</p>
   <h1 class="title">Things we built to see what happens.</h1>

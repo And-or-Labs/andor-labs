@@ -21,7 +21,7 @@ const enc = encodeURIComponent;
 const minutes = remarkPluginFrontmatter?.minutes ?? Math.max(1, Math.round((post.body ?? "").split(/\s+/).length / 230));
 const fmt = (x: Date) => x.toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
 ---
-<Sheet title={d.title} description={d.description} fig="ink" color="green" image={d.heroImage} type="article" publishedTime={d.pubDate}>
+<Sheet title={d.title} description={d.description} fig="notes" color="green" image={d.heroImage} type="article" publishedTime={d.pubDate}>
   <Crumb slot="crumb" href="/notes/" label="Lab notes" />
   <article>
     <p class="eyebrow"><span class="br">[3]</span> Lab notes</p>

@@ -28,16 +28,16 @@ export const HOME = {
   founder: "Founded by Vishveshwar Jatain, who led marketing and sales ops at Blockthrough and AdPushup through their acquisitions.",
 };
 
-export type Fig = "scope" | "web" | "implant" | "fly" | "ink" | "print" | "empty";
+export type Fig = "ripple" | "radar" | "growth" | "flask" | "press" | "notes";
 export type Color = "blue" | "coral" | "green" | "lilac" | "butter";
 
 export const tone = (c: Color) => c === "butter" ? "--c: var(--butter); --ct: var(--butter-ink)" : `--c: var(--${c})`;
 
 export const MENU: { n: number; href: string; label: string; hint: string; fig: Fig; color: Color }[] = [
-  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "web", color: "blue" },
-  { n: 2, href: "/fdm/", label: "Forward deployed marketer", hint: "A senior operator inside your team for three months. From $15,000.", fig: "implant", color: "coral" },
-  { n: 3, href: "/notes/", label: "Lab notes", hint: "Experiments, and the field notes they turn into.", fig: "fly", color: "green" },
-  { n: 4, href: "/record/", label: "On record", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "print", color: "lilac" },
+  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "radar", color: "blue" },
+  { n: 2, href: "/fdm/", label: "Forward deployed marketer", hint: "A senior operator inside your team for three months. From $15,000.", fig: "growth", color: "coral" },
+  { n: 3, href: "/notes/", label: "Lab notes", hint: "Experiments, and the field notes they turn into.", fig: "flask", color: "green" },
+  { n: 4, href: "/record/", label: "On record", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "press", color: "lilac" },
 ];
 
 export const PARTNERS = [

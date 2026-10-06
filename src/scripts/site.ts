@@ -8,8 +8,8 @@ const ORIGIN_KEY = "andor:fig-origin";
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const getFigure = () => {
-  const stage = document.getElementById("figure") as HTMLElement | null;
-  if (stage && !figure) figure = mountFigure(stage);
+  const canvas = document.getElementById("figure") as HTMLCanvasElement | null;
+  if (canvas && !figure) figure = mountFigure(canvas);
   return figure;
 };
 
@@ -49,7 +49,7 @@ function wireMenu() {
     if (readout) typeInto(readout, a.dataset.hint ?? "");
     enterTimer = window.setTimeout(() => {
       const r = a.getBoundingClientRect();
-      getFigure()?.preview(a.dataset.fig as FigName, { clientY: r.top + r.height / 2 }, a.style.getPropertyValue("--c"), a.style.getPropertyValue("--ct") || undefined);
+      getFigure()?.preview(a.dataset.fig as FigName, { clientY: r.top + r.height / 2 });
     }, intent);
   };
   const leave = () => {
@@ -119,7 +119,7 @@ function wireShare() {
 
 document.addEventListener("astro:page-load", () => {
   const main = document.getElementById("main");
-  getFigure()?.set((main?.dataset.fig || "scope") as FigName, takeOrigin(), main?.style.getPropertyValue("--c") || undefined, main?.style.getPropertyValue("--ct") || undefined);
+  getFigure()?.set((main?.dataset.fig || "ripple") as FigName, takeOrigin());
   wireMenu();
   wireSubscribe();
   wireShare();
