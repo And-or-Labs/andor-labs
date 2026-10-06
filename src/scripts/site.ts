@@ -103,7 +103,7 @@ function wireShare() {
 
 document.addEventListener("astro:page-load", () => {
   const main = document.getElementById("main");
-  getFigure()?.set((main?.dataset.fig || "idle") as FigName, takeOrigin(), main?.style.getPropertyValue("--c") || undefined, main?.style.getPropertyValue("--ct") || undefined);
+  getFigure()?.set((main?.dataset.fig || "scope") as FigName, takeOrigin(), main?.style.getPropertyValue("--c") || undefined, main?.style.getPropertyValue("--ct") || undefined);
   wireMenu();
   wireSubscribe();
   wireShare();

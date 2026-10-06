@@ -28,17 +28,17 @@ export const HOME = {
   founder: "Founded by Vishveshwar Jatain, who led marketing and sales ops at Blockthrough and AdPushup through their acquisitions.",
 };
 
-export type Fig = "idle" | "scan" | "deploy" | "trial" | "log" | "archive" | "void";
+export type Fig = "scope" | "web" | "implant" | "fly" | "ink" | "print" | "empty";
 export type Color = "blue" | "coral" | "green" | "lilac" | "butter";
 
 export const tone = (c: Color) => c === "butter" ? "--c: var(--butter); --ct: var(--butter-ink)" : `--c: var(--${c})`;
 
 export const MENU: { n: number; href: string; label: string; hint: string; fig: Fig; color: Color }[] = [
-  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "scan", color: "blue" },
-  { n: 2, href: "/fdm/", label: "Forward deployed marketer", hint: "A senior operator inside your team for three months. From $15,000.", fig: "deploy", color: "coral" },
-  { n: 3, href: "/lab/", label: "Lab", hint: "A fly that trades ad budgets, and a clock counting down the click.", fig: "trial", color: "green" },
-  { n: 4, href: "/notes/", label: "Field notes", hint: "Field notes on GTM, AI and the post-software era. Newest first.", fig: "log", color: "butter" },
-  { n: 5, href: "/record/", label: "On record", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "archive", color: "lilac" },
+  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "web", color: "blue" },
+  { n: 2, href: "/fdm/", label: "Forward deployed marketer", hint: "A senior operator inside your team for three months. From $15,000.", fig: "implant", color: "coral" },
+  { n: 3, href: "/lab/", label: "Lab", hint: "A fly that trades ad budgets, and a clock counting down the click.", fig: "fly", color: "green" },
+  { n: 4, href: "/notes/", label: "Field notes", hint: "Field notes on GTM, AI and the post-software era. Newest first.", fig: "ink", color: "butter" },
+  { n: 5, href: "/record/", label: "On record", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "print", color: "lilac" },
 ];
 
 export const PARTNERS = [

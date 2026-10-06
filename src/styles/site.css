@@ -198,7 +198,7 @@ button, input { font: inherit; color: inherit; }
 
 /* ---------- Figure + bar ---------- */
 .viz { position: relative; min-height: 0; border-left: 1px solid var(--hair); overflow: hidden; touch-action: pan-y; container-type: size; display: grid; place-items: center; }
-.fig-stage { position: relative; width: min(86cqw, 72cqh * 1.25); aspect-ratio: 5 / 4; }
+.fig-stage { position: relative; width: min(80cqw, 74cqh); aspect-ratio: 4 / 5; }
 .fig-tag { position: absolute; top: 0; left: 0; padding: 14px var(--pad); font: 11px/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); pointer-events: none; }
 .fig-read { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; gap: 12px; padding: 14px var(--pad); font: 11px/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); font-variant-numeric: tabular-nums; pointer-events: none; }
 .fig-read .fig-val { color: var(--ct, var(--c)); }
@@ -220,7 +220,7 @@ button, input { font: inherit; color: inherit; }
   .pane { overflow: visible; padding: 20px 18px 24px; }
   .pane-head { margin-bottom: 22px; }
   .viz { border-left: 0; border-top: 1px solid var(--hair); }
-  .fig-stage { width: min(86cqw, 64cqh * 1.25); }
+  .fig-stage { width: min(86cqw, 64cqh * 1.25); aspect-ratio: 5 / 4; }
   .menu .lead { display: none; }
   .home-menu { padding-top: 28px; }
   .list li > a, .list li > div { grid-template-columns: 1fr auto; row-gap: 2px; }
