@@ -21,10 +21,10 @@ const enc = encodeURIComponent;
 const minutes = remarkPluginFrontmatter?.minutes ?? Math.max(1, Math.round((post.body ?? "").split(/\s+/).length / 230));
 const fmt = (x: Date) => x.toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
 ---
-<Sheet title={d.title} description={d.description} fig="notes" color="lilac" image={d.heroImage} type="article" publishedTime={d.pubDate}>
-  <Crumb slot="crumb" href="/notes/" label="Writing" />
+<Sheet title={d.title} description={d.description} fig="log" color="butter" image={d.heroImage} type="article" publishedTime={d.pubDate}>
+  <Crumb slot="crumb" href="/notes/" label="Field notes" />
   <article>
-    <p class="eyebrow"><span class="br">[3]</span> Field notes</p>
+    <p class="eyebrow"><span class="br">[4]</span> Field notes</p>
     <h1 class="title">{d.title}</h1>
     {d.standfirst && <p class="lede">{d.standfirst}</p>}
     <p class="post-meta"><time datetime={d.pubDate.toISOString()}>{fmt(d.pubDate)}</time><span>{minutes} min read</span><span>Vishveshwar Jatain</span></p>
@@ -56,5 +56,5 @@ const fmt = (x: Date) => x.toLocaleDateString("en-CA", { year: "numeric", month:
       </nav>
     </div>
   </article>
-  <ItemNav current={3} />
+  <ItemNav current={4} />
 </Sheet>

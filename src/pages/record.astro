@@ -1,0 +1,45 @@
+---
+import Crumb from "../components/Crumb.astro";
+import ItemNav from "../components/ItemNav.astro";
+import Section from "../components/Section.astro";
+import Subscribe from "../components/Subscribe.astro";
+import { PRESS, RECORD } from "../data/site";
+import Sheet from "../layouts/Sheet.astro";
+const ext = { target: "_blank", rel: "noopener" };
+---
+<Sheet title="On record" description="Bylines and coverage in Digiday, Adweek, AdExchanger, ExchangeWire, eMarketer and others." fig="archive" color="lilac">
+  <Crumb slot="crumb" />
+  <p class="eyebrow"><span class="br">[5]</span> On record</p>
+  <h1 class="title">{RECORD.title}</h1>
+  <p class="lede">{RECORD.lede}</p>
+  <div class="body">
+    <Section id="bylines" label="Bylines" count={PRESS.bylines.length}>
+      <ul class="list">
+        {PRESS.bylines.map(b => <li><a href={b.href} {...ext}><span class="k">{b.source}</span><span class="v">{b.title}</span><span class="x">&nearr;</span></a></li>)}
+      </ul>
+    </Section>
+
+    <Section id="coverage" label="Coverage" count={PRESS.coverage.length}>
+      <ul class="list">
+        {PRESS.coverage.map(b => <li><a href={b.href} {...ext}><span class="k">{b.source}</span><span class="v">{b.title}</span><span class="x">&nearr;</span></a></li>)}
+      </ul>
+    </Section>
+
+    <Section id="media" label="Reports & podcast" count={PRESS.media.length}>
+      <ul class="list">
+        {PRESS.media.map(m => <li><a href={m.href} {...ext}><span class="k">{m.role}</span><span class="v">{m.name}<span class="sub-v">{m.body}</span></span><span class="x">&nearr;</span></a></li>)}
+      </ul>
+    </Section>
+
+    <Section id="archives" label="Author archives" count={PRESS.archives.length}>
+      <ul class="list">
+        {PRESS.archives.map(a => <li><a href={a.href} {...ext}><span class="k">Archive</span><span class="v">{a.name}</span><span class="x">&nearr;</span></a></li>)}
+      </ul>
+    </Section>
+
+    <Section id="next" label="Next step">
+      <div class="card"><Subscribe source="record" /></div>
+    </Section>
+  </div>
+  <ItemNav current={5} />
+</Sheet>

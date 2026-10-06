@@ -2,7 +2,6 @@
 # Routes retired in the October 2026 rebuild: the site is now one page plus /blog.
 /tools        /           301
 /tools/*      /           301
-/lab/*        /           301
 /admin        /           301
 /admin/*      /           301
 /work         /           301
@@ -19,8 +18,11 @@
 /login         /               301
 /signup        /               301
 /privacy       /               301
-# October 2026 consolidation: experiments retired, published work merged into Writing.
-/experiments   /              301
-/experiments/  /              301
-/published     /notes/        301
-/published/    /notes/        301
+# October 2026: Lab revived at /lab, published work moved to On record.
+/experiments   /lab/          301
+/experiments/  /lab/          301
+/published     /record/       301
+/published/    /record/       301
+# October 2026: GTM Packages became Forward deployed marketer, Writing split into Field notes and On record.
+/gtm           /fdm/          301
+/gtm/          /fdm/          301

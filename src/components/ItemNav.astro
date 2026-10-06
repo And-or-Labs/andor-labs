@@ -1,11 +1,11 @@
 ---
-import { MENU } from "../data/site";
+import { MENU, tone } from "../data/site";
 interface Props { current: number; }
 const { current } = Astro.props;
 ---
 <nav class="itemnav" aria-label="Lines of work">
   {MENU.map(m => (
-    <a href={m.href} data-menu-key={m.n} aria-current={m.n === current ? "page" : undefined} style={`--c: var(--${m.color})`}>
+    <a href={m.href} data-menu-key={m.n} aria-current={m.n === current ? "page" : undefined} style={tone(m.color)}>
       <span class="br">[{m.n}]</span> {m.label}
     </a>
   ))}
@@ -16,6 +16,6 @@ const { current } = Astro.props;
   .itemnav a { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 10px; font: 12px var(--mono); letter-spacing: .04em; color: var(--dim); text-decoration: none; transition: background-color .2s var(--ease), color .2s var(--ease); }
   .itemnav a:hover { color: var(--ink); background: color-mix(in oklab, var(--c) 10%, transparent); }
   .itemnav .br { color: var(--faint); }
-  .itemnav a:hover .br, .itemnav a[aria-current] .br { color: var(--c); }
+  .itemnav a:hover .br, .itemnav a[aria-current] .br { color: var(--ct, var(--c)); }
   .itemnav a[aria-current] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--c); }
 </style>

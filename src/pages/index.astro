@@ -1,10 +1,10 @@
 ---
-import { HOME, MENU, PARTNERS, PRINTED_IN } from "../data/site";
+import { HOME, MENU, PARTNERS, PRINTED_IN, tone } from "../data/site";
 import Sheet from "../layouts/Sheet.astro";
 const [before, after] = HOME.title.split(HOME.emphasis);
 const idle = `Pick a line of work, or press 1 to ${MENU.length}.`;
 ---
-<Sheet fig="ripple">
+<Sheet fig="idle">
   <h1 class="display">{before}<em>{HOME.emphasis}</em>{after}</h1>
   <p class="founder">{HOME.founder}</p>
 
@@ -27,7 +27,7 @@ const idle = `Pick a line of work, or press 1 to ${MENU.length}.`;
     <ol class="menu">
       {MENU.map(m => (
         <li>
-          <a href={m.href} data-n={m.n} data-fig={m.fig} data-hint={m.hint} style={`--c: var(--${m.color})`}>
+          <a href={m.href} data-n={m.n} data-fig={m.fig} data-hint={m.hint} style={tone(m.color)}>
             <span class="br" aria-hidden="true">[{m.n}]</span>
             <span class="t">{m.label}<span class="sr-hint"><span class="sep">. </span>{m.hint}</span></span>
             <span class="go" aria-hidden="true">&#9656;</span>

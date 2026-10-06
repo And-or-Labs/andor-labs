@@ -1,0 +1,27 @@
+---
+import Crumb from "../components/Crumb.astro";
+import ItemNav from "../components/ItemNav.astro";
+import Section from "../components/Section.astro";
+import { EXPERIMENTS } from "../data/site";
+import Sheet from "../layouts/Sheet.astro";
+---
+<Sheet title="Lab" description="Things we built to see what happens: Megafly and the zero-click doomsday clock." fig="trial" color="green">
+  <Crumb slot="crumb" />
+  <p class="eyebrow"><span class="br">[3]</span> Lab</p>
+  <h1 class="title">Things we built to see what happens.</h1>
+  <p class="lede">Small, strange, working software. Some of it becomes product. Most of it becomes a note.</p>
+  <div class="body">
+    <Section id="experiments" label="Experiments" count={EXPERIMENTS.length}>
+      {EXPERIMENTS.map(x => (
+        <article class="card">
+          <p class="label c">{x.file}</p>
+          <h3>{x.name}</h3>
+          <p>{x.body}</p>
+          <a class="text-link" href={x.href} {...(x.external ? { target: "_blank", rel: "noopener" } : { "data-astro-reload": true })}>{x.cta} <span aria-hidden="true">{x.external ? "↗" : "→"}</span></a>
+        </article>
+      ))}
+      <p class="sec-foot"><a class="text-link" href="https://github.com/eclecticv" target="_blank" rel="noopener">More in the open on GitHub <span aria-hidden="true">↗</span></a></p>
+    </Section>
+  </div>
+  <ItemNav current={3} />
+</Sheet>

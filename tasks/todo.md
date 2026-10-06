@@ -31,3 +31,17 @@
 - [x] Checker passes; preview at https://rebuild-preview.andorlabs.pages.dev
 
 Review: the first rebuild re-authored Mainline's primitives in a new DS. This one is Mainline plus values and content; `check.mjs` enforces it.
+
+## Five-line IA + Hairline figures (2026-10-05, uncommitted)
+
+- [x] Right pane: ASCII canvas replaced by `@lucasmarkes/hairline` 0.3.0 SVG figures, clip-path wipe from menu leader line, readout `FIG.0n / NAME`, `transition:persist` kept
+- [x] Menu 3 to 5: MediaContext [1], Forward deployed marketer [2] `/fdm/`, Lab [3] `/lab/`, Field notes [4] `/notes/`, On record [5] `/record/`
+- [x] `/gtm/` rewritten as `/fdm/` single offer (Growth transformation, from $15,000 / 3 months); Filament section and Scott quote removed
+- [x] `/lab/` revived (Megafly, zero-click clock); Writing split into `/notes/` (posts + subscribe) and `/record/` (bylines, coverage, reports, archives, subscribe)
+- [x] `tone()` sets `--ct: var(--butter-ink)` on butter pages/menu items; text accents read `var(--ct, var(--c))`
+- [x] Redirects: `/gtm` `/gtm/` → `/fdm/`; `/experiments` → `/lab/`; `/published` → `/record/`; `/lab/*` → `/` removed
+- [x] Keys 1-5 navigate; ItemNav pages fall back via `data-menu-key`
+- [x] eslint + astro build clean; screenshots `.scratch/hairline/shots/ia5/`; console clean; 1 `.fig-layer` after settle
+- [x] Worklog: Obsidian `andorlabs/Worklog 2026-10-05 five-line IA.md`
+
+Review: 1280x720 overflow fixed with a short-viewport block (all 5 rows fit at 720, 768, 800). Hairline later replaced by the in-house isometric test bed (`src/scripts/figure.ts`). zeroclick.grok.me returns 200.

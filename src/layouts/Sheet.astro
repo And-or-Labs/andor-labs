@@ -3,7 +3,7 @@ import { ClientRouter } from "astro:transitions";
 
 import "../styles/site.css";
 import Icon from "../components/Icon.astro";
-import { BOOKING_URL, SITE, SOCIALS, type Color, type Fig } from "../data/site";
+import { BOOKING_URL, SITE, SOCIALS, tone, type Color, type Fig } from "../data/site";
 
 interface Props {
   title?: string;
@@ -49,14 +49,14 @@ const ogImage = new URL(image, Astro.site);
   <a class="skip" href="#main">Skip to content</a>
   <div class="sheet">
     <div class="frame">
-      <main id="main" class="pane" data-fig={fig} style={`--c: var(--${color})`}>
+      <main id="main" class="pane" data-fig={fig} style={tone(color)}>
         <header class="pane-head">
           <a class="mark" href="/" aria-label="And/or Labs, home"><b aria-hidden="true">&amp;</b>And/or Labs</a>
           <slot name="crumb" />
         </header>
         <slot />
       </main>
-      <aside class="viz" transition:persist="figure" aria-hidden="true"><canvas id="figure"></canvas></aside>
+      <aside class="viz" transition:persist="figure" aria-hidden="true"><p class="fig-tag">TEST BED / 81 CELLS</p><div class="fig-stage" id="figure"></div><p class="fig-read"><span class="fig-id"></span><span class="fig-val"></span></p></aside>
       <nav class="bar" aria-label="Contact" transition:persist="bar">
         <a class="book" href={BOOKING_URL} target="_blank" rel="noopener">Book a call <span class="arr" aria-hidden="true">&nearr;</span></a>
         {SOCIALS.map(s => (

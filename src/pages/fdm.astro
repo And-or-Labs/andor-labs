@@ -1,0 +1,51 @@
+---
+import Crumb from "../components/Crumb.astro";
+import ItemNav from "../components/ItemNav.astro";
+import Section from "../components/Section.astro";
+import { BOOKING_URL, FDM as F, HOME, TESTIMONIALS } from "../data/site";
+import Sheet from "../layouts/Sheet.astro";
+const marty = TESTIMONIALS[1];
+---
+<Sheet title="Forward deployed marketer" description={F.lede} fig="deploy" color="coral">
+  <Crumb slot="crumb" />
+  <p class="eyebrow"><span class="br">[2]</span> Forward deployed marketer</p>
+  <h1 class="title">{F.title}</h1>
+  <p class="lede">{F.lede}</p>
+  <div class="body service-content">
+    <Section id="experience" label="Operating experience">
+      <p class="founder">{HOME.founder} You work directly with me.</p>
+      <dl class="facts">
+        {F.experience.map(e => <div><dt>{e.company}</dt><dd>{e.result}</dd></div>)}
+      </dl>
+    </Section>
+
+    <Section id="engagement" label="The engagement">
+      <article class="card pkg">
+        <p class="label c">{F.offer.label}</p>
+        <h3>{F.offer.name}</h3>
+        <p class="price"><span class="from">{F.offer.from}</span> <b>{F.offer.price}</b> <span class="term">{F.offer.term}</span></p>
+        <p class="offer-term">{F.offer.commitment}</p>
+        <p>{F.offer.for}</p>
+        <p>{F.offer.description}</p>
+        <ul>{F.offer.scope.map(item => <li>{item}</li>)}</ul>
+        <a class="text-link" href={BOOKING_URL} target="_blank" rel="noopener">{F.offer.cta} <span aria-hidden="true">↘</span></a>
+      </article>
+      <figure class="quote">
+        <blockquote><p>{marty.quote}</p></blockquote>
+        <figcaption><cite>{marty.author}, {marty.role}</cite></figcaption>
+      </figure>
+    </Section>
+
+    <Section id="capabilities" label="What the three months can include" count={F.capabilities.length}>
+      <ul class="list capabilities">
+        {F.capabilities.map((c, i) => <li><div><span class="k">0{i + 1}</span><span class="v">{c.name}<span class="capability-description">{c.work}</span></span></div></li>)}
+      </ul>
+    </Section>
+
+    <Section id="next" label="Next step">
+      <p>{F.process}</p>
+      <div class="ctas"><a class="btn primary" href={BOOKING_URL} target="_blank" rel="noopener">Book a scoping call <span class="arr" aria-hidden="true">↗</span></a></div>
+    </Section>
+  </div>
+  <ItemNav current={2} />
+</Sheet>

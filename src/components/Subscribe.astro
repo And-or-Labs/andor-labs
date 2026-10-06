@@ -1,5 +1,5 @@
 ---
-interface Props { source: "homepage" | "blog-post" | "blog-index" | "footer"; label?: string; }
+interface Props { source: "homepage" | "blog-post" | "blog-index" | "footer" | "record"; label?: string; }
 const { source, label = "Get new notes by email. Weekly at most, unsubscribe in one click." } = Astro.props;
 const id = `sub-${source}`;
 ---

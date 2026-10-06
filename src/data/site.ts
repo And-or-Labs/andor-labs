@@ -12,7 +12,7 @@ export const SITE = {
   url: "https://andorlabs.ca",
   title: "And/or Labs | We engineer growth for media & adtech companies",
   description:
-    "We engineer growth for media & adtech companies. We build MediaContext, run fixed-price GTM packages, and publish field notes.",
+    "We engineer growth for media & adtech companies. We build MediaContext, work inside client teams as a forward deployed marketer, run experiments, and publish field notes.",
 };
 
 export const SOCIALS = [
@@ -28,13 +28,17 @@ export const HOME = {
   founder: "Founded by Vishveshwar Jatain, who led marketing and sales ops at Blockthrough and AdPushup through their acquisitions.",
 };
 
-export type Fig = "ripple" | "radar" | "growth" | "flask" | "press" | "notes";
+export type Fig = "idle" | "scan" | "deploy" | "trial" | "log" | "archive" | "void";
 export type Color = "blue" | "coral" | "green" | "lilac" | "butter";
 
+export const tone = (c: Color) => c === "butter" ? "--c: var(--butter); --ct: var(--butter-ink)" : `--c: var(--${c})`;
+
 export const MENU: { n: number; href: string; label: string; hint: string; fig: Fig; color: Color }[] = [
-  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "radar", color: "blue" },
-  { n: 2, href: "/gtm/", label: "GTM Packages", hint: "Senior GTM experience and hands-on delivery. Two fixed prices.", fig: "growth", color: "coral" },
-  { n: 3, href: "/notes/", label: "Writing", hint: "Field notes, bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "notes", color: "lilac" },
+  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "scan", color: "blue" },
+  { n: 2, href: "/fdm/", label: "Forward deployed marketer", hint: "A senior operator inside your team for three months. From $15,000.", fig: "deploy", color: "coral" },
+  { n: 3, href: "/lab/", label: "Lab", hint: "A fly that trades ad budgets, and a clock counting down the click.", fig: "trial", color: "green" },
+  { n: 4, href: "/notes/", label: "Field notes", hint: "Field notes on GTM, AI and the post-software era. Newest first.", fig: "log", color: "butter" },
+  { n: 5, href: "/record/", label: "On record", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "archive", color: "lilac" },
 ];
 
 export const PARTNERS = [
@@ -59,10 +63,21 @@ export const MEDIACONTEXT = {
   href: "https://mediacontext.dev",
 };
 
-export const GTM = {
-  title: "Senior GTM experience. Hands-on delivery.",
-  lede: "I help adtech companies improve how they present their products, attract buyers, and run their marketing. Positioning, websites, organic growth, and custom automation, with the strategy and implementation handled together.",
-  founder: "I led marketing and sales operations at Blockthrough and AdPushup through their acquisitions. At And/or Labs, you work directly with me.",
+export const FDM = {
+  title: "A senior marketer, deployed inside your team.",
+  lede: "Forward deployed engineers sit with the customer until the software works. I do the same for growth: three months inside your team, finding what holds growth back and building the fix.",
+  offer: {
+    name: "Growth transformation",
+    label: "Custom-scoped engagement",
+    from: "From",
+    price: "$15,000",
+    term: "/ 3 months",
+    commitment: "Scope, deliverables and price agreed before signing",
+    for: "For a media or adtech company whose product has outgrown its positioning, website and pipeline.",
+    description: "We start with a diagnosis of your positioning, website, pipeline and tooling. Then we agree the few changes that will move revenue, and I build them inside your stack.",
+    scope: ["A written diagnosis and plan before implementation starts", "Hands-on implementation, one priority at a time", "Priorities and progress reviewed regularly", "Price set by scope, starting at $15,000"],
+    cta: "Scope your engagement",
+  },
   experience: [
     { company: "Blockthrough", role: "Director, Marketing & Sales Operations", result: "3× organic traffic", work: "Built and led the marketing and revenue operations team. Ran search experiments, research-led campaigns, and brand modernization." },
     { company: "AdPushup", role: "Product Marketing Manager", result: "50k+ monthly visits", work: "Built a content engine spanning 150+ articles, email courses, and webinars, alongside CRM and account-based marketing work." },
@@ -73,11 +88,6 @@ export const GTM = {
     { name: "GTM engineering", work: "Account research, CRM workflows, and automation that improve follow-through." },
     { name: "Custom AI agents", work: "A recurring marketing task turned into a deployed, measurable workflow." },
   ],
-  offers: [
-    { id: "copilot", name: "GTM Copilot", label: "Ongoing implementation", price: "$4,995", term: "/ month", commitment: "Initial three-month engagement", headline: "A senior operator who also builds.", for: "For a company with customers and important marketing work that isn't getting shipped.", description: "We agree on the most important problem, define the first deliverable, and get to work. The roadmap can include your website, SEO/AEO, account research, CRM workflows, and custom AI agents.", scope: ["One major implementation initiative at a time", "Priorities and progress reviewed regularly", "First-month deliverable, capacity, and responsibilities agreed before signing"], cta: "Discuss Copilot" },
-    { id: "refresh", name: "Website & Positioning Refresh", label: "Fixed-scope project", price: "$9,995", term: "/ project", commitment: "Scope and schedule agreed before kickoff", headline: "Bring your website up to the standard of your product.", for: "For a company whose website no longer reflects the quality of its product.", description: "Positioning, design, and implementation in one engagement. A clear product story, a cohesive site, and a foundation your team can maintain.", scope: ["Positioning, responsive design, and implementation", "Analytics and a maintainable handoff", "Pages, content, functionality, revisions, and delivery schedule agreed before signing"], cta: "Discuss a refresh" },
-  ],
-  caseStudy: { client: "Filament", line: "A WordPress site rebuilt as a Next.js brand in nine days.", metrics: ["9 days", "100 Lighthouse SEO", "1.09s LCP"], href: "https://www.wearefilament.com" },
   process: "We'll discuss what needs to change, confirm fit and budget, and identify the first piece of work. If there's a fit, you'll receive a defined scope and next steps.",
 };
 
@@ -117,7 +127,31 @@ export const PRESS = {
 };
 
 export const NOTES = {
-  title: "Field notes, bylines and coverage.",
+  title: "Working notes from the field.",
   lede: "Working notes, operator playbooks, and post-mortems. No growth-hacking listicles.",
 
 };
+
+export const RECORD = {
+  title: "Bylines, coverage and reports.",
+  lede: "What I wrote for the trade press, what the trade press wrote about the work, and the reports and podcast in between.",
+};
+
+export const EXPERIMENTS = [
+  {
+    name: "Megafly",
+    file: "MEGAFLY.EXE",
+    body: "A Three.js fly at a laptop, driven by a computed replay of 1,045 real neurons from the MaleCNS connectome. It moves a paper ad budget between display, video and native. No returns are fabricated.",
+    cta: "Open Megafly",
+    href: "/megafly/",
+    external: false,
+  },
+  {
+    name: "Zero-click doomsday clock",
+    file: "DOOMSDAY.CLK",
+    body: "A TimesFM forecast of search-referral decay to publishers, 2015 to 2034, across all 29 IAB categories. A frozen artifact, not a curve fit.",
+    cta: "Open the clock",
+    href: "https://zeroclick.grok.me",
+    external: true,
+  },
+];
