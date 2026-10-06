@@ -48,7 +48,12 @@ export function mountFigure(stage: HTMLElement) {
   const canvas = document.createElement("canvas");
   canvas.style.cssText = "width:100%;height:100%;display:block";
   stage.appendChild(canvas);
-  const ctx = canvas.getContext("2d")!;
+  const vctx = canvas.getContext("2d")!;
+  // The scene is drawn offscreen in CSS-pixel units, then rendered as ASCII.
+  const scene = document.createElement("canvas");
+  const ctx = scene.getContext("2d")!;
+  const grid = document.createElement("canvas");
+  const gctx = grid.getContext("2d")!;
   const canFilter = typeof ctx.filter === "string";
 
   const probe = document.createElement("span");
@@ -70,6 +75,9 @@ export function mountFigure(stage: HTMLElement) {
   let slideP = 1;
 
   let W = 0, Hh = 0, dpr = 1;
+  let cols = 0, rows = 0, cw = 0, ch = 0;
+  let sceneScale = 1;            // scene px per CSS px (scene runs at 3x grid)
+  let S = 1;                     // scene stroke-width factor for the ASCII pass
   let accent = BLUE, ct = INK;
   let px = 0.5, py = 0.5, lastMove = -10;   // pointer, normalised over .viz
   let panX = 0, panY = 0;                   // eased specimen pan, px
@@ -97,12 +105,17 @@ export function mountFigure(stage: HTMLElement) {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(Hh * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    scopeScale = (Hh * 0.72) / 151;
-    scopeX = W / 2 - 42 * scopeScale;
-    scopeY = Hh / 2 - 70 * scopeScale;
+    scene.width = Math.round(W);
+    scene.height = Math.round(Hh);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    vctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    vctx.imageSmoothingEnabled = false;   // integer-aligned same-size glyph blits
+    cols = 0;                    // force a grid rebuild
+    scopeScale = (Hh * 0.72) / 137;
+    scopeX = W / 2 - 55 * scopeScale;
+    scopeY = Hh / 2 - 76 * scopeScale;
     objX = scopeX + 47 * scopeScale;
-    objY = scopeY + 80.5 * scopeScale;
+    objY = scopeY + 83 * scopeScale;
     webCells = null; tissue = null; plate = null; inkArt = null; fibresDirty = true;
   };
 
@@ -110,7 +123,7 @@ export function mountFigure(stage: HTMLElement) {
 
   let scopeScale = 1, scopeX = 0, scopeY = 0, objX = 0, objY = 0;
 
-  const stroke = (lw = 1.25, col = INK) => { ctx.lineWidth = lw; ctx.strokeStyle = col; ctx.stroke(); };
+  const stroke = (lw = 1.25, col = INK) => { ctx.lineWidth = lw * S; ctx.strokeStyle = col; ctx.stroke(); };
   const fillS = (col = WHITE) => { ctx.fillStyle = col; ctx.fill(); };
 
   const path = (pts: [number, number][], close = true) => {
@@ -125,172 +138,191 @@ export function mountFigure(stage: HTMLElement) {
     ctx.translate(scopeX, scopeY);
     ctx.scale(scopeScale, scopeScale);
     ctx.lineJoin = "round";
-    ctx.lineCap = "round";
 
-    // Lamp glow: butter, breathing, rising through the condenser.
-    const breathe = 0.4 + 0.14 * Math.sin(t * 0.9);
-    let glow = ctx.createRadialGradient(47, 112, 1, 47, 112, 13);
+    // Density-field shading: tonal fills instead of outlines. Over the ~55%
+    // mid fill, the ink overlay lands ~85% and the white overlay ~25%.
+    const MID = a(INK, 0.6), DARK = a(INK, 0.62), HI = a(WHITE, 0.55);
+    const SLAB = a(INK, 0.9), PALE = a(INK, 0.16);
+    const body = (p: () => void, tone = MID, sh?: [number, number], hi?: [number, number]) => {
+      p(); ctx.fillStyle = tone; ctx.fill("evenodd");
+      if (!sh && !hi) return;
+      ctx.save(); p(); ctx.clip("evenodd");
+      if (sh) { ctx.fillStyle = DARK; ctx.fillRect(sh[0], -70, sh[1] - sh[0], 240); }
+      if (hi) { ctx.fillStyle = HI; ctx.fillRect(hi[0], -70, hi[1] - hi[0], 240); }
+      ctx.restore();
+    };
+
+    // Lamp glow: butter, breathing, rising through the gap toward the stage.
+    const breathe = 0.45 + 0.15 * Math.sin(t * 0.9);
+    let glow = ctx.createRadialGradient(47, 110, 1, 47, 110, 16);
     glow.addColorStop(0, a(BUTTER, breathe));
     glow.addColorStop(1, a(BUTTER, 0));
     ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(47, 112, 13, 0, TAU); ctx.fill();
-    glow = ctx.createRadialGradient(47, 100, 0.5, 47, 100, 9);
+    ctx.beginPath(); ctx.arc(47, 110, 16, 0, TAU); ctx.fill();
+    glow = ctx.createRadialGradient(47, 98, 0.5, 47, 98, 9);
     glow.addColorStop(0, a(BUTTER, breathe * 0.7));
     glow.addColorStop(1, a(BUTTER, 0));
     ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(47, 100, 9, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(47, 98, 9, 0, TAU); ctx.fill();
 
-    // Horseshoe base in perspective: ellipse top face + skirt with front notch.
-    ctx.beginPath(); ctx.ellipse(48, 130, 29, 6.5, 0, Math.PI, 0); ctx.closePath(); // top face
-    fillS(); stroke(1);
-    ctx.beginPath();
-    ctx.moveTo(19, 130); ctx.lineTo(19, 139);
-    ctx.quadraticCurveTo(19, 144.5, 27, 145);
-    ctx.lineTo(37, 145); ctx.quadraticCurveTo(39, 145, 40, 142);
-    ctx.quadraticCurveTo(42, 136, 48, 136);
-    ctx.quadraticCurveTo(54, 136, 56, 142);
-    ctx.quadraticCurveTo(57, 145, 59, 145);
-    ctx.lineTo(69, 145); ctx.quadraticCurveTo(77, 144.5, 77, 139);
-    ctx.lineTo(77, 130);
-    ctx.closePath();
-    fillS(); stroke(1);
-    // Hatch the skirt's shadow side.
-    ctx.save();
-    ctx.beginPath(); ctx.rect(62, 130, 15, 15.5); ctx.clip();
-    ctx.strokeStyle = a(FAINT, 0.8); ctx.lineWidth = 0.75;
-    for (let i = 0; i < 7; i++) {
-      ctx.beginPath(); ctx.moveTo(62 + i * 2.4, 147); ctx.lineTo(67 + i * 2.4, 129); ctx.stroke();
-    }
-    ctx.restore();
-
-    // Lamp housing seated on the base.
-    path([[43, 121], [43, 110], [45.5, 107], [50.5, 107], [53, 110], [53, 121]]);
-    fillS(); stroke(1);
-    ctx.beginPath(); ctx.arc(48, 109, 2.6, 0, TAU); fillS(a(BUTTER, 0.9)); stroke(0.75, INK);
-
-    // Cast arm: one piece, wide at the base, bowing out to carry tube + stage.
-    ctx.beginPath();
-    ctx.moveTo(64, 128); ctx.bezierCurveTo(76, 102, 78, 64, 68, 42);
-    ctx.lineTo(56, 42); ctx.bezierCurveTo(64, 64, 62, 100, 50, 126);
-    ctx.closePath();
-    fillS(); stroke(1);
-    // Arm shading hatch along the outer edge.
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(64, 128); ctx.bezierCurveTo(76, 102, 78, 64, 68, 42);
-    ctx.lineTo(56, 42); ctx.bezierCurveTo(64, 64, 62, 100, 50, 126);
-    ctx.closePath(); ctx.clip();
-    ctx.strokeStyle = a(FAINT, 0.75); ctx.lineWidth = 0.75;
-    for (let i = 0; i < 9; i++) {
-      ctx.beginPath(); ctx.moveTo(64 + i * 0.5, 50 + i * 8.6); ctx.lineTo(73 + i * 0.2, 48 + i * 8.6); ctx.stroke();
-    }
-    ctx.restore();
-    // Inclination joint.
-    ctx.beginPath(); ctx.arc(58, 124, 4.4, 0, TAU); fillS(); stroke(1);
-    ctx.beginPath(); ctx.arc(58, 124, 1.3, 0, TAU); fillS(INK);
-
-    // Focus knobs: coaxial pair on the arm, knurled, rotating with pointer x.
-    const knob = (x: number, y: number, r: number, ticks: number, rot: number) => {
-      ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); fillS(); stroke(1);
-      ctx.lineWidth = 0.75; ctx.strokeStyle = FAINT;
-      for (let i = 0; i < ticks; i++) {
-        const ang = rot + i * TAU / ticks;
-        ctx.beginPath();
-        ctx.moveTo(x + Math.cos(ang) * (r - 1.4), y + Math.sin(ang) * (r - 1.4));
-        ctx.lineTo(x + Math.cos(ang) * r, y + Math.sin(ang) * r);
-        ctx.stroke();
-      }
-      ctx.beginPath(); ctx.arc(x, y, r * 0.32, 0, TAU); fillS(WHITE); stroke(0.75);
+    // Wide horseshoe base, its front arch cut clean through (even-odd).
+    const baseP = () => {
+      ctx.beginPath();
+      ctx.moveTo(14, 130);
+      ctx.lineTo(14, 140);
+      ctx.quadraticCurveTo(14, 145, 20, 145);
+      ctx.lineTo(92, 145);
+      ctx.quadraticCurveTo(98, 145, 98, 140);
+      ctx.lineTo(98, 130);
+      ctx.quadraticCurveTo(98, 125, 90, 125);
+      ctx.lineTo(22, 125);
+      ctx.quadraticCurveTo(14, 125, 14, 130);
+      ctx.closePath();
+      ctx.moveTo(40, 146);
+      ctx.lineTo(40, 139);
+      ctx.quadraticCurveTo(40, 133, 47, 133);
+      ctx.lineTo(57, 133);
+      ctx.quadraticCurveTo(64, 133, 64, 139);
+      ctx.lineTo(64, 146);
+      ctx.closePath();
     };
-    const rot = focus * TAU;
-    knob(66, 66, 6.8, 14, rot);
-    knob(66, 66, 3.8, 9, -rot * 1.6);
+    body(baseP, MID, [74, 99], [18, 28]);
 
-    // Rack housing: the block the tube rides on, with fine rack teeth.
-    path([[42, 36], [58, 36], [58, 50], [42, 50]]);
-    fillS(); stroke(1);
-    ctx.lineWidth = 0.75; ctx.strokeStyle = FAINT;
-    for (let i = 0; i < 7; i++) {
-      ctx.beginPath(); ctx.moveTo(42, 38.5 + i * 1.7); ctx.lineTo(45.5, 38.5 + i * 1.7); ctx.stroke();
+    // Lamp housing seated on the base top, butter window.
+    const lampP = () => path([[41, 125], [41, 117], [43.5, 113], [51.5, 113], [54, 117], [54, 125]]);
+    body(lampP, a(INK, 0.72), [49, 54], [42, 45]);
+    ctx.fillStyle = a(BUTTER, 0.7 + 0.2 * Math.sin(t * 0.9));
+    ctx.beginPath(); ctx.arc(47.5, 118, 2.8, 0, TAU); ctx.fill();
+
+    // Cast arm: a C on the right, rising from the base rear to a head that
+    // carries the tube on the left. The gap inside the C is what makes it read.
+    const armP = () => {
+      ctx.beginPath();
+      ctx.moveTo(66, 126);
+      ctx.bezierCurveTo(72, 108, 70, 82, 62, 60);
+      ctx.lineTo(60, 56);
+      ctx.lineTo(44, 56);
+      ctx.lineTo(44, 42);
+      ctx.lineTo(84, 44);
+      ctx.bezierCurveTo(96, 72, 97, 102, 88, 126);
+      ctx.closePath();
+    };
+    body(armP, MID, [82, 100], [46, 52]);
+
+    // Inclination joint where the arm lands on the base.
+    ctx.fillStyle = DARK;
+    ctx.beginPath(); ctx.arc(76, 124, 4.6, 0, TAU); ctx.fill();
+    ctx.fillStyle = a(WHITE, 0.6);
+    ctx.beginPath(); ctx.arc(76, 124, 1.6, 0, TAU); ctx.fill();
+
+    // Focus knobs: coaxial discs riding on the arm's outer edge, knurl ticks
+    // rotating with pointer x.
+    const rot = focus * TAU;
+    ctx.fillStyle = SLAB;
+    ctx.beginPath(); ctx.arc(97, 66, 7, 0, TAU); ctx.fill();
+    ctx.strokeStyle = a(WHITE, 0.55); ctx.lineWidth = 1.4;
+    for (let i = 0; i < 10; i++) {
+      const an = rot + i * TAU / 10;
+      ctx.beginPath();
+      ctx.moveTo(97 + Math.cos(an) * 5.4, 66 + Math.sin(an) * 5.4);
+      ctx.lineTo(97 + Math.cos(an) * 6.9, 66 + Math.sin(an) * 6.9);
+      ctx.stroke();
+    }
+    ctx.fillStyle = MID;
+    ctx.beginPath(); ctx.arc(97, 66, 3.4, 0, TAU); ctx.fill();
+    ctx.strokeStyle = a(WHITE, 0.5); ctx.lineWidth = 0.9;
+    for (let i = 0; i < 8; i++) {
+      const an = -rot * 1.6 + i * TAU / 8;
+      ctx.beginPath();
+      ctx.moveTo(97 + Math.cos(an) * 2.2, 66 + Math.sin(an) * 2.2);
+      ctx.lineTo(97 + Math.cos(an) * 3.3, 66 + Math.sin(an) * 3.3);
+      ctx.stroke();
     }
 
-    // Body tube: wider, slight incline, drawtube collar + flared eyepiece cup.
+    // Rack housing on the head front: the block the tube runs through.
+    const rackP = () => path([[46, 44], [60, 44], [60, 58], [46, 58]]);
+    body(rackP, a(INK, 0.78), [54, 60], [46, 49]);
+    ctx.strokeStyle = a(WHITE, 0.4); ctx.lineWidth = 0.8;
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath(); ctx.moveTo(47, 47 + i * 1.8); ctx.lineTo(50, 47 + i * 1.8); ctx.stroke();
+    }
+
+    // Body tube: inclined ~20 degrees toward the left, ending in an eyepiece
+    // cup clearly wider than the tube.
     ctx.save();
-    ctx.translate(49, 42);
-    ctx.rotate(-0.08);
-    path([[-6.2, -34], [-6.2, 14], [6.2, 14], [6.2, -34]]); // tube
-    fillS(); stroke(1);
-    // Drawtube collar where the tube enters the housing.
-    path([[-7.2, -6], [-7.2, 0], [7.2, 0], [7.2, -6]]);
-    fillS(); stroke(1);
-    ctx.beginPath(); ctx.moveTo(-7.2, -3); ctx.lineTo(7.2, -3); stroke(0.75, FAINT);
-    // Eyepiece cup: flared, knurled, with a top rim.
-    path([[-6.2, -34], [-8.2, -44], [8.2, -44], [6.2, -34]]);
-    fillS(); stroke(1);
-    ctx.lineWidth = 0.75; ctx.strokeStyle = FAINT;
-    for (let i = -4; i <= 4; i++) { ctx.beginPath(); ctx.moveTo(i * 1.7, -42); ctx.lineTo(i * 1.7, -35); ctx.stroke(); }
-    ctx.beginPath();
-    ctx.moveTo(-8.8, -44); ctx.lineTo(-8.8, -47); ctx.lineTo(8.8, -47); ctx.lineTo(8.8, -44);
-    ctx.stroke();
+    ctx.translate(50, 54);
+    ctx.rotate(-0.35);
+    const tubeP = () => path([[-4.5, -44], [-4.5, 4], [4.5, 4], [4.5, -44]]);
+    body(tubeP, MID, [0.5, 4.8], [-4.8, -2]);
+    const collarP = () => path([[-5.6, -10], [-5.6, -4], [5.6, -4], [5.6, -10]]);
+    body(collarP, a(INK, 0.78));
+    const eyeP = () => path([[-4.5, -44], [-7.4, -54], [7.4, -54], [4.5, -44]]);
+    body(eyeP, MID, [3, 7.6], [-7.6, -3.8]);
+    ctx.strokeStyle = a(WHITE, 0.5); ctx.lineWidth = 0.8;
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath(); ctx.moveTo(-5 + i * 3.4, -47); ctx.lineTo(-5 + i * 3.4, -51); ctx.stroke();
+    }
+    ctx.fillStyle = SLAB;
+    ctx.fillRect(-8.4, -57, 16.8, 3.2);
     ctx.restore();
 
-    // Revolving nosepiece under the tube.
+    // Revolving nosepiece hanging under the head.
     ctx.save();
-    ctx.translate(47, 58.5);
-    ctx.rotate(-0.08);
-    ctx.beginPath(); ctx.arc(0, 0, 5.5, 0, TAU); fillS(); stroke(1);
-    ctx.beginPath(); ctx.arc(0, 0, 1.7, 0, TAU); fillS(FAINT);
-    // Idle objectives tilted out.
+    ctx.translate(49, 62);
+    const noseP = () => { ctx.beginPath(); ctx.arc(0, 0, 5.5, 0, TAU); };
+    body(noseP, MID, [1.5, 6], [-6, -2.5]);
+    ctx.fillStyle = SLAB;
+    ctx.beginPath(); ctx.arc(0, 0, 1.7, 0, TAU); ctx.fill();
     for (const sgn of [1, -1]) {
       ctx.save();
-      ctx.translate(0, 0); ctx.rotate(sgn * 0.68 - 0.08);
-      path([[-1.9, 4.5], [1.9, 4.5], [1, 13], [-1, 13]]); fillS(); stroke(0.75);
+      ctx.rotate(sgn * 0.68);
+      path([[-1.9, 4.5], [1.9, 4.5], [1, 13], [-1, 13]]);
+      ctx.fillStyle = DARK; ctx.fill();
       ctx.restore();
     }
     ctx.restore();
-    // Engaged objective, vertical, ring bands blue/coral/green.
-    path([[43.4, 62], [50.6, 62], [49.2, 79], [44.8, 79]]);
-    fillS(); stroke(1);
-    ctx.beginPath(); ctx.moveTo(44.2, 65.5); ctx.lineTo(49.8, 65.5); stroke(0.75, BLUE);
-    ctx.beginPath(); ctx.moveTo(44.0, 69.5); ctx.lineTo(50.0, 69.5); stroke(0.75, CORAL);
-    ctx.beginPath(); ctx.moveTo(43.8, 73.5); ctx.lineTo(50.2, 73.5); stroke(0.75, GREEN);
+    // Engaged objective, vertical, tip on the slide, solid band blocks.
+    path([[44.6, 65], [51.4, 65], [49.6, 82], [46.6, 82]]);
+    ctx.fillStyle = MID; ctx.fill();
+    ctx.fillStyle = BLUE; ctx.fillRect(45.2, 67.5, 5.6, 1.8);
+    ctx.fillStyle = CORAL; ctx.fillRect(45.0, 71.5, 6.0, 1.8);
+    ctx.fillStyle = GREEN; ctx.fillRect(44.9, 75.5, 6.2, 1.8);
     // Callout: OBJ 40X with a leader line.
-    ctx.strokeStyle = a(INK, 0.7); ctx.lineWidth = 0.75;
-    ctx.beginPath(); ctx.moveTo(28, 63); ctx.lineTo(41.5, 68); ctx.stroke();
-    ctx.beginPath(); ctx.arc(42.4, 68.2, 0.9, 0, TAU); fillS(INK);
+    ctx.strokeStyle = a(INK, 0.7); ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.moveTo(24, 66); ctx.lineTo(42.5, 72); ctx.stroke();
+    ctx.beginPath(); ctx.arc(43.4, 72.3, 0.9, 0, TAU); ctx.fillStyle = INK; ctx.fill();
     ctx.font = mono(4.4); ctx.fillStyle = INK; ctx.textAlign = "right"; ctx.textBaseline = "middle";
-    ctx.fillText("OBJ 40X", 26.5, 62.5);
+    ctx.fillText("OBJ 40X", 22.5, 65.5);
 
-    // Stage plate, its back edge meeting the arm.
-    path([[14, 86], [42, 86], [42, 89], [52, 89], [52, 86], [74, 86], [74, 89.5], [14, 89.5]]);
-    fillS(); stroke(1);
-    // Slide: glass strip + AND/OR label + two clips.
-    path([[28, 82.5], [64, 82.5], [64, 86], [28, 86]]);
-    fillS(a(SKY, 0.7)); stroke(0.75, FAINT);
-    path([[28, 82.5], [35, 82.5], [35, 86], [28, 86]]);
-    fillS(WHITE); stroke(0.75, FAINT);
+    // Stage: a dense dark slab sticking out to the left.
+    path([[10, 86], [64, 86], [64, 92], [10, 92]]);
+    ctx.fillStyle = SLAB; ctx.fill();
+    // Slide: light strip, label zone, AND/OR, two clip marks.
+    path([[28, 82], [62, 82], [62, 86], [28, 86]]);
+    ctx.fillStyle = PALE; ctx.fill();
+    ctx.fillStyle = a(WHITE, 0.5); ctx.fillRect(28, 82, 9, 4);
     ctx.fillStyle = INK;
-    ctx.font = mono(2.5);
+    ctx.font = mono(3.1);
     ctx.textAlign = "left"; ctx.textBaseline = "middle";
-    ctx.fillText("AND/OR", 28.9, 84.4);
+    ctx.fillText("AND/OR", 28.6, 84.2);
     const clip = (x: number) => {
-      ctx.beginPath();
-      ctx.moveTo(x, 89.5); ctx.lineTo(x, 84.6); ctx.lineTo(x + 3.2, 82.2);
-      stroke(0.75);
+      path([[x, 92], [x + 1.3, 92], [x + 3.4, 83], [x + 2.1, 83]]);
+      ctx.fillStyle = DARK; ctx.fill();
     };
-    clip(40); clip(54);
+    clip(40); clip(56);
     // Mechanical stage X/Y knobs under the platform.
-    ctx.beginPath(); ctx.arc(62, 96, 3.2, 0, TAU); fillS(); stroke(1);
-    ctx.beginPath(); ctx.arc(62, 96, 1.1, 0, TAU); fillS(FAINT);
-    ctx.beginPath(); ctx.moveTo(58.8, 96); ctx.lineTo(54, 96); stroke(0.75, FAINT);
-    ctx.beginPath(); ctx.arc(68.5, 96, 2.4, 0, TAU); fillS(); stroke(0.75);
+    ctx.fillStyle = SLAB;
+    ctx.beginPath(); ctx.arc(58, 98, 3.2, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(64.5, 98, 2.4, 0, TAU); ctx.fill();
+    ctx.fillStyle = a(WHITE, 0.55);
+    ctx.beginPath(); ctx.arc(58, 98, 1.1, 0, TAU); ctx.fill();
 
     // Condenser under the stage with the iris diaphragm lever.
-    path([[42.5, 89.5], [51.5, 89.5], [49.5, 97], [44.5, 97]]);
-    fillS(); stroke(1);
-    ctx.beginPath(); ctx.moveTo(44, 92.5); ctx.lineTo(50, 92.5); stroke(0.75, FAINT);
-    ctx.beginPath(); ctx.moveTo(49.5, 95); ctx.lineTo(56, 100); stroke(0.9); // lever
-    ctx.beginPath(); ctx.arc(56.4, 100.3, 1, 0, TAU); fillS(INK);
+    const condP = () => path([[43, 92], [52, 92], [50, 100], [45, 100]]);
+    body(condP, MID, [48, 52]);
+    ctx.strokeStyle = SLAB; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.moveTo(49.5, 97); ctx.lineTo(56, 102.5); ctx.stroke();
+    ctx.beginPath(); ctx.arc(56.4, 102.8, 1.1, 0, TAU); ctx.fillStyle = SLAB; ctx.fill();
 
     ctx.restore();
   };
@@ -391,24 +423,26 @@ export function mountFigure(stage: HTMLElement) {
       if (c.prem) {
         // Premium membrane: thicker accent stroke plus a faint halo.
         blob(cx, cy, c.r + 2.4, c.ph, t, 0.1);
-        fillS(a(accent, 0.1));
+        fillS(a(accent, 0.12));
       }
       blob(cx, cy, c.r, c.ph, t, 0.12);
-      fillS(c.prem ? a(accent, 0.12) : a(FAINT, 0.09));
-      stroke(c.prem ? 1.6 : 1, c.prem ? a(accent, 0.95) : a(c.ph > Math.PI ? LILAC : BLUE, 0.45));
-      // Nucleus: soft lilac disc.
-      ctx.fillStyle = a(LILAC, 0.4);
-      ctx.beginPath(); ctx.arc(cx - c.r * 0.18, cy - c.r * 0.12, c.r * 0.3, 0, TAU); ctx.fill();
-      ctx.strokeStyle = a(LILAC, 0.7); ctx.lineWidth = 0.6;
+      fillS(c.prem ? a(accent, 0.14) : a(FAINT, 0.1));
+      // Membrane: two cells thick, ~55% darkness.
+      ctx.lineWidth = cw * 2;
+      ctx.strokeStyle = c.prem ? a(accent, 0.95) : a(c.ph > Math.PI ? LILAC : BLUE, 0.85);
       ctx.stroke();
-      // Ad-slot organelles: rounded rects in IAB ratios, outlined in accent.
+      // Nucleus: lilac disc.
+      ctx.fillStyle = a(LILAC, 0.7);
+      ctx.beginPath(); ctx.arc(cx - c.r * 0.18, cy - c.r * 0.12, c.r * 0.3, 0, TAU); ctx.fill();
+      // Ad-slot organelles: solid accent blocks in IAB ratios.
+      ctx.fillStyle = a(accent, 0.9);
       for (const o of c.organ) {
         ctx.save();
         ctx.translate(cx + o.dx, cy + o.dy);
         ctx.rotate(o.rot);
         ctx.beginPath();
         ctx.roundRect(-o.w / 2, -o.h / 2, o.w, o.h, Math.min(o.w, o.h) * 0.3);
-        ctx.strokeStyle = a(accent, 0.85); ctx.lineWidth = 0.8; ctx.stroke();
+        ctx.fill();
         ctx.restore();
       }
     }
@@ -420,7 +454,7 @@ export function mountFigure(stage: HTMLElement) {
       const left = c.x > R * 0.35;
       const tx = c.x + (left ? -c.r - 6 : c.r + 6);
       const ty = c.y - c.r - 5;
-      ctx.strokeStyle = a(accent, 0.9); ctx.lineWidth = 0.9;
+      ctx.strokeStyle = a(accent, 0.9); ctx.lineWidth = 0.9 * S;
       ctx.beginPath(); ctx.moveTo(c.x + c.r * 0.7 * (left ? -1 : 1), c.y - c.r * 0.7); ctx.lineTo(tx, ty); ctx.stroke();
       ctx.fillStyle = INK;
       ctx.textAlign = left ? "right" : "left";
@@ -434,7 +468,7 @@ export function mountFigure(stage: HTMLElement) {
       reticlePos[1] += (pc.y - reticlePos[1]) * Math.min(1, dt * 7);
       const s = pc.r + 7;
       const x = reticlePos[0], y = reticlePos[1];
-      ctx.strokeStyle = a(accent, 0.95); ctx.lineWidth = 1;
+      ctx.strokeStyle = a(accent, 0.95); ctx.lineWidth = 1 * S;
       ctx.strokeRect(x - s, y - s, s * 2, s * 2);
       const c = s * 0.42;
       for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
@@ -451,32 +485,32 @@ export function mountFigure(stage: HTMLElement) {
   const implantBuild = (R: number) => {
     const rng = mulberry(23);
     const cells: Tissue[] = [];
-    const rCell = R * 0.19;
-    const dividerAt = new Set([40, 32, 48, 24, 56]);
-    for (let j = 0; j < 9; j++) for (let i = 0; i < 9; i++) {
-      const cx = (i - 4) * rCell * 1.32 + (j % 2 ? rCell * 0.66 : 0) + (rng() - 0.5) * rCell * 0.22;
-      const cy = (j - 4) * rCell * 1.16 + (rng() - 0.5) * rCell * 0.22;
-      if (Math.hypot(cx, cy) > R * 0.92) continue;
+    const rCell = R * 0.26;
+    const N = 6;
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+      const cx = (i - (N - 1) / 2) * rCell * 1.34 + (j % 2 ? rCell * 0.67 : 0) + (rng() - 0.5) * rCell * 0.2;
+      const cy = (j - (N - 1) / 2) * rCell * 1.16 + (rng() - 0.5) * rCell * 0.2;
+      if (Math.hypot(cx, cy) > R * 0.95) continue;
       const nv = 7;
       const pts: [number, number][] = [];
       for (let v = 0; v < nv; v++) {
         const ang = v / nv * TAU + rng() * 0.3;
-        const rr = rCell * (1.02 + rng() * 0.18);
+        const rr = rCell * (1.0 + rng() * 0.16);
         pts.push([cx + Math.cos(ang) * rr, cy + Math.sin(ang) * rr]);
       }
-      const idx = j * 9 + i;
       cells.push({
         pts, cx, cy, d: Math.hypot(cx, cy) / rCell,
         nx: cx + (rng() - 0.5) * rCell * 0.5,
         ny: cy + (rng() - 0.5) * rCell * 0.5,
-        nr: R * (0.01 + rng() * 0.012),
-        div: dividerAt.has(idx) ? { ax: rng() * TAU, tHit: 0 } : null,
+        nr: cw * (0.8 + rng() * 0.4),
+        div: null,
       });
     }
     cells.sort((p, q) => p.d - q.d);
-    // Centre cell first, and it never divides.
-    cells[0].div = null;
-    for (const c of cells) if (c.div) c.div.tHit = c.d * 0.5;
+    // Centre cell first, and it never divides; 5 mid-ring cells do.
+    for (const k of [4, 7, 10, 13, 16]) {
+      if (cells[k]) cells[k].div = { ax: rng() * TAU, tHit: cells[k].d * 0.5 };
+    }
     tissue = cells;
   };
 
@@ -504,9 +538,16 @@ export function mountFigure(stage: HTMLElement) {
     if (!tissue) implantBuild(R);
     const loop = (t % 16) / 16;                    // one 13-week pass
     const ring = loop * 4.4;                        // in cell-radius units: ~60% field coverage at week 13
-    const nucleus = (x: number, y: number, col = a(INK, 0.55), r = 0) => {
-      ctx.fillStyle = col;
-      ctx.beginPath(); ctx.arc(x, y, r || R * 0.014, 0, TAU); ctx.fill();
+    const WALL = a(INK, 0.62), WALLW = cw * 2.5;    // ~60% darkness, 2.5 cells
+    const INNER = a(INK, 0.13), NUCL = a(INK, 0.9);
+    const nucleus = (x: number, y: number, r = 0) => {
+      ctx.fillStyle = NUCL;
+      ctx.beginPath(); ctx.arc(x, y, r || cw, 0, TAU); ctx.fill();
+    };
+    const walls = () => { ctx.lineWidth = WALLW; ctx.strokeStyle = WALL; ctx.stroke(); };
+    const fillCell = (litT: number) => {
+      ctx.fillStyle = INNER; ctx.fill();
+      if (litT > 0) { ctx.fillStyle = a(accent, 0.62 * litT); ctx.fill(); }
     };
     for (const c of tissue!) {
       const litT = clamp((ring - c.d) / 1.3, 0, 1);
@@ -515,45 +556,41 @@ export function mountFigure(stage: HTMLElement) {
         const q = clamp((ring - c.div.tHit) / 0.9, 0, 1);
         if (q <= 0) {
           poly(c.pts);
-          fillS(a(SKY, 0.6)); stroke(1, a(INK, 0.45));
-          nucleus(c.nx, c.ny, a(INK, 0.55), c.nr);
+          fillCell(litT); walls();
+          nucleus(c.nx, c.ny, c.nr);
           continue;
         }
         const ux = Math.cos(c.div.ax), uy = Math.sin(c.div.ax);
         if (q < 0.55) {
           // Elongate along the division axis, still one cell.
           polyX(c.pts, c.cx, c.cy, 1, ux, uy, 1 + q * 0.85);
-          fillS(a(SKY, 0.6)); fillS(a(accent, 0.3 * litT));
-          stroke(1, a(INK, 0.45));
-          nucleus(c.nx, c.ny, a(INK, 0.55), c.nr);
+          fillCell(litT); walls();
+          nucleus(c.nx, c.ny, c.nr);
         } else {
           // Pinch: wall line across the waist, two daughters, two nuclei.
-          const sep = ((q - 0.55) / 0.45) * 4.6;
+          const sep = ((q - 0.55) / 0.45) * c.pts.reduce((m, p) => Math.max(m, Math.hypot(p[0] - c.cx, p[1] - c.cy)), 0) * 0.16;
           for (const sgn of [1, -1]) {
             polyX(c.pts, c.cx, c.cy, 0.74, 0, 0, 1, ux * sep * sgn, uy * sep * sgn);
-            fillS(a(SKY, 0.6)); fillS(a(accent, 0.3 * litT));
-            stroke(1, a(INK, 0.45));
-            nucleus(c.nx + ux * sep * sgn, c.ny + uy * sep * sgn, a(INK, 0.55), c.nr * 0.85);
+            fillCell(litT); walls();
+            nucleus(c.nx + ux * sep * sgn, c.ny + uy * sep * sgn, c.nr * 0.85);
           }
-          // Pinch line across the original waist.
-          ctx.strokeStyle = a(INK, 0.5); ctx.lineWidth = 1;
+          ctx.strokeStyle = a(INK, 0.7); ctx.lineWidth = cw * 1.4;
           ctx.beginPath();
-          ctx.moveTo(c.cx - uy * 4, c.cy + ux * 4);
-          ctx.lineTo(c.cx + uy * 4, c.cy - ux * 4);
+          ctx.moveTo(c.cx - uy * c.nr * 2, c.cy + ux * c.nr * 2);
+          ctx.lineTo(c.cx + uy * c.nr * 2, c.cy - ux * c.nr * 2);
           ctx.stroke();
         }
         continue;
       }
       poly(c.pts);
       if (isCentre) {
-        fillS(a(accent, 0.9));
-        stroke(1.1, a("#b34a28", 0.9));
-        nucleus(c.nx, c.ny, a(INK, 0.7), R * 0.02);
+        ctx.fillStyle = accent; ctx.fill();
+        ctx.lineWidth = WALLW; ctx.strokeStyle = "#b34a28"; ctx.stroke();
+        nucleus(c.nx, c.ny, c.nr * 1.15);
       } else {
-        fillS(a(SKY, 0.6));
-        if (litT > 0) fillS(a(accent, 0.3 * litT));
-        stroke(1, a(INK, 0.45));
-        nucleus(c.nx, c.ny, a(INK, 0.55), c.nr);
+        fillCell(litT);
+        walls();
+        nucleus(c.nx, c.ny, c.nr);
       }
     }
   };
@@ -566,7 +603,9 @@ export function mountFigure(stage: HTMLElement) {
 
   const drawFly = (t: number) => {
     ctx.lineJoin = "round";
-    // Wings: translucent lilac membrane with Drosophila venation (L1-L5 + 2 crossveins).
+    // A glyph cell in fly units (the fly is drawn under a R/52 scale).
+    const cu = cw * 52 / Math.max(1, Math.min(W, Hh) * 0.46);
+    // Wings: ~15% fill with veins at ~50%.
     const twitch = Math.max(0, 1 - Math.abs(((t % 4.1) - 0.1) * 22)) * 0.05;
     for (const sgn of [1, -1]) {
       ctx.save();
@@ -577,11 +616,9 @@ export function mountFigure(stage: HTMLElement) {
       ctx.bezierCurveTo(sgn * 16, -8, sgn * 34, 0, sgn * 42, 16);
       ctx.bezierCurveTo(sgn * 30, 26, sgn * 10, 20, 0, 8);
       ctx.closePath();
-      ctx.fillStyle = a(LILAC, 0.08); ctx.fill();
-      ctx.fillStyle = a(SKY, 0.09); ctx.fill();
-      ctx.strokeStyle = a(INK, 0.55); ctx.lineWidth = 0.75; ctx.stroke();
+      ctx.fillStyle = a(LILAC, 0.3); ctx.fill();
       // Longitudinal veins L1-L5 running to the margin.
-      ctx.strokeStyle = a(INK, 0.32); ctx.lineWidth = 0.75;
+      ctx.strokeStyle = a(INK, 0.55); ctx.lineWidth = cu * 0.5;
       const vein = (pts: number[]) => {
         ctx.beginPath(); ctx.moveTo(sgn * pts[0], pts[1]);
         ctx.bezierCurveTo(sgn * pts[2], pts[3], sgn * pts[4], pts[5], sgn * pts[6], pts[7]);
@@ -596,51 +633,45 @@ export function mountFigure(stage: HTMLElement) {
       ctx.beginPath(); ctx.moveTo(sgn * 27, 7); ctx.lineTo(sgn * 28, 14); ctx.stroke();
       ctx.restore();
     }
-    // Legs: coxa + femur + tibia + tarsus, angled, with tiny bristles.
-    ctx.strokeStyle = INK; ctx.lineWidth = 1;
+    // Legs: coxa + femur + tibia + tarsus, angled, ~0.8 cell wide.
+    ctx.strokeStyle = a(INK, 0.75); ctx.lineWidth = cu * 0.8; ctx.lineCap = "round";
     const leg = (p: number[], sgn: number) => {
       ctx.beginPath();
       ctx.moveTo(sgn * p[0], p[1]);
       for (let i = 2; i < p.length; i += 2) ctx.lineTo(sgn * p[i], p[i + 1]);
       ctx.stroke();
       // Bristle ticks along the tibia.
-      ctx.strokeStyle = a(INK, 0.5); ctx.lineWidth = 0.6;
+      ctx.strokeStyle = a(INK, 0.4); ctx.lineWidth = cu * 0.35;
       const mx = sgn * p[4], my = p[5];
       ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx + sgn * 2, my - 2); ctx.stroke();
-      ctx.strokeStyle = INK; ctx.lineWidth = 1;
+      ctx.strokeStyle = a(INK, 0.75); ctx.lineWidth = cu * 0.8;
     };
     for (const sgn of [1, -1]) {
       leg([8, -20, 14, -27, 24, -34, 30, -31, 36, -26], sgn); // front
       leg([11, -8, 18, -9, 27, -4, 32, 0, 38, 1], sgn);      // middle
       leg([9, 3, 15, 8, 25, 16, 30, 22, 35, 27], sgn);       // rear
     }
-    // Abdomen: tapered, stripes, hatch shading on the right flank.
-    ctx.beginPath();
-    ctx.moveTo(-11, 2);
-    ctx.bezierCurveTo(-13, 18, -8, 34, 0, 40);
-    ctx.bezierCurveTo(8, 34, 13, 18, 11, 2);
-    ctx.closePath();
-    fillS(); stroke(1);
-    ctx.strokeStyle = a(INK, 0.4); ctx.lineWidth = 1;
-    for (let i = 0; i < 5; i++) {
-      const yy = 8 + i * 6;
+    // Abdomen: ~50% fill with alternating ~80% bands.
+    const abdP = () => {
       ctx.beginPath();
-      ctx.moveTo(-10.5 + i * 0.4, yy); ctx.quadraticCurveTo(0, yy + 3.2, 10.5 - i * 0.4, yy);
-      ctx.stroke();
-    }
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(-11, 2); ctx.bezierCurveTo(-13, 18, -8, 34, 0, 40);
-    ctx.bezierCurveTo(8, 34, 13, 18, 11, 2); ctx.closePath(); ctx.clip();
-    ctx.strokeStyle = a(FAINT, 0.7); ctx.lineWidth = 0.75;
-    for (let i = 0; i < 7; i++) {
-      ctx.beginPath(); ctx.moveTo(2 + i * 1.8, 4); ctx.lineTo(8 + i * 1.8, 34); ctx.stroke();
-    }
+      ctx.moveTo(-11, 2);
+      ctx.bezierCurveTo(-13, 18, -8, 34, 0, 40);
+      ctx.bezierCurveTo(8, 34, 13, 18, 11, 2);
+      ctx.closePath();
+    };
+    abdP(); ctx.fillStyle = a(INK, 0.55); ctx.fill();
+    ctx.save(); abdP(); ctx.clip();
+    ctx.fillStyle = a(INK, 0.6);
+    for (let i = 0; i < 3; i++) ctx.fillRect(-14, 10 + i * 11, 28, 5.5);
     ctx.restore();
-    // Thorax with bristle pairs.
+    // Thorax: ~70% solid.
     ctx.beginPath(); ctx.ellipse(0, -12, 14, 16, 0, 0, TAU);
-    fillS(); stroke(1);
-    ctx.strokeStyle = a(INK, 0.55); ctx.lineWidth = 0.6;
+    ctx.fillStyle = a(INK, 0.75); ctx.fill();
+    ctx.save(); ctx.clip();
+    ctx.fillStyle = a(WHITE, 0.4); ctx.fillRect(-14, -28, 5, 30); // light flank
+    ctx.restore();
+    // Thorax bristle pairs stay faint ticks.
+    ctx.strokeStyle = a(INK, 0.4); ctx.lineWidth = cu * 0.35;
     const rngB = mulberry(5);
     for (let i = 0; i < 7; i++) {
       const bx = -8 + i * 2.7, by = -24 + rngB() * 3;
@@ -648,42 +679,44 @@ export function mountFigure(stage: HTMLElement) {
         ctx.beginPath(); ctx.moveTo(bx, by + i * 1.1); ctx.lineTo(bx + sgn * 1.6, by + i * 1.1 - 3.2); ctx.stroke();
       }
     }
-    ctx.beginPath(); ctx.moveTo(-9, -16); ctx.quadraticCurveTo(0, -13, 9, -16); stroke(0.75, a(FAINT, 0.8));
-    // Head + compound eyes (coral facet dots).
-    ctx.beginPath(); ctx.arc(0, -32, 10, 0, TAU); fillS(); stroke(1);
+    // Head + compound eyes (coral facet dots on a coral field).
+    ctx.beginPath(); ctx.arc(0, -32, 10, 0, TAU); ctx.fillStyle = a(INK, 0.6); ctx.fill();
     for (const sgn of [1, -1]) {
       ctx.save();
       ctx.beginPath(); ctx.ellipse(sgn * 6.6, -34, 5.6, 7, sgn * 0.25, 0, TAU); ctx.clip();
-      ctx.fillStyle = a(CORAL, 0.28); ctx.fill();
-      ctx.fillStyle = a(CORAL, 0.75);
+      ctx.fillStyle = a(CORAL, 0.6); ctx.fill();
+      ctx.fillStyle = CORAL;
       for (let dy = -41; dy <= -27; dy += 2.1) for (let dx = -13; dx <= 13; dx += 2.1) {
         const ox = (Math.round((dy + 41) / 2.1) % 2) * 1.05;
         if (Math.hypot(dx + ox - sgn * 6.6, dy + 34) < 5.4) { ctx.beginPath(); ctx.arc(dx + ox, dy, 0.62, 0, TAU); ctx.fill(); }
       }
       ctx.restore();
-      ctx.beginPath(); ctx.ellipse(sgn * 6.6, -34, 5.6, 7, sgn * 0.25, 0, TAU); stroke(0.75);
     }
     // Antennae.
-    ctx.beginPath(); ctx.moveTo(-2, -41); ctx.quadraticCurveTo(-4, -46, -7, -47); stroke(0.75);
-    ctx.beginPath(); ctx.moveTo(2, -41); ctx.quadraticCurveTo(4, -46, 7, -47); stroke(0.75);
+    ctx.strokeStyle = a(INK, 0.75); ctx.lineWidth = cu * 0.55;
+    ctx.beginPath(); ctx.moveTo(-2, -41); ctx.quadraticCurveTo(-4, -46, -7, -47); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(2, -41); ctx.quadraticCurveTo(4, -46, 7, -47); ctx.stroke();
     // Neurons: green cascade flicker inside head + thorax.
     const wave = (t * 16) % 56 - 40;
-    ctx.fillStyle = GREEN;
     for (const n of neurons) {
       const p = Math.max(0, 1 - Math.abs(n.y - wave) / 7);
       const al = p * (0.25 + 0.75 * Math.max(0, Math.sin(t * 9 + n.ph)));
       if (al < 0.05) continue;
       ctx.fillStyle = a(GREEN, al);
-      ctx.beginPath(); ctx.arc(n.x, n.y, 0.85, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x, n.y, 1.0, 0, TAU); ctx.fill();
     }
   };
 
-  // Ink: "notes" in Newsreader italic rendered to an offscreen mask, revealed
-  // left to right behind a nib position, feathered over paper fibres.
+  // Ink: "notes" in Newsreader italic at 100X — cap height ~45% of the field,
+  // so only part of the word is visible as it pans slowly across the paper.
   type InkArt = { sharp: HTMLCanvasElement; feather: HTMLCanvasElement; w: number; h: number; nibY: number[] };
   let inkArt: InkArt | null = null;
   const inkBuild = (R: number) => {
-    const w = Math.ceil(R * 1.7), h = Math.ceil(R * 0.85);
+    const fs = R * 1.28;                           // ~45% of field diameter cap height
+    const meas = document.createElement("canvas").getContext("2d")!;
+    meas.font = `italic 400 ${fs}px Newsreader, serif`;
+    const w = Math.ceil(meas.measureText("notes").width * 1.1) + 8;
+    const h = Math.ceil(fs * 1.25);
     const mk = (blur: number, col: string, al: number) => {
       const c = document.createElement("canvas");
       c.width = w * dpr; c.height = h * dpr;
@@ -691,9 +724,11 @@ export function mountFigure(stage: HTMLElement) {
       g.scale(dpr, dpr);
       if (blur && canFilter) g.filter = `blur(${blur}px)`;
       g.fillStyle = col; g.globalAlpha = al;
-      g.font = `italic 400 ${h * 0.62}px Newsreader, serif`;
-      g.textAlign = "center"; g.textBaseline = "alphabetic";
-      g.fillText("notes", w / 2, h * 0.72);
+      g.font = `italic 400 ${fs}px Newsreader, serif`;
+      g.textAlign = "left"; g.textBaseline = "alphabetic";
+      // Double-stamp: fake-bold so hairline italic survives the glyph downsample.
+      g.fillText("notes", 4, h * 0.78);
+      g.fillText("notes", 4 + Math.max(1, fs * 0.012), h * 0.78);
       return c;
     };
     // Nib path: median ink y per column, sampled from the sharp mask.
@@ -706,34 +741,37 @@ export function mountFigure(stage: HTMLElement) {
       for (let y = 0; y < h * dpr; y += 2) {
         if (sd[(y * w * dpr + col) * 4 + 3] > 90) { sum += y / dpr; n++; }
       }
-      nibY[i] = n ? sum / n : h * 0.72;
+      nibY[i] = n ? sum / n : h * 0.78;
     }
-    inkArt = { sharp: mk(0, INK, 0.85), feather: mk(2.2, INK, 0.2), w, h, nibY };
+    inkArt = { sharp: mk(0, INK, 0.92), feather: mk(2.6, INK, 0.22), w, h, nibY };
   };
 
   const drawInk = (t: number, R: number) => {
-    ctx.drawImage(fibre("ink", 7, R, "#b98a5e", 1.4), -R, -R, R * 2, R * 2);
+    // Paper fibres first, faint (10-15% darkness -> "." / "-").
+    ctx.drawImage(fibre("ink", 7, R, "#b98a5e", 0.85), -R, -R, R * 2, R * 2);
     if (!inkArt) inkBuild(R);
     const { sharp, feather, w, h, nibY } = inkArt!;
-    const ox = -w / 2, oy = -h * 0.62;
-    const prog = clamp(t / 5, 0, 1);
-    const rx = ox + prog * w;                      // reveal edge
-    ctx.save();
-    ctx.beginPath(); ctx.rect(-R * 1.1, -R * 1.1, rx + R * 1.1, R * 2.2); ctx.clip();
+    // Slow pan right-to-left, ~10s each way (ping-pong, eased at the ends).
+    const span = Math.max(w / 2 - R * 0.62, R * 0.2) + R * 0.1;
+    const ph = (t / 10) % 2;
+    const u = ph < 1 ? ph : 2 - ph;
+    const movingLeft = ph < 1;
+    const e = u < 0.5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
+    const xoff = lerp(span, -span, e);
+    const ox = xoff - w / 2, oy = -h * 0.78;
     ctx.drawImage(feather, ox, oy, w, h);
     ctx.drawImage(sharp, ox, oy, w, h);
-    ctx.restore();
-    // Nib at the reveal edge with a butter sheen while writing.
-    if (prog < 1) {
-      const ny = oy + nibY[clamp(Math.floor((rx - ox) / 3), 0, nibY.length - 1)];
-      const sheen = ctx.createRadialGradient(rx, ny, 0.5, rx, ny, R * 0.1);
-      sheen.addColorStop(0, a(BUTTER, 0.75)); sheen.addColorStop(1, a(BUTTER, 0));
-      ctx.fillStyle = sheen;
-      ctx.beginPath(); ctx.arc(rx, ny, R * 0.1, 0, TAU); ctx.fill();
-    }
+    // Nib sheen follows the trailing edge of the visible word.
+    const edgeX = movingLeft ? ox + w : ox;
+    const colI = clamp(Math.floor((movingLeft ? w - 4 : 4) / 3), 0, nibY.length - 1);
+    const ny = oy + nibY[colI];
+    const sheen = ctx.createRadialGradient(edgeX, ny, 0.5, edgeX, ny, R * 0.12);
+    sheen.addColorStop(0, a(BUTTER, 0.7)); sheen.addColorStop(1, a(BUTTER, 0));
+    ctx.fillStyle = sheen;
+    ctx.beginPath(); ctx.arc(edgeX, ny, R * 0.12, 0, TAU); ctx.fill();
     // A few warm fibres crossing in front of the wet ink.
-    ctx.globalAlpha = 0.32;
-    ctx.drawImage(fibre("ink-top", 13, R * 0.55, "#b98a5e", 1), -R * 0.55, -R * 0.55, R * 1.1, R * 1.1);
+    ctx.globalAlpha = 0.3;
+    ctx.drawImage(fibre("ink-top", 13, R * 0.55, "#b98a5e", 0.8), -R * 0.55, -R * 0.55, R * 1.1, R * 1.1);
     ctx.globalAlpha = 1;
   };
 
@@ -803,23 +841,23 @@ export function mountFigure(stage: HTMLElement) {
     ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
     ctx.fillStyle = a(ct, 0.85);
     ctx.fillText("85 LPI", -R * 0.86, R * 0.88);
-    ctx.strokeStyle = a(ct, 0.7); ctx.lineWidth = 0.8;
+    ctx.strokeStyle = a(ct, 0.7); ctx.lineWidth = 0.8 * S;
     ctx.beginPath(); ctx.moveTo(-R * 0.86, R * 0.9); ctx.lineTo(-R * 0.86 + 26, R * 0.9); ctx.stroke();
   };
 
   const drawEmpty = (t: number, R: number) => {
     ctx.drawImage(fibre("empty", 9, R), -R, -R, R * 2, R * 2);
-    // Dust speck: slow drift.
+    // Dust speck: slow drift, solid enough to register as a glyph cluster.
     const dx = Math.sin(t * 0.21) * R * 0.5 - 12;
     const dy = Math.cos(t * 0.17) * R * 0.4 + 8;
-    ctx.fillStyle = a(INK, 0.55);
-    ctx.beginPath(); ctx.arc(dx, dy, 1.4, 0, TAU); ctx.fill();
-    ctx.beginPath(); ctx.arc(dx - 2.5, dy + 1, 0.7, 0, TAU); ctx.fillStyle = a(FAINT, 0.7); ctx.fill();
+    ctx.fillStyle = a(INK, 0.85);
+    ctx.beginPath(); ctx.arc(dx, dy, cw * 0.55, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(dx - cw * 0.8, dy + cw * 0.4, cw * 0.32, 0, TAU); ctx.fillStyle = a(INK, 0.6); ctx.fill();
     // Curling hair fibre drifting through.
     ctx.save();
     ctx.translate(Math.sin(t * 0.11) * R * 0.5, Math.sin(t * 0.07) * R * 0.4);
     ctx.rotate(t * 0.05);
-    ctx.strokeStyle = a(INK, 0.6); ctx.lineWidth = 0.9;
+    ctx.strokeStyle = a(INK, 0.65); ctx.lineWidth = cw * 0.45; ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(-26, -14);
     ctx.bezierCurveTo(-10, -30, 12, -26, 22, -10);
@@ -843,46 +881,118 @@ export function mountFigure(stage: HTMLElement) {
     ctx.restore();
   };
 
-  // Field of view: brightfield disc, barrel rings, reticle.
-  const drawFov = (R: number, cx: number, cy: number) => {
-    const g = ctx.createRadialGradient(cx, cy, R * 0.15, cx, cy, R);
-    g.addColorStop(0, WHITE);
-    g.addColorStop(1, SKY);
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fill();
-    // Thin inner shadow ring at the field edge.
-    const v = ctx.createRadialGradient(cx, cy, R * 0.88, cx, cy, R);
-    v.addColorStop(0, a(INK, 0));
-    v.addColorStop(1, a(INK, 0.08));
-    ctx.fillStyle = v;
-    ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fill();
+  // ---------- ASCII pass ----------
+  // The scene above renders to an offscreen canvas in CSS pixels. Here it is
+  // downsampled to a glyph grid: darkness picks a RAMP glyph, chroma picks the
+  // nearest palette colour.
+  const RAMP = " .\u00b7:-=+*#%@";
+  const BUTTER_INK = "#8a6500";
+  const hueOf = (r: number, g: number, b: number) => {
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+    if (d === 0) return 0;
+    let h = mx === r ? (g - b) / d % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h *= 60; return h < 0 ? h + 360 : h;
+  };
+  // Palette order is the atlas row index; greys resolve to ink or faint.
+  const PALC = [INK, FAINT, BLUE, CORAL, GREEN, LILAC, BUTTER_INK];
+  const PALH: [number, number][] = [[15.9, 3], [44, 6], [155.6, 4], [226, 2], [253.5, 5]];
+  const pickColour = (r: number, g: number, b: number) => {
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    // Chroma first: ink is a navy-grey whose own chroma maxes at 40, so any
+    // near-grey sample is ink or faint; only clearly saturated samples are
+    // accents. This also keeps dark saturated accents (green on ink) alive.
+    if (mx - mn < 42) return (mx + mn) / 510 > 0.55 ? 1 : 0;
+    const h = hueOf(r, g, b);
+    let best = 360, col = 2;
+    for (const [ph, pi] of PALH) {
+      const d = Math.min(Math.abs(h - ph), 360 - Math.abs(h - ph));
+      if (d < best) { best = d; col = pi; }
+    }
+    return col;
+  };
+
+  // Glyphs are pre-rendered to a sprite atlas; fillText per cell is too slow.
+  // Alpha is baked into the sprites at AB quantised levels, so the hot loop
+  // never touches globalAlpha: one state-free drawImage per cell.
+  const AB = 6;
+  let atlas: HTMLCanvasElement | null = null, gw = 0, gh = 0;
+  const buildAtlas = () => {
+    gw = Math.ceil(cw * 2); gh = Math.ceil(ch * 1.1);
+    atlas = document.createElement("canvas");
+    atlas.width = gw * dpr * RAMP.length;
+    atlas.height = gh * dpr * PALC.length * AB;
+    const a2 = atlas.getContext("2d")!;
+    a2.scale(dpr, dpr);
+    a2.font = `${cw * 1.4}px 'Departure Mono', ui-monospace, monospace`;
+    a2.textAlign = "center"; a2.textBaseline = "middle";
+    PALC.forEach((col, ci) => {
+      a2.fillStyle = col;
+      for (let al = 0; al < AB; al++) {
+        a2.globalAlpha = 0.4 + (al / (AB - 1)) * 0.6;
+        for (let gi = 0; gi < RAMP.length; gi++) {
+          a2.fillText(RAMP[gi], gi * gw + gw / 2, (ci * AB + al) * gh + gh / 2);
+        }
+      }
+    });
+  };
+
+  // Magnification is density: the cell pitch tweens with the zoom value.
+  const updateGrid = () => {
+    const wantCols = Math.max(24, Math.round(W / lerp(7, 5, z)));
+    if (wantCols !== cols) {
+      cols = wantCols; cw = W / cols; ch = cw * 1.8;
+      rows = Math.max(1, Math.ceil(Hh / ch));
+      grid.width = cols; grid.height = rows;
+      gctx.imageSmoothingEnabled = true;
+      gctx.imageSmoothingQuality = "high";
+      // Scene renders at 3x the grid: enough to average, ~4x cheaper raster.
+      sceneScale = (cols * 3) / W;
+      scene.width = cols * 3; scene.height = Math.round(Hh * sceneScale);
+      ctx.setTransform(sceneScale, 0, 0, sceneScale, 0, 0);
+      buildAtlas();
+    }
+    // S * sceneScale lands ~1 scene px of stroke per 3px cell (~36% coverage).
+    S = Math.max(1.5, cw / 2.8);
+  };
+
+  const drawAscii = () => {
+    gctx.clearRect(0, 0, cols, rows);
+    gctx.drawImage(scene, 0, 0, cols, rows);
+    const img = gctx.getImageData(0, 0, cols, rows).data;
+    vctx.clearRect(0, 0, W, Hh);
+    const n = RAMP.length - 1, sw = gw * dpr, sh = gh * dpr;
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      const p = (j * cols + i) * 4;
+      if (img[p + 3] < 16) continue;
+      const al = img[p + 3] / 255;
+      const r = img[p] * al + 255 * (1 - al);
+      const g = img[p + 1] * al + 255 * (1 - al);
+      const b = img[p + 2] * al + 255 * (1 - al);
+      const dark = 1 - (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+      if (dark < 0.06) continue;
+      // Boost mid-tones: thin strokes and pale fills must still pick real glyphs.
+      const de = Math.pow(dark, 0.45);
+      const gi = Math.min(n, 1 + Math.floor(de * (n - 1)));
+      const row = pickColour(r, g, b) * AB + Math.round(de * (AB - 1));
+      vctx.drawImage(atlas!, gi * sw, row * sh, sw, sh,
+        Math.round(i * cw + cw / 2 - gw / 2), Math.round(j * ch + ch / 2 - gh / 2), gw, gh);
+    }
   };
 
   const drawLensChrome = (cx: number, cy: number, R: number) => {
-    // Eyepiece barrel: concentric ink rings.
-    ctx.lineWidth = 1.25; ctx.strokeStyle = INK;
+    // One eyepiece ring, ~40% darkness and two cells wide.
+    ctx.strokeStyle = a(INK, 0.44); ctx.lineWidth = cw * 2;
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
-    ctx.lineWidth = 0.9; ctx.strokeStyle = a(INK, 0.55);
-    ctx.beginPath(); ctx.arc(cx, cy, R + 6, 0, TAU); ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx, cy, R + 13, 0, TAU); ctx.stroke();
-    // Reticle: crosshair + ticks + scale numbers.
-    ctx.strokeStyle = a(FAINT, 0.75); ctx.lineWidth = 0.7;
+    // Reticle crosshair at ~15%.
+    ctx.strokeStyle = a(INK, 0.15); ctx.lineWidth = cw * 0.4;
     ctx.beginPath(); ctx.moveTo(cx - R * 0.96, cy); ctx.lineTo(cx + R * 0.96, cy); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, cy - R * 0.96); ctx.lineTo(cx, cy + R * 0.96); ctx.stroke();
-    ctx.font = mono(6.5); ctx.fillStyle = a(FAINT, 0.9); ctx.textAlign = "center";
-    for (let i = -4; i <= 4; i++) {
-      const x = cx + i * R * 0.2;
-      ctx.beginPath(); ctx.moveTo(x, cy); ctx.lineTo(x, cy - 4); ctx.stroke();
-    }
-    ctx.fillText("50", cx - R * 0.4, cy + 9);
-    ctx.fillText("100", cx + R * 0.4, cy + 9);
-    ctx.strokeStyle = a(FAINT, 0.75);
-    ctx.beginPath(); ctx.moveTo(cx - R * 0.6, cy + 9); ctx.lineTo(cx + R * 0.6, cy + 9); ctx.stroke();
   };
 
   // ---------- frame ----------
 
   const draw = (t: number, dt: number, now: number) => {
+    updateGrid();
     ctx.clearRect(0, 0, W, Hh);
     const R = Math.min(W, Hh) * 0.46;
     const q = smooth(z, 0.45, 1);          // iris progress
@@ -904,11 +1014,9 @@ export function mountFigure(stage: HTMLElement) {
     }
 
     if (q > 0.001) {
-      // Brightfield disc.
+      // Specimen(s) inside the circle, with slide-swap offsets and defocus.
       ctx.save();
       ctx.beginPath(); ctx.arc(cx, cyy, r, 0, TAU); ctx.clip();
-      drawFov(r, cx, cyy);
-      // Specimen(s) inside the circle, with slide-swap offsets and defocus.
       const zProg = clamp((now - zT0) / zDur, 0, 1);
       const zoomBlur = zTo === 1 ? 6 * clamp(1 - (zProg - 0.6) / 0.4, 0, 1) : 0;
       const swapBlur = slideP < 1 ? 3 * Math.sin(Math.PI * slideP) : 0;
@@ -916,8 +1024,8 @@ export function mountFigure(stage: HTMLElement) {
       const slideW = r * 2.05;
       const drawOne = (name: FigName, off: number) => {
         ctx.save();
-        if (blur > 0.05 && canFilter) ctx.filter = `blur(${blur}px)`;
-        else if (blur > 0.05) ctx.globalAlpha = 1 - blur / 7;
+        // Defocus in ASCII mode is a lower-contrast pass.
+        if (blur > 0.05) ctx.globalAlpha = 0.5;
         drawSpecimen(name, t, dt, R, cx + off, cyy);
         ctx.restore();
       };
@@ -938,6 +1046,8 @@ export function mountFigure(stage: HTMLElement) {
         ctx.restore();
       }
     }
+
+    drawAscii();
   };
 
   const caption = (t: number, now: number) => {

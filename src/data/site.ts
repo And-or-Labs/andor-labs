@@ -36,9 +36,8 @@ export const tone = (c: Color) => c === "butter" ? "--c: var(--butter); --ct: va
 export const MENU: { n: number; href: string; label: string; hint: string; fig: Fig; color: Color }[] = [
   { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "web", color: "blue" },
   { n: 2, href: "/fdm/", label: "Forward deployed marketer", hint: "A senior operator inside your team for three months. From $15,000.", fig: "implant", color: "coral" },
-  { n: 3, href: "/lab/", label: "Lab", hint: "A fly that trades ad budgets, and a clock counting down the click.", fig: "fly", color: "green" },
-  { n: 4, href: "/notes/", label: "Field notes", hint: "Field notes on GTM, AI and the post-software era. Newest first.", fig: "ink", color: "butter" },
-  { n: 5, href: "/record/", label: "On record", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "print", color: "lilac" },
+  { n: 3, href: "/notes/", label: "Lab notes", hint: "Experiments, and the field notes they turn into.", fig: "fly", color: "green" },
+  { n: 4, href: "/record/", label: "On record", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "print", color: "lilac" },
 ];
 
 export const PARTNERS = [
@@ -124,12 +123,6 @@ export const PRESS = {
     { name: "Digital Content Next", href: "https://digitalcontentnext.org/blog/author/vishveshwar/" },
     { name: "Blockthrough", href: "https://blockthrough.com/blog/author/vjblockthrough-com/" },
   ],
-};
-
-export const NOTES = {
-  title: "Working notes from the field.",
-  lede: "Working notes, operator playbooks, and post-mortems. No growth-hacking listicles.",
-
 };
 
 export const RECORD = {

@@ -5,17 +5,29 @@ import Crumb from "../../components/Crumb.astro";
 import ItemNav from "../../components/ItemNav.astro";
 import Section from "../../components/Section.astro";
 import Subscribe from "../../components/Subscribe.astro";
-import { NOTES } from "../../data/site";
+import { EXPERIMENTS } from "../../data/site";
 import Sheet from "../../layouts/Sheet.astro";
 const posts = (await getCollection("blog", p => !p.data.draft)).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 const fmt = (d: Date) => d.toISOString().slice(0, 10).replaceAll("-", ".");
 ---
-<Sheet title="Field notes" description="Field notes on GTM, AI and the post-software era." fig="ink" color="butter">
+<Sheet title="Lab notes" description="Experiments and field notes on GTM, AI and the post-software era." fig="fly" color="green">
   <Crumb slot="crumb" />
-  <p class="eyebrow"><span class="br">[4]</span> Field notes</p>
-  <h1 class="title">{NOTES.title}</h1>
-  <p class="lede">{NOTES.lede}</p>
+  <p class="eyebrow"><span class="br">[3]</span> Lab notes</p>
+  <h1 class="title">Things we built to see what happens.</h1>
+  <p class="lede">Small, strange, working software. Some of it becomes product. Most of it becomes a note.</p>
   <div class="body">
+    <Section id="experiments" label="Experiments" count={EXPERIMENTS.length}>
+      {EXPERIMENTS.map(x => (
+        <article class="card">
+          <p class="label c">{x.file}</p>
+          <h3>{x.name}</h3>
+          <p>{x.body}</p>
+          <a class="text-link" href={x.href} {...(x.external ? { target: "_blank", rel: "noopener" } : { "data-astro-reload": true })}>{x.cta} <span aria-hidden="true">{x.external ? "↗" : "→"}</span></a>
+        </article>
+      ))}
+      <p class="sec-foot"><a class="text-link" href="https://github.com/eclecticv" target="_blank" rel="noopener">More in the open on GitHub <span aria-hidden="true">↗</span></a></p>
+    </Section>
+
     <Section id="notes" label="Field notes" count={posts.length}>
       <ol class="posts">
         {posts.map(p => <li><a href={`/notes/${p.id}/`}><time datetime={p.data.pubDate.toISOString()}>{fmt(p.data.pubDate)}</time><span>{p.data.title}</span></a></li>)}
@@ -27,5 +39,5 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10).replaceAll("-", ".");
       <div class="card"><Subscribe source="blog-index" /></div>
     </Section>
   </div>
-  <ItemNav current={4} />
+  <ItemNav current={3} />
 </Sheet>
