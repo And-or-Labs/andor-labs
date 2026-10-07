@@ -7,12 +7,20 @@
 export const BOOKING_URL = "https://cal.com/jatain/book";
 export const EMAIL = "vj@andorlabs.ca";
 
+export const book = (placement: string) => `${BOOKING_URL}?utm_source=andorlabs&utm_medium=site&utm_content=${placement}`;
+
+export const INVITES = {
+  mediacontext: { left: 10, total: 10 },
+  fdm: { left: 3, total: 3 },
+} as const;
+export const invites = (k: keyof typeof INVITES) => `${INVITES[k].left}/${INVITES[k].total} beta invites left`;
+
 export const SITE = {
   name: "And/or Labs",
   url: "https://andorlabs.ca",
   title: "And/or Labs | We engineer growth for media & adtech companies",
   description:
-    "We engineer growth for media & adtech companies. We build MediaContext, work inside client teams as a forward deployed marketer, run experiments, and publish field notes.",
+    "For media and adtech companies whose product has outgrown its positioning, website and pipeline. MediaContext, a forward deployed marketer, lab notes and field notes.",
 };
 
 export const SOCIALS = [
@@ -23,8 +31,8 @@ export const SOCIALS = [
 ] as const;
 
 export const HOME = {
-  title: "We engineer growth for media & adtech companies",
-  emphasis: "engineer growth",
+  title: "Your media or adtech product has outgrown its positioning, website and pipeline.",
+  emphasis: "outgrown",
   founder: "Founded by Vishveshwar Jatain, who led marketing and sales ops at Blockthrough and AdPushup through their acquisitions.",
 };
 
@@ -34,8 +42,8 @@ export type Color = "blue" | "coral" | "green" | "lilac" | "butter";
 export const tone = (c: Color) => c === "butter" ? "--c: var(--butter); --ct: var(--butter-ink)" : `--c: var(--${c})`;
 
 export const MENU: { n: number; href: string; label: string; hint: string; fig: Fig; color: Color }[] = [
-  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Market intelligence for the premium open web.", fig: "radar", color: "blue" },
-  { n: 2, href: "/fdm/", label: "Forward deployed marketer", hint: "A senior operator inside your team for three months. From $15,000.", fig: "growth", color: "coral" },
+  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: `Our product. Find the next publisher account worth calling. ${invites("mediacontext")}.`, fig: "radar", color: "blue" },
+  { n: 2, href: "/fdm/", label: "Forward deployed marketer", hint: `A senior operator inside your team for three months. From $15,000. ${invites("fdm")}.`, fig: "growth", color: "coral" },
   { n: 3, href: "/notes/", label: "Lab notes", hint: "Experiments, and the field notes they turn into.", fig: "flask", color: "green" },
   { n: 4, href: "/record/", label: "On record", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "press", color: "lilac" },
 ];
@@ -51,11 +59,12 @@ export const PARTNERS = [
 export const PRINTED_IN = ["Digiday", "Adweek", "AdExchanger", "ExchangeWire", "eMarketer", "Forbes", "CNET"];
 
 export const MEDIACONTEXT = {
-  title: "Market intelligence for the premium open web.",
-  lede: "MediaContext helps technical sales houses find their next best publisher account. Deep, fresh, evidence-backed.",
+  title: "Find the next publisher account worth calling.",
+  lede: "MediaContext ranks the Tranco top 100,000 domains with a Sincera publisher ID by traffic, then shows the sales house, ad formats, header bidding and ad density behind each account.",
   facts: [
-    ["Access", "Invite-only"],
-    ["Markets", "Seven"],
+    ["Access", "Invite-only beta"],
+    ["Beta invites", `${INVITES.mediacontext.left}/${INVITES.mediacontext.total} left`],
+    ["Markets", "US, UK, CA, DE, FR, AU, JP"],
     ["Coverage", "Tranco top 100,000 domains with a Sincera publisher ID"],
   ],
   image: { src: "/products/mediacontext-publishers.webp", alt: "MediaContext Publishers view: premium publishers ranked by traffic, with sales house, ad formats, header bidding and ad density per account." },
@@ -78,8 +87,9 @@ export const FDM = {
     cta: "Scope your engagement",
   },
   experience: [
-    { company: "Blockthrough", role: "Director, Marketing & Sales Operations", result: "3× organic traffic", work: "Built and led the marketing and revenue operations team. Ran search experiments, research-led campaigns, and brand modernization." },
-    { company: "AdPushup", role: "Product Marketing Manager", result: "50k+ monthly visits", work: "Built a content engine spanning 150+ articles, email courses, and webinars, alongside CRM and account-based marketing work." },
+    { company: "Blockthrough", role: "Director, Marketing & Sales Operations", result: "3× organic traffic", work: "Diagnosed the funnel, then ran rapid experiments across channels. Organic traffic tripled and high-intent keywords reached the top 3." },
+    { company: "AdPushup", role: "Product Marketing Manager", result: "Seed to $10M ARR", work: "Built the growth playbook and a content engine of 150+ articles, email courses and webinars: 50k+ monthly visits and 10k+ email subscribers." },
+    { company: "PageFair Adblock Report", role: "Editor", result: "2,500+ qualified leads per edition", work: "Researched, edited and published four editions. Coverage in CNET, eMarketer and AdMonsters." },
   ],
   capabilities: [
     { name: "Positioning & websites", work: "A clear product story and a website that helps buyers take the next step." },

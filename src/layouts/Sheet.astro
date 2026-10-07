@@ -3,7 +3,7 @@ import { ClientRouter } from "astro:transitions";
 
 import "../styles/site.css";
 import Icon from "../components/Icon.astro";
-import { BOOKING_URL, SITE, SOCIALS, tone, type Color, type Fig } from "../data/site";
+import { book, SITE, SOCIALS, tone, type Color, type Fig } from "../data/site";
 
 interface Props {
   title?: string;
@@ -58,7 +58,7 @@ const ogImage = new URL(image, Astro.site);
       </main>
       <aside class="viz" transition:persist="figure" aria-hidden="true"><canvas id="figure"></canvas></aside>
       <nav class="bar" aria-label="Contact" transition:persist="bar">
-        <a class="book" href={BOOKING_URL} target="_blank" rel="noopener">Book a call <span class="arr" aria-hidden="true">&nearr;</span></a>
+        <a class="book" href={book("bar")} target="_blank" rel="noopener">Book a call <span class="arr" aria-hidden="true">&nearr;</span></a>
         {SOCIALS.map(s => (
           <a class="ico" href={s.href} aria-label={s.label} title={s.label} {...(s.id === "email" ? {} : { target: "_blank", rel: "noopener" })}><Icon name={s.id} /></a>
         ))}
