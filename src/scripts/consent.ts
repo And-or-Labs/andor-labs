@@ -114,7 +114,7 @@ document.addEventListener("cookieyes_consent_update", scheduleMeasure);
 window.addEventListener("resize", scheduleMeasure, { passive: true });
 
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && preferencesOpen) {
+  if (event.key === "Escape" && banner?.classList.contains("cky-consent-bar-expand")) {
     banner?.querySelector<HTMLButtonElement>(".cky-btn-close")?.click();
     event.preventDefault();
     event.stopImmediatePropagation();

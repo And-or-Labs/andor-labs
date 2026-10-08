@@ -55,7 +55,7 @@ const action = isProduct
   <ClientRouter fallback="swap" />
 </head>
 <body>
-  <a class="skip" href="#main">Skip to content</a>
+  <nav aria-label="Skip links"><a class="skip" href="#main">Skip to content</a></nav>
   <div class:list={["sheet", variant, { reading: type === "article" }]}>
     <div class="frame">
       <main id="main" class="pane" tabindex="-1" data-fig={fig} style={tone(color)}>
@@ -76,7 +76,7 @@ const action = isProduct
       </footer>
       <nav class="bar" aria-label="Next step">
         <a class="book" href={action.href} {...(action.external ? { target: "_blank", rel: "noopener" } : {})}>{action.label}<span class="arr" aria-hidden="true">{action.external ? "↗" : "↓"}</span></a>
-        <a class="bar-email" href={SOCIALS[0].href}><Icon name="email" /><span>Email</span></a>
+        <a class="bar-email" href={SOCIALS[0].href} aria-label="Email And/or Labs"><Icon name="email" /><span>Email</span></a>
       </nav>
     </div>
   </div>
