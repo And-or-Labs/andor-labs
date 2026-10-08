@@ -2,11 +2,9 @@
 import Crumb from "../components/Crumb.astro";
 import ItemNav from "../components/ItemNav.astro";
 import Section from "../components/Section.astro";
-import { book, FDM as F, HOME, invites, PRESS, TESTIMONIALS } from "../data/site";
+import { book, FDM as F, HOME, invites, TESTIMONIALS } from "../data/site";
 import Sheet from "../layouts/Sheet.astro";
-const scott = TESTIMONIALS[0];
 const marty = TESTIMONIALS[1];
-const ext = { target: "_blank", rel: "noopener" };
 ---
 <Sheet title="Forward deployed marketer" description={F.lede} fig="growth" color="coral">
   <Crumb slot="crumb" />
@@ -17,20 +15,15 @@ const ext = { target: "_blank", rel: "noopener" };
     <Section id="experience" label="Operating experience">
       <p class="founder">{HOME.founder} You work directly with me.</p>
       <dl class="facts">
-        {F.experience.map(e => <div><dt>{e.company}</dt><dd>{e.result}<span class="capability-description">{e.work}</span></dd></div>)}
+        {F.experience.map(e => <div><dt>{e.company}</dt><dd>{e.result}</dd></div>)}
       </dl>
-      <figure class="quote">
-        <blockquote><p>{marty.quote}</p></blockquote>
-        <figcaption><cite>{marty.author}, {marty.role}</cite></figcaption>
-      </figure>
     </Section>
 
     <Section id="engagement" label="The engagement">
       <article class="card pkg">
-        <p class="label c">{F.offer.label}</p>
+        <p class="label c pkg-head"><span>{F.offer.label}</span><span>{invites("fdm")}</span></p>
         <h3>{F.offer.name}</h3>
         <p class="price"><span class="from">{F.offer.from}</span> <b>{F.offer.price}</b> <span class="term">{F.offer.term}</span></p>
-        <p class="label c">{invites("fdm")}</p>
         <p class="offer-term">{F.offer.commitment}</p>
         <p>{F.offer.for}</p>
         <p>{F.offer.description}</p>
@@ -38,8 +31,8 @@ const ext = { target: "_blank", rel: "noopener" };
         <a class="text-link" href={book("fdm-offer")} target="_blank" rel="noopener">{F.offer.cta} <span aria-hidden="true">↘</span></a>
       </article>
       <figure class="quote">
-        <blockquote><p>{scott.quote}</p></blockquote>
-        <figcaption><cite>{scott.author}, {scott.role}</cite></figcaption>
+        <blockquote><p>{marty.quote}</p></blockquote>
+        <figcaption><cite>{marty.author}, {marty.role}</cite></figcaption>
       </figure>
     </Section>
 
@@ -49,15 +42,8 @@ const ext = { target: "_blank", rel: "noopener" };
       </ul>
     </Section>
 
-    <Section id="press" label="The work, in print">
-      <ul class="list">
-        {PRESS.coverage.slice(0, 2).map(b => <li><a href={b.href} {...ext}><span class="k">{b.source}</span><span class="v">{b.title}</span><span class="x">&nearr;</span></a></li>)}
-      </ul>
-    </Section>
-
     <Section id="next" label="Next step">
       <p>{F.process}</p>
-      <p class="label c">{invites("fdm")}</p>
       <div class="ctas"><a class="btn primary" href={book("fdm-next")} target="_blank" rel="noopener">Book a scoping call <span class="arr" aria-hidden="true">↗</span></a></div>
     </Section>
   </div>

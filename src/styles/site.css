@@ -147,6 +147,7 @@ button, input { font: inherit; color: inherit; }
 .pkg ul { padding-left: 16px; font-size: 14px; line-height: 1.45; margin-top: 8px; }
 .pkg li + li { margin-top: 6px; }
 .pkg .text-link { margin-top: 12px; }
+.pkg-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
 #experiments .card h3 { margin-top: 6px; font: 500 20px/1.2 var(--serif); letter-spacing: -.01em; text-wrap: balance; }
 #experiments .card p:not(.label) { font-size: 14px; line-height: 1.45; margin-top: 8px; text-wrap: pretty; }
 .shot-card { padding: 10px; }

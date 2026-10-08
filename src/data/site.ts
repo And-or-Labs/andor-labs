@@ -20,7 +20,7 @@ export const SITE = {
   url: "https://andorlabs.ca",
   title: "And/or Labs | We engineer growth for media & adtech companies",
   description:
-    "For media and adtech companies whose product has outgrown its positioning, website and pipeline. MediaContext, a forward deployed marketer, lab notes and field notes.",
+    "We engineer growth for media & adtech companies. We build MediaContext, work inside client teams as a forward deployed marketer, run experiments, and publish field notes.",
 };
 
 export const SOCIALS = [
@@ -31,8 +31,8 @@ export const SOCIALS = [
 ] as const;
 
 export const HOME = {
-  title: "Your media or adtech product has outgrown its positioning, website and pipeline.",
-  emphasis: "outgrown",
+  title: "We engineer growth for media & adtech companies",
+  emphasis: "engineer growth",
   founder: "Founded by Vishveshwar Jatain, who led marketing and sales ops at Blockthrough and AdPushup through their acquisitions.",
 };
 
@@ -62,8 +62,7 @@ export const MEDIACONTEXT = {
   title: "Find the next publisher account worth calling.",
   lede: "MediaContext ranks the Tranco top 100,000 domains with a Sincera publisher ID by traffic, then shows the sales house, ad formats, header bidding and ad density behind each account.",
   facts: [
-    ["Access", "Invite-only beta"],
-    ["Beta invites", `${INVITES.mediacontext.left}/${INVITES.mediacontext.total} left`],
+    ["Access", `Invite-only. ${invites("mediacontext")}.`],
     ["Markets", "US, UK, CA, DE, FR, AU, JP"],
     ["Coverage", "Tranco top 100,000 domains with a Sincera publisher ID"],
   ],
@@ -87,9 +86,8 @@ export const FDM = {
     cta: "Scope your engagement",
   },
   experience: [
-    { company: "Blockthrough", role: "Director, Marketing & Sales Operations", result: "3× organic traffic", work: "Diagnosed the funnel, then ran rapid experiments across channels. Organic traffic tripled and high-intent keywords reached the top 3." },
-    { company: "AdPushup", role: "Product Marketing Manager", result: "Seed to $10M ARR", work: "Built the growth playbook and a content engine of 150+ articles, email courses and webinars: 50k+ monthly visits and 10k+ email subscribers." },
-    { company: "PageFair Adblock Report", role: "Editor", result: "2,500+ qualified leads per edition", work: "Researched, edited and published four editions. Coverage in CNET, eMarketer and AdMonsters." },
+    { company: "Blockthrough", role: "Director, Marketing & Sales Operations", result: "3× organic traffic", work: "Built and led the marketing and revenue operations team. Ran search experiments, research-led campaigns, and brand modernization." },
+    { company: "AdPushup", role: "Product Marketing Manager", result: "Seed to $10M ARR", work: "Built a content engine spanning 150+ articles, email courses, and webinars, alongside CRM and account-based marketing work." },
   ],
   capabilities: [
     { name: "Positioning & websites", work: "A clear product story and a website that helps buyers take the next step." },
