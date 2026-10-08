@@ -6,7 +6,7 @@ import Icon from "../../components/Icon.astro";
 import ItemNav from "../../components/ItemNav.astro";
 import Section from "../../components/Section.astro";
 import Subscribe from "../../components/Subscribe.astro";
-import { SITE } from "../../data/site";
+import { FDM, SITE } from "../../data/site";
 import Sheet from "../../layouts/Sheet.astro";
 
 export async function getStaticPaths() {
@@ -23,20 +23,22 @@ const fmt = (x: Date) => x.toLocaleDateString("en-CA", { year: "numeric", month:
 ---
 <Sheet title={d.title} description={d.description} fig="notes" color="green" image={d.heroImage} type="article" publishedTime={d.pubDate}>
   <Crumb slot="crumb" href="/notes/" label="Lab notes" />
-  <article>
-    <p class="eyebrow"><span class="br">[3]</span> Lab notes</p>
-    <h1 class="title">{d.title}</h1>
-    {d.standfirst && <p class="lede">{d.standfirst}</p>}
-    <p class="post-meta"><time datetime={d.pubDate.toISOString()}>{fmt(d.pubDate)}</time><span>{minutes} min read</span><span>Vishveshwar Jatain</span></p>
+  <article class="note-article">
+    <header>
+      <p class="eyebrow"><span class="br">[3]</span> Lab notes</p>
+      <h1 class="title">{d.title}</h1>
+      {d.standfirst && <p class="lede">{d.standfirst}</p>}
+      <p class="post-meta"><time datetime={d.pubDate.toISOString()}>{fmt(d.pubDate)}</time><span>{minutes} min read</span><span>Vishveshwar Jatain</span></p>
+    </header>
     <div class="body">
       {d.heroImage && (
         <figure class="post-hero">
-          <img src={d.heroImage} alt={d.heroAlt ?? ""} loading="eager" decoding="async" />
+          <img src={d.heroImage} alt={d.heroAlt ?? ""} width="1600" height="900" loading="eager" decoding="async" />
           {d.heroCredit && <figcaption>{d.heroCredit}</figcaption>}
         </figure>
       )}
       {d.keyTakeaways?.length ? (
-        <aside class="card takeaways"><p class="label">Key takeaways</p><ul>{d.keyTakeaways.map(k => <li>{k}</li>)}</ul></aside>
+        <details class="card takeaways"><summary class="label">Key takeaways</summary><ul>{d.keyTakeaways.map(k => <li>{k}</li>)}</ul></details>
       ) : null}
       <div class="prose"><Content /></div>
       <div class="share">
@@ -47,14 +49,36 @@ const fmt = (x: Date) => x.toLocaleDateString("en-CA", { year: "numeric", month:
         <button type="button" data-copy-link aria-label="Copy link" title="Copy link"><Icon name="link" /></button>
         <span class="copied" aria-live="polite"></span>
       </div>
-      <Section id="next" label="Next step">
-        <div class="card"><Subscribe source="blog-post" /></div>
-      </Section>
       <nav class="pager" aria-label="More notes">
         {older ? <a href={`/notes/${older.id}/`}><span class="label">Older</span>{older.data.title}</a> : <span></span>}
         {newer ? <a href={`/notes/${newer.id}/`}><span class="label">Newer</span>{newer.data.title}</a> : <span></span>}
       </nav>
+      <Section id="next" label="Get new notes">
+        <div class="card" id="subscribe"><Subscribe source="blog-post" /></div>
+      </Section>
+      <Section id="work" label="Forward deployed marketer">
+        <p>{FDM.offer.for}</p>
+        <a class="text-link" href="/fdm/">{FDM.title} <span aria-hidden="true">→</span></a>
+      </Section>
     </div>
   </article>
   <ItemNav current={3} />
 </Sheet>
+
+<style>
+  .note-article { width: 100%; max-width: 48rem; }
+  .note-article .title { max-width: 24ch; }
+  .note-article .lede { max-width: 58ch; }
+  .note-article .body { max-width: none; }
+  .note-article .body > * { min-width: 0; }
+  .post-hero { max-width: 42rem; }
+  .post-hero figcaption { color: var(--dim); }
+  .takeaways { max-width: 42rem; padding-block: 0; }
+  .takeaways summary { min-height: 48px; padding-block: 16px; cursor: pointer; color: var(--ink); }
+  .takeaways ul { padding-bottom: 20px; margin-top: 0; }
+  .prose { max-width: 42rem; font-size: clamp(18px, 1.5vw, 20px); overflow-wrap: anywhere; }
+  .pager { gap: 0 24px; }
+  @media (max-width: 860px) {
+    .pager > span { display: none; }
+  }
+</style>

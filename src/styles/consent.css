@@ -1,0 +1,208 @@
+:root { --consent-height: 0px; }
+
+/* CookieYes owns consent and its controls. These rules use the site tokens. */
+body .cky-consent-container {
+  width: 100%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--white);
+  color: var(--ink);
+  border-top: 1px solid var(--hair);
+  box-shadow: 0 -8px 32px #0b153314;
+  animation: none !important;
+}
+
+body .cky-consent-container .cky-consent-bar {
+  border: 0;
+  box-shadow: none;
+  background: var(--white) !important;
+}
+
+body .cky-consent-bar .cky-notice-content-wrapper { padding: 14px 24px 8px; }
+body .cky-notice-group { gap: 24px; }
+body .cky-notice-group > div:first-child { min-width: 0; }
+body .cky-notice .cky-title {
+  margin: 0 0 5px;
+  padding: 0;
+  font: 12px/1.4 var(--mono);
+  letter-spacing: .03em;
+  color: var(--ink) !important;
+}
+body .cky-notice-des {
+  max-height: none;
+  padding: 0;
+  overflow: visible;
+  font: 16px/1.4 var(--serif);
+  color: var(--dim) !important;
+}
+body .cky-notice-des p { font: inherit; }
+body .cky-notice-btn-wrapper {
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+}
+
+body .cky-consent-container .cky-btn {
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--blue-ink) !important;
+  border-radius: 0;
+  font: 12px/1.4 var(--mono);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--blue-ink) !important;
+  background: var(--white) !important;
+  box-shadow: none;
+}
+body .cky-consent-container .cky-btn-accept {
+  color: var(--white) !important;
+  background: var(--blue) !important;
+}
+body .cky-consent-bar .cky-btn-customize { padding-right: 14px; }
+body .cky-consent-bar .cky-btn-customize::after { display: none; }
+body .cky-consent-container .cky-btn:focus-visible,
+body .cky-consent-container .cky-btn-close:focus-visible,
+body .cky-btn-revisit-wrapper .cky-btn-revisit:focus-visible {
+  outline: 2px solid var(--blue-ink);
+  outline-offset: 3px;
+}
+
+body .cky-consent-bar > div:has(> [data-cky-tag="powered-by"]) { padding: 0 24px 8px !important; }
+body [data-cky-tag="powered-by"],
+body [data-cky-tag="detail-powered-by"] { color: var(--dim) !important; }
+
+/* Preferences remain the vendor's expandable panel with a scrollable body. */
+body .cky-consent-container.cky-consent-bar-expand .cky-consent-bar { display: none; }
+body .cky-consent-container .cky-preference-wrapper {
+  height: auto;
+  color: var(--ink) !important;
+  background: var(--white) !important;
+}
+body .cky-preference-wrapper .cky-preference-center {
+  display: flex;
+  flex-direction: column;
+  max-height: min(65svh, 36rem);
+  max-height: min(65dvh, 36rem);
+}
+body .cky-preference-center .cky-preference {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  padding: 0 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+body .cky-preference .cky-preference-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  width: auto;
+  min-height: 64px;
+  margin: 0;
+  padding: 10px 0;
+  gap: 12px;
+  background: var(--white);
+  border-bottom: 1px solid var(--rule);
+}
+body .cky-preference-header .cky-preference-title {
+  color: var(--ink) !important;
+  font: 16px/1.4 var(--serif);
+}
+body .cky-preference-header .cky-btn-close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+}
+body .cky-preference .cky-preference-body-wrapper { padding: 16px 0; }
+body .cky-preference-content-wrapper,
+body .cky-accordion-header-des {
+  color: var(--dim) !important;
+  font: 15px/1.5 var(--serif);
+}
+body .cky-preference-content-wrapper .cky-show-desc-btn { min-height: 44px; }
+body .cky-accordion-header .cky-accordion-btn {
+  min-height: 44px;
+  color: var(--ink) !important;
+  font: 12px/1.5 var(--mono);
+}
+body .cky-preference-center .cky-footer-wrapper {
+  position: static;
+  flex-shrink: 0;
+  width: auto;
+  border-top: 1px solid var(--rule);
+  background: var(--white);
+}
+body .cky-footer-wrapper .cky-footer-shadow { display: none; }
+body .cky-footer-wrapper .cky-prefrence-btn-wrapper {
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px;
+}
+body .cky-prefrence-btn-wrapper .cky-btn { width: auto; }
+body .cky-prefrence-btn-wrapper .cky-btn-accept,
+body .cky-prefrence-btn-wrapper .cky-btn-reject { display: block; }
+
+body .cky-btn-revisit-wrapper {
+  left: auto;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--hair);
+  border-radius: 0;
+  background: var(--blue-ink) !important;
+  box-shadow: var(--lift);
+}
+body .cky-btn-revisit-wrapper .cky-btn-revisit { width: 44px; height: 44px; }
+body .cky-btn-revisit-wrapper .cky-btn-revisit img { width: 24px; height: 24px; }
+body .cky-btn-revisit-wrapper:hover::before {
+  left: auto;
+  right: calc(100% + 7px);
+  border-radius: 0;
+  background: var(--ink);
+  font-family: var(--mono);
+}
+body .cky-btn-revisit-wrapper:hover::after {
+  left: auto;
+  right: calc(100% + 2px);
+  border-width: 5px 0 5px 5px;
+  border-color: transparent transparent transparent var(--ink);
+}
+
+@media (max-width: 768px) {
+  body .cky-consent-container .cky-consent-bar .cky-notice-content-wrapper { padding: 12px 16px 8px; }
+  body .cky-notice-group { display: grid; gap: 10px; }
+  body .cky-notice-btn-wrapper { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body .cky-notice-btn-wrapper .cky-btn {
+    order: initial;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 10px 6px;
+  }
+  body .cky-consent-bar > div:has(> [data-cky-tag="powered-by"]) { padding-inline: 16px !important; }
+  body .cky-preference-center .cky-preference { padding-inline: 16px; }
+  body .cky-footer-wrapper .cky-prefrence-btn-wrapper {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    padding: 12px 16px;
+  }
+  body .cky-prefrence-btn-wrapper .cky-btn {
+    order: initial;
+    min-width: 0;
+    margin: 0;
+    padding: 8px 6px;
+    overflow-wrap: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body .cky-consent-container *, body .cky-btn-revisit-wrapper * { animation: none !important; transition: none !important; }
+}

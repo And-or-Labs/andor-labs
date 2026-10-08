@@ -2,7 +2,8 @@
 import Crumb from "../components/Crumb.astro";
 import ItemNav from "../components/ItemNav.astro";
 import Section from "../components/Section.astro";
-import { book, FDM as F, HOME, invites, TESTIMONIALS } from "../data/site";
+import ServiceEvidence from "../components/ServiceEvidence.astro";
+import { book, FDM as F, HOME, TESTIMONIALS } from "../data/site";
 import Sheet from "../layouts/Sheet.astro";
 const marty = TESTIMONIALS[1];
 ---
@@ -11,30 +12,57 @@ const marty = TESTIMONIALS[1];
   <p class="eyebrow"><span class="br">[2]</span> Forward deployed marketer</p>
   <h1 class="title">{F.title}</h1>
   <p class="lede">{F.lede}</p>
+  <div class="ctas service-hero-actions">
+    <a class="btn primary" href={book("fdm-hero")} target="_blank" rel="noopener">{F.offer.cta} <span class="arr" aria-hidden="true">↗</span></a>
+    <a class="text-link" href="#engagement">See the engagement <span aria-hidden="true">↓</span></a>
+  </div>
   <div class="body service-content">
-    <Section id="experience" label="Operating experience">
-      <p class="founder">{HOME.founder} You work directly with me.</p>
-      <dl class="facts">
-        {F.experience.map(e => <div><dt>{e.company}</dt><dd>{e.result}</dd></div>)}
-      </dl>
+    <Section id="engagement" label="The engagement">
+      <article class="card pkg service-offer" aria-labelledby="offer-title">
+        <div class="offer-summary">
+          <p class="label c">{F.offer.label}</p>
+          <h3 id="offer-title">{F.offer.name}</h3>
+          <p class="price"><span class="from">{F.offer.from}</span> <b>{F.offer.price}</b> <span class="term">{F.offer.term}</span></p>
+          <p class="offer-term">{F.offer.commitment}</p>
+          <div class="ctas">
+            <a class="btn primary" href={book("fdm-offer")} target="_blank" rel="noopener">{F.offer.cta} <span class="arr" aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+        <div class="offer-delivery">
+          <p class="offer-fit">{F.offer.for}</p>
+          <p>{F.offer.description}</p>
+          <ul>{F.offer.scope.map(item => <li>{item}</li>)}</ul>
+        </div>
+      </article>
     </Section>
 
-    <Section id="engagement" label="The engagement">
-      <article class="card pkg">
-        <p class="label c pkg-head"><span>{F.offer.label}</span><span>{invites("fdm")}</span></p>
-        <h3>{F.offer.name}</h3>
-        <p class="price"><span class="from">{F.offer.from}</span> <b>{F.offer.price}</b> <span class="term">{F.offer.term}</span></p>
-        <p class="offer-term">{F.offer.commitment}</p>
-        <p>{F.offer.for}</p>
-        <p>{F.offer.description}</p>
-        <ul>{F.offer.scope.map(item => <li>{item}</li>)}</ul>
-        <a class="text-link" href={book("fdm-offer")} target="_blank" rel="noopener">{F.offer.cta} <span aria-hidden="true">↘</span></a>
-      </article>
+    <Section id="experience" label="Operating experience">
+      <div class="operator-bio">
+        <img src="/founder.png" alt="Vishveshwar Jatain" width="72" height="72" loading="lazy" decoding="async" />
+        <p>{HOME.founder} You work directly with me.</p>
+      </div>
+      <div class="operating-record">
+        {F.experience.map(e => (
+          <article class="experience-entry">
+            <h3>{e.company}</h3>
+            <p class="label experience-role">{e.role}</p>
+            <dl class="facts">
+              <div>
+                <dt>{e.company === "AdPushup" ? "Company growth during tenure" : "Result"}</dt>
+                <dd class="experience-result">{e.result}</dd>
+              </div>
+              <div><dt>Contribution</dt><dd>{e.work}</dd></div>
+            </dl>
+          </article>
+        ))}
+      </div>
       <figure class="quote">
         <blockquote><p>{marty.quote}</p></blockquote>
         <figcaption><cite>{marty.author}, {marty.role}</cite></figcaption>
       </figure>
     </Section>
+
+    <ServiceEvidence />
 
     <Section id="capabilities" label="What the three months can include" count={F.capabilities.length}>
       <ul class="list capabilities">
@@ -44,8 +72,47 @@ const marty = TESTIMONIALS[1];
 
     <Section id="next" label="Next step">
       <p>{F.process}</p>
-      <div class="ctas"><a class="btn primary" href={book("fdm-next")} target="_blank" rel="noopener">Book a scoping call <span class="arr" aria-hidden="true">↗</span></a></div>
+      <div class="ctas"><a class="btn primary" href={book("fdm-next")} target="_blank" rel="noopener">{F.offer.cta} <span class="arr" aria-hidden="true">↗</span></a></div>
     </Section>
   </div>
   <ItemNav current={2} />
 </Sheet>
+
+<style>
+  .service-hero-actions { margin-top: 24px; align-items: center; gap: 12px 24px; }
+  .service-hero-actions .text-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+  .service-offer { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--stack); padding: clamp(20px, 3vw, 40px); }
+  .offer-summary, .offer-delivery { min-width: 0; }
+  .service-offer h3 { margin-top: 12px; font-size: clamp(26px, 3vw, 34px); }
+  .service-offer .price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin-top: 24px; }
+  .service-offer .price b { font-size: clamp(40px, 5vw, 56px); }
+  .service-offer .offer-term { max-width: 38ch; margin-top: 12px; }
+  .offer-summary .ctas { margin-top: 24px; }
+  .offer-delivery > p { font-size: 17px; line-height: 1.55; margin-top: 12px; max-width: 60ch; }
+  .offer-delivery .offer-fit { margin-top: 0; font-size: 22px; line-height: 1.3; }
+  .offer-delivery ul { margin-top: 16px; font-size: 16px; line-height: 1.5; }
+  .offer-delivery li + li { margin-top: 8px; }
+  .operator-bio { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 20px; max-width: 46rem; }
+  .operator-bio img { width: 72px; height: 72px; outline: 1px solid var(--rule); }
+  .operator-bio p { font-size: 18px; line-height: 1.45; text-wrap: pretty; }
+  .operating-record { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--stack); padding-block: 12px; }
+  .experience-entry { min-width: 0; }
+  .experience-entry h3 { font: 500 28px/1.2 var(--serif); letter-spacing: -.01em; }
+  .experience-role { margin-top: 8px; min-height: 3em; }
+  .experience-entry .facts { margin-top: 16px; }
+  .experience-entry .facts div { align-items: baseline; }
+  .experience-entry .experience-result { font-size: 24px; line-height: 1.25; font-variant-numeric: tabular-nums; }
+  @media (min-width: 861px) {
+    .experience-entry .facts div:first-child { min-height: 72px; align-items: center; }
+  }
+  @media (max-width: 700px) {
+    .service-offer { gap: 24px; }
+    .operator-bio { align-items: start; gap: 16px; }
+    .experience-role { min-height: 0; }
+  }
+  @media (max-width: 380px) {
+    .operator-bio { grid-template-columns: 56px minmax(0, 1fr); gap: 12px; }
+    .operator-bio img { width: 56px; height: 56px; }
+    .experience-entry .facts div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  }
+</style>

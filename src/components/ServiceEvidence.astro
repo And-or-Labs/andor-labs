@@ -1,0 +1,46 @@
+---
+import Section from "./Section.astro";
+import { FDM, TESTIMONIALS } from "../data/site";
+
+const C = FDM.caseStudy;
+const scott = TESTIMONIALS[0];
+---
+<Section id="client-work" label="Selected client work">
+  <h3 class="case-title">{C.title}</h3>
+  <p class="case-description">{C.description}</p>
+  <div class="case-comparison">
+    <figure>
+      <figcaption class="label">Before / WordPress</figcaption>
+      <a href={C.before.src} target="_blank" rel="noopener" aria-label="Open the Filament website before the redesign at full size">
+        <img class="shot" src={C.before.src} alt={C.before.alt} width="1280" height="800" loading="lazy" decoding="async" />
+      </a>
+    </figure>
+    <figure>
+      <figcaption class="label">After / Redesign</figcaption>
+      <a href={C.after.src} target="_blank" rel="noopener" aria-label="Open the Filament website after the redesign at full size">
+        <img class="shot" src={C.after.src} alt={C.after.alt} width="1600" height="806" loading="lazy" decoding="async" />
+      </a>
+    </figure>
+  </div>
+  <figure class="quote case-quote">
+    <blockquote><p>{scott.quote}</p></blockquote>
+    <figcaption><cite>{scott.author}, {scott.role}</cite></figcaption>
+  </figure>
+  <a class="text-link case-link" href={C.href} target="_blank" rel="noopener">Visit Filament <span aria-hidden="true">↗</span></a>
+</Section>
+
+<style>
+  .case-title { max-width: 28ch; font: 500 clamp(28px, 3.5vw, 38px)/1.15 var(--serif); letter-spacing: -.02em; text-wrap: balance; }
+  .case-description { max-width: 65ch; font-size: 18px; line-height: 1.55; }
+  .case-comparison { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 20px; padding-block: 8px; }
+  .case-comparison figure { min-width: 0; }
+  .case-comparison figcaption { margin-bottom: 12px; }
+  .case-comparison a { display: block; }
+  .case-comparison img { width: 100%; height: auto; }
+  .case-comparison a:focus-visible { outline-offset: 4px; }
+  .case-quote { max-width: 48rem; }
+  .case-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+  @media (max-width: 700px) {
+    .case-comparison { gap: 24px; }
+  }
+</style>

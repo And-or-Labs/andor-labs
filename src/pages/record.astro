@@ -3,31 +3,48 @@ import Crumb from "../components/Crumb.astro";
 import ItemNav from "../components/ItemNav.astro";
 import Section from "../components/Section.astro";
 import Subscribe from "../components/Subscribe.astro";
-import { PRESS, RECORD } from "../data/site";
+import { FDM, PRESS, RECORD } from "../data/site";
 import Sheet from "../layouts/Sheet.astro";
 const ext = { target: "_blank", rel: "noopener" };
+const selectedReport = PRESS.media[0];
+const selectedCoverage = PRESS.coverage.slice(0, 2);
+const moreCoverage = PRESS.coverage.slice(2);
+const moreMedia = PRESS.media.slice(1);
 ---
 <Sheet title="On record" description="Bylines and coverage in Digiday, Adweek, AdExchanger, ExchangeWire, eMarketer and others." fig="press" color="lilac">
   <Crumb slot="crumb" />
   <p class="eyebrow"><span class="br">[4]</span> On record</p>
   <h1 class="title">{RECORD.title}</h1>
   <p class="lede">{RECORD.lede}</p>
-  <div class="body">
+  <div class="body record-body">
+    <Section id="selected" label="Selected work">
+      <article class="card report-feature">
+        <p class="label c">{selectedReport.role}</p>
+        <h3>{selectedReport.name}</h3>
+        <p>{selectedReport.body}</p>
+        <a class="text-link" href={selectedReport.href} {...ext}>Read the reports <span aria-hidden="true">↗</span></a>
+      </article>
+      <h3 class="label selected-label">Coverage</h3>
+      <ul class="list">
+        {selectedCoverage.map(b => <li><a href={b.href} {...ext}><span class="k">{b.source}</span><span class="v">{b.title}</span><span class="x" aria-hidden="true">&nearr;</span></a></li>)}
+      </ul>
+    </Section>
+
     <Section id="bylines" label="Bylines" count={PRESS.bylines.length}>
       <ul class="list">
         {PRESS.bylines.map(b => <li><a href={b.href} {...ext}><span class="k">{b.source}</span><span class="v">{b.title}</span><span class="x">&nearr;</span></a></li>)}
       </ul>
     </Section>
 
-    <Section id="coverage" label="Coverage" count={PRESS.coverage.length}>
+    <Section id="coverage" label="More coverage" count={moreCoverage.length}>
       <ul class="list">
-        {PRESS.coverage.map(b => <li><a href={b.href} {...ext}><span class="k">{b.source}</span><span class="v">{b.title}</span><span class="x">&nearr;</span></a></li>)}
+        {moreCoverage.map(b => <li><a href={b.href} {...ext}><span class="k">{b.source}</span><span class="v">{b.title}</span><span class="x">&nearr;</span></a></li>)}
       </ul>
     </Section>
 
-    <Section id="media" label="Reports & podcast" count={PRESS.media.length}>
+    <Section id="media" label="Podcast" count={moreMedia.length}>
       <ul class="list">
-        {PRESS.media.map(m => <li><a href={m.href} {...ext}><span class="k">{m.role}</span><span class="v">{m.name}<span class="sub-v">{m.body}</span></span><span class="x">&nearr;</span></a></li>)}
+        {moreMedia.map(m => <li><a href={m.href} {...ext}><span class="k">{m.role}</span><span class="v">{m.name}<span class="sub-v">{m.body}</span></span><span class="x">&nearr;</span></a></li>)}
       </ul>
     </Section>
 
@@ -38,8 +55,26 @@ const ext = { target: "_blank", rel: "noopener" };
     </Section>
 
     <Section id="next" label="Next step">
-      <div class="card"><Subscribe source="record" /></div>
+      <div class="engagement-link">
+        <h3>{FDM.title}</h3>
+        <p>{FDM.offer.for}</p>
+        <a class="text-link" href="/fdm/">Forward deployed marketer <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="card" id="subscribe"><Subscribe source="record" /></div>
     </Section>
   </div>
   <ItemNav current={4} />
 </Sheet>
+
+<style>
+  .record-body { max-width: 48rem; }
+  .report-feature { padding: 24px; }
+  .report-feature h3 { margin-top: 12px; font: 400 clamp(26px, 2.5vw, 34px)/1.15 var(--serif); letter-spacing: -.015em; text-wrap: balance; }
+  .report-feature > p:not(.label) { max-width: 58ch; margin-top: 12px; font-size: 18px; line-height: 1.5; text-wrap: pretty; }
+  .report-feature .text-link { margin-top: 12px; }
+  .selected-label { margin-top: 24px; }
+  .engagement-link { padding-bottom: 12px; }
+  .engagement-link h3 { font: 400 26px/1.2 var(--serif); text-wrap: balance; }
+  .engagement-link p { margin-top: 8px; max-width: 58ch; text-wrap: pretty; }
+  .engagement-link .text-link { margin-top: 4px; }
+</style>

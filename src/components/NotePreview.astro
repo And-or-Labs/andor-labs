@@ -1,0 +1,52 @@
+---
+interface Props {
+  id: string;
+  label: string;
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
+  external?: boolean;
+  image?: string;
+  imageAlt?: string;
+  imageCredit?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  date?: Date;
+}
+const { id, label, title, description, href, cta, external = false, image, imageAlt = "", imageCredit, imageWidth, imageHeight, date } = Astro.props;
+---
+<article class="card note-preview">
+  <a class="preview-link" href={href} aria-labelledby={`${id}-title`} {...(external ? { target: "_blank", rel: "noopener" } : {})}>
+    {image && <img class="preview-image" src={image} alt={imageAlt} width={imageWidth} height={imageHeight} loading="eager" decoding="async" />}
+    <div class="preview-copy">
+      <p class="label c">{label}</p>
+      <h3 id={`${id}-title`}>{title}</h3>
+      {date && <time class="label" datetime={date.toISOString()}>{date.toISOString().slice(0, 10).replaceAll("-", ".")}</time>}
+      <p class="preview-description">{description}</p>
+      <span class="text-link">{cta} <span aria-hidden="true">{external ? "↗" : "→"}</span></span>
+      {imageCredit && <p class="image-credit">{imageCredit}</p>}
+    </div>
+  </a>
+</article>
+
+<style>
+  .note-preview { min-width: 0; padding: 0; }
+  .preview-link { display: flex; height: 100%; flex-direction: column; text-decoration: none; }
+  .preview-image { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: center; outline: 1px solid rgba(0, 0, 0, .1); outline-offset: -1px; }
+  .preview-copy { display: flex; flex: 1; flex-direction: column; gap: 12px; padding: 20px; }
+  h3 { font: 400 clamp(24px, 2vw, 30px)/1.15 var(--serif); letter-spacing: -.015em; text-wrap: balance; }
+  .preview-description { font-size: 17px; line-height: 1.5; text-wrap: pretty; }
+  .text-link { margin-top: auto; text-decoration: underline; }
+  .text-link span { transition: transform .2s var(--ease); }
+  .image-credit { font: 12px/1.5 var(--mono); color: var(--dim); }
+  .preview-link:focus-visible { outline-offset: 4px; }
+  @media (hover: hover) and (pointer: fine) {
+    .preview-link:hover h3 { color: var(--blue-ink); }
+    .preview-link:hover .text-link span { transform: translate(2px, -2px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .text-link span { transition: none; }
+    .preview-link:hover .text-link span { transform: none; }
+  }
+</style>

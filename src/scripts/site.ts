@@ -1,11 +1,12 @@
 import { navigate } from "astro:transitions/client";
+import "./consent";
 
+import { trackSiteEvent } from "./analytics";
 import { mountFigure, type FigName } from "./figure";
 
 type Figure = ReturnType<typeof mountFigure>;
 let figure: Figure | null = null;
 const ORIGIN_KEY = "andor:fig-origin";
-const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const getFigure = () => {
   const canvas = document.getElementById("figure") as HTMLCanvasElement | null;
@@ -21,32 +22,14 @@ const takeOrigin = () => {
   try { const v = sessionStorage.getItem(ORIGIN_KEY); sessionStorage.removeItem(ORIGIN_KEY); return v ? JSON.parse(v) : undefined; } catch { return undefined; }
 };
 
-function typeInto(el: HTMLElement, text: string) {
-  const prev = Number(el.dataset.timer);
-  if (prev) clearInterval(prev);
-  if (reduce) { el.textContent = text; return; }
-  let i = 0;
-  el.textContent = "";
-  const id = window.setInterval(() => {
-    i += Math.max(1, Math.ceil(text.length / 28));
-    el.textContent = text.slice(0, i);
-    if (i >= text.length) clearInterval(id);
-  }, 16);
-  el.dataset.timer = String(id);
-}
-
 function wireMenu() {
-  const menu = document.querySelector<HTMLElement>(".menu");
-  if (!menu) return;
-  const readout = document.getElementById("readout-text");
-  const idle = readout?.dataset.idle ?? "";
+  const items = [...document.querySelectorAll<HTMLAnchorElement>(".menu a[data-fig]")];
+  if (!items.length) return;
   let leaveTimer = 0;
-  const items = [...menu.querySelectorAll<HTMLAnchorElement>("a[data-fig]")];
   let enterTimer = 0;
   const enter = (a: HTMLAnchorElement, intent = 0) => {
     clearTimeout(leaveTimer); clearTimeout(enterTimer);
     items.forEach(x => x.classList.toggle("on", x === a));
-    if (readout) typeInto(readout, a.dataset.hint ?? "");
     enterTimer = window.setTimeout(() => {
       const r = a.getBoundingClientRect();
       getFigure()?.preview(a.dataset.fig as FigName, { clientY: r.top + r.height / 2 });
@@ -57,7 +40,6 @@ function wireMenu() {
     leaveTimer = window.setTimeout(() => {
       items.forEach(x => x.classList.remove("on"));
       getFigure()?.preview(null);
-      if (readout) typeInto(readout, idle);
     }, 140);
   };
   for (const a of items) {
@@ -77,15 +59,22 @@ function wireSubscribe() {
       const input = form.querySelector("input");
       const button = form.querySelector("button");
       if (!input || !out || !button) return;
+      if (button.disabled) return;
       out.className = ""; out.textContent = "Sending...";
       button.disabled = true;
+      form.setAttribute("aria-busy", "true");
       try {
-        const res = await fetch("/api/subscribe", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: input.value, source: form.dataset.subscribe }) });
+        const res = await fetch("/api/subscribe", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: input.value, source: form.dataset.subscribe }), signal: AbortSignal.timeout(12000) });
         const data = await res.json().catch(() => ({}));
-        if (res.ok) { out.className = "ok"; out.textContent = "Subscribed. New notes only, weekly at most."; form.reset(); }
+        if (res.ok && data.ok === true) {
+          out.className = "ok"; out.textContent = "Subscribed. New notes only, weekly at most.";
+          trackSiteEvent("newsletter_subscribed", { placement: form.dataset.subscribe });
+          form.reset();
+        }
         else { out.className = "err"; out.textContent = data.error || "That didn't go through. Try again?"; }
       } catch { out.className = "err"; out.textContent = "Network hiccup. Try again?"; }
       button.disabled = false;
+      form.removeAttribute("aria-busy");
     });
   });
 }

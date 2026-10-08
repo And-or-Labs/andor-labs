@@ -121,9 +121,13 @@ const FIELDS: Record<FigName, Field> = {
 type Morph = { from: FigName; to: FigName; t0: number; ox: number; oy: number; spread: number };
 
 export function mountFigure(canvas: HTMLCanvasElement) {
-  const ctx = canvas.getContext("2d")!;
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const context = canvas.getContext("2d");
+  if (!context) return { set(_name: FigName, _origin?: { clientX?: number; clientY?: number }) {}, preview(_name: FigName | null, _origin?: { clientX?: number; clientY?: number }) {}, get current(): FigName { return "ripple"; } };
+  const ctx: CanvasRenderingContext2D = context;
+  const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
+  let reduce = motionPreference.matches;
   let W = 0, H = 0, cols = 0, rows = 0, cw = 0, ch = 0, raf = 0;
+  let activeUntil = 0, lastDraw = 0;
   let base: FigName = "ripple", shown: FigName = "ripple";
   let morph: Morph | null = null;
 
@@ -133,7 +137,7 @@ export function mountFigure(canvas: HTMLCanvasElement) {
     W = canvas.width = Math.round(r.width * dpr); H = canvas.height = Math.round(r.height * dpr);
     cols = Math.max(24, Math.floor(r.width / 9)); cw = W / cols; ch = cw * 1.8; rows = Math.ceil(H / ch);
     ctx.font = `${cw * 1.4}px "Departure Mono", ui-monospace, monospace`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    if (reduce) draw(performance.now());
+    draw(performance.now());
   }
 
   function draw(now: number) {
@@ -152,7 +156,7 @@ export function mountFigure(canvas: HTMLCanvasElement) {
         if (k > .38 && k < .62 && a < .3) { a = .55; c = ACCENT[mo.to]; glyph = k < .5 ? "\u00b7" : ":"; }
       } else [a, c] = FIELDS[shown](u, v, x, y, t, asp);
       if (a < .12) continue;
-      ctx.fillStyle = c || C.blue;
+      ctx.fillStyle = c === C.ink ? C.ink : ACCENT[mo?.to ?? shown];
       ctx.globalAlpha = .28 + a * .72;
       ctx.fillText(glyph || RAMP[Math.min(RAMP.length - 1, Math.floor(a * (RAMP.length - 1)))], px, py);
     }
@@ -160,7 +164,16 @@ export function mountFigure(canvas: HTMLCanvasElement) {
     if (mo && (now - mo.t0) / 1000 > mo.spread + .5) morph = null;
   }
 
-  function loop(now: number) { draw(now); raf = requestAnimationFrame(loop); }
+  function loop(now: number) {
+    if (now - lastDraw >= 32 || now >= activeUntil) { draw(now); lastDraw = now; }
+    raf = now < activeUntil && !document.hidden ? requestAnimationFrame(loop) : 0;
+  }
+
+  function wake(duration = 1800) {
+    if (reduce || document.hidden) { draw(performance.now()); return; }
+    activeUntil = Math.max(activeUntil, performance.now() + duration);
+    if (!raf) raf = requestAnimationFrame(loop);
+  }
 
   function go(to: FigName, origin?: { clientX?: number; clientY?: number }, spread = .9) {
     if (to === shown && !morph) return;
@@ -170,22 +183,31 @@ export function mountFigure(canvas: HTMLCanvasElement) {
     morph = { from: shown, to, t0: performance.now(), ox, oy, spread: reduce ? 0 : spread };
     shown = to;
     if (reduce) { morph = null; draw(performance.now()); }
+    else wake();
   }
 
   new ResizeObserver(size).observe(canvas);
   canvas.parentElement?.addEventListener("pointermove", e => {
     if (shown !== "ripple") return;
     const r = canvas.getBoundingClientRect(); probe = [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height];
+    wake(700);
   });
-  canvas.parentElement?.addEventListener("pointerleave", () => { probe = null; });
+  canvas.parentElement?.addEventListener("pointerleave", () => { probe = null; wake(500); });
   document.addEventListener("visibilitychange", () => {
     if (reduce) return;
     cancelAnimationFrame(raf);
-    if (!document.hidden) raf = requestAnimationFrame(loop);
+    raf = 0;
+    if (!document.hidden) wake(500);
+  });
+  motionPreference.addEventListener("change", event => {
+    reduce = event.matches;
+    cancelAnimationFrame(raf); raf = 0; morph = null;
+    wake();
   });
 
   size();
-  if (!reduce) raf = requestAnimationFrame(loop);
+  document.fonts.ready.then(size);
+  wake();
 
   return {
     set(name: FigName, origin?: { clientX?: number; clientY?: number }) { base = name; go(name, origin); },

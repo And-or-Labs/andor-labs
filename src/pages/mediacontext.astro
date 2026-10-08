@@ -2,29 +2,43 @@
 import Crumb from "../components/Crumb.astro";
 import ItemNav from "../components/ItemNav.astro";
 import Section from "../components/Section.astro";
-import { MEDIACONTEXT as M } from "../data/site";
+import { book, MEDIACONTEXT as M } from "../data/site";
 import Sheet from "../layouts/Sheet.astro";
 ---
 <Sheet title="MediaContext" description={M.title + " " + M.lede} fig="radar" color="blue">
   <Crumb slot="crumb" />
   <p class="eyebrow"><span class="br">[1]</span> MediaContext</p>
   <h1 class="title">{M.title}</h1>
-  <p class="lede">{M.lede}</p>
+  <p class="lede">Market intelligence for the premium open web.</p>
+  <div class="ctas hero-ctas">
+    <a class="btn primary" href={book("mediacontext-hero")} target="_blank" rel="noopener">{M.cta} <span class="arr" aria-hidden="true">↗</span></a>
+    <a class="text-link" href="#product">See the product <span aria-hidden="true">↓</span></a>
+  </div>
   <div class="body">
+    <Section id="product" label="Product">
+      <figure class="card shot-card product-shot">
+        <a href={M.image.src} target="_blank" rel="noopener" aria-label="Open the full-size MediaContext product screenshot">
+          <img class="shot" src={M.image.src} alt={M.image.alt} width="2880" height="1800" decoding="async" />
+        </a>
+        <figcaption><span class="label">Publishers view / ranked by traffic</span><a class="text-link" href={M.image.src} target="_blank" rel="noopener">View full size <span aria-hidden="true">↗</span></a></figcaption>
+      </figure>
+      <ol class="product-reading">
+        <li><span class="label">01 / Accounts</span><p>Premium publishers ranked by traffic.</p></li>
+        <li><span class="label">02 / Context</span><p>Sales house, ad formats and header bidding.</p></li>
+        <li><span class="label">03 / Page experience</span><p>Ad density behind each account.</p></li>
+      </ol>
+    </Section>
     <Section id="glance" label="At a glance">
+      <p class="measure">{M.lede}</p>
       <dl class="facts">
         {M.facts.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
       </dl>
     </Section>
-    <Section id="product" label="Product">
-      <figure class="card shot-card">
-        <img class="shot" src={M.image.src} alt={M.image.alt} width="2880" height="1800" loading="lazy" decoding="async" />
-        <figcaption class="label">Publishers view / ranked by traffic</figcaption>
-      </figure>
-    </Section>
     <Section id="next" label="Next step">
+      <p class="measure">A 30-minute call with Vishveshwar Jatain.</p>
       <div class="ctas">
-        <a class="btn primary" href={M.href} target="_blank" rel="noopener">Request invite <span class="arr" aria-hidden="true">&nearr;</span></a>
+        <a class="btn primary" href={book("mediacontext-next")} target="_blank" rel="noopener">{M.cta} <span class="arr" aria-hidden="true">&nearr;</span></a>
+        <a class="text-link" href={M.href} target="_blank" rel="noopener">MediaContext website <span aria-hidden="true">↗</span></a>
       </div>
     </Section>
   </div>

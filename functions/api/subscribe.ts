@@ -48,7 +48,7 @@ const LIST_BY_CATEGORY: Record<string, string> = {
 const ALL_LISTS = Object.values(LIST_BY_CATEGORY);
 
 /** Where the signup happened, so list growth is attributable per surface. */
-const ALLOWED_SOURCES = new Set(["homepage", "blog-post", "blog-index", "footer", "unknown"]);
+const ALLOWED_SOURCES = new Set(["homepage", "blog-post", "blog-index", "record", "footer", "unknown"]);
 
 /**
  * Deliberately permissive. Strict RFC 5322 matching rejects addresses that
@@ -98,7 +98,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // Missing key is an operator error, not a visitor error. Log it loudly for
   // the Pages tail, but never tell the browser which piece of config is absent.
   if (!env.LOOPS_API_KEY) {
-    console.error("[subscribe] LOOPS_API_KEY is not set — signup dropped:", email);
+    console.error("[subscribe] LOOPS_API_KEY is not set; subscription unavailable.");
     return json({ error: "Signups are briefly unavailable. Try again shortly." }, 503);
   }
 
@@ -117,6 +117,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         userGroup: "website",
         mailingLists,
       }),
+      signal: AbortSignal.timeout(8000),
     });
   } catch (err) {
     console.error("[subscribe] Loops unreachable:", err);

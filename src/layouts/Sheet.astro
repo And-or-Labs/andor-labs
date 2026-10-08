@@ -2,8 +2,9 @@
 import { ClientRouter } from "astro:transitions";
 
 import "../styles/site.css";
+import "../styles/consent.css";
 import Icon from "../components/Icon.astro";
-import { book, SITE, SOCIALS, tone, type Color, type Fig } from "../data/site";
+import { book, MEDIACONTEXT, SITE, SOCIALS, tone, type Color, type Fig } from "../data/site";
 
 interface Props {
   title?: string;
@@ -13,11 +14,19 @@ interface Props {
   image?: string;
   type?: "website" | "article";
   publishedTime?: Date;
+  variant?: "index" | "document";
 }
-const { title, description = SITE.description, fig, color = "blue", image = "/og-image.jpg", type = "website", publishedTime } = Astro.props;
+const { title, description = SITE.description, fig, color = "blue", image = "/og-image.jpg", type = "website", publishedTime, variant = "document" } = Astro.props;
 const fullTitle = title ? `${title} | ${SITE.name}` : SITE.title;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(image, Astro.site);
+const isProduct = fig === "radar";
+const isNotes = fig === "flask" || fig === "notes" || fig === "press";
+const action = isProduct
+  ? { label: MEDIACONTEXT.cta, href: book("mediacontext-bar"), external: true }
+  : isNotes
+    ? { label: "Get new notes by email", href: "#subscribe", external: false }
+    : { label: "Book a scoping call", href: book(fig === "growth" ? "fdm-bar" : "home-bar"), external: true };
 ---
 <!doctype html>
 <html lang="en">
@@ -47,9 +56,9 @@ const ogImage = new URL(image, Astro.site);
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
-  <div class="sheet">
+  <div class:list={["sheet", variant, { reading: type === "article" }]}>
     <div class="frame">
-      <main id="main" class="pane" data-fig={fig} style={tone(color)}>
+      <main id="main" class="pane" tabindex="-1" data-fig={fig} style={tone(color)}>
         <header class="pane-head">
           <a class="mark" href="/" aria-label="And/or Labs, home"><b aria-hidden="true">&amp;</b>And/or Labs</a>
           <slot name="crumb" />
@@ -57,11 +66,17 @@ const ogImage = new URL(image, Astro.site);
         <slot />
       </main>
       <aside class="viz" transition:persist="figure" aria-hidden="true"><canvas id="figure"></canvas></aside>
-      <nav class="bar" aria-label="Contact" transition:persist="bar">
-        <a class="book" href={book("bar")} target="_blank" rel="noopener">Book a call <span class="arr" aria-hidden="true">&nearr;</span></a>
+      <footer class="site-footer">
+        <span class="label">And/or Labs</span>
+        <nav aria-label="Elsewhere">
         {SOCIALS.map(s => (
-          <a class="ico" href={s.href} aria-label={s.label} title={s.label} {...(s.id === "email" ? {} : { target: "_blank", rel: "noopener" })}><Icon name={s.id} /></a>
+          <a href={s.href} {...(s.id === "email" ? {} : { target: "_blank", rel: "noopener" })}><Icon name={s.id} /><span>{s.label}</span></a>
         ))}
+        </nav>
+      </footer>
+      <nav class="bar" aria-label="Next step">
+        <a class="book" href={action.href} {...(action.external ? { target: "_blank", rel: "noopener" } : {})}>{action.label}<span class="arr" aria-hidden="true">{action.external ? "↗" : "↓"}</span></a>
+        <a class="bar-email" href={SOCIALS[0].href}><Icon name="email" /><span>Email</span></a>
       </nav>
     </div>
   </div>

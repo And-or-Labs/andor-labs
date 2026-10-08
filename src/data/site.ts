@@ -7,11 +7,10 @@
 export const BOOKING_URL = "https://cal.com/jatain/book";
 export const EMAIL = "vj@andorlabs.ca";
 
-export const book = (placement: string) => `${BOOKING_URL}?utm_source=andorlabs&utm_medium=site&utm_content=${placement}`;
+export const book = (placement: string) => `${BOOKING_URL}?utm_source=andorlabs&utm_medium=site&utm_campaign=${placement.startsWith("mediacontext") ? "mediacontext" : "fdm"}&utm_content=${encodeURIComponent(placement)}`;
 
 export const INVITES = {
   mediacontext: { left: 10, total: 10 },
-  fdm: { left: 3, total: 3 },
 } as const;
 export const invites = (k: keyof typeof INVITES) => `${INVITES[k].left}/${INVITES[k].total} beta invites left`;
 
@@ -39,11 +38,11 @@ export const HOME = {
 export type Fig = "ripple" | "radar" | "growth" | "flask" | "press" | "notes";
 export type Color = "blue" | "coral" | "green" | "lilac" | "butter";
 
-export const tone = (c: Color) => c === "butter" ? "--c: var(--butter); --ct: var(--butter-ink)" : `--c: var(--${c})`;
+export const tone = (c: Color) => `--c: var(--${c}); --ct: var(--${c}-ink)`;
 
 export const MENU: { n: number; href: string; label: string; hint: string; fig: Fig; color: Color }[] = [
-  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: `Our product. Find the next publisher account worth calling. ${invites("mediacontext")}.`, fig: "radar", color: "blue" },
-  { n: 2, href: "/fdm/", label: "Forward deployed marketer", hint: `A senior operator inside your team for three months. From $15,000. ${invites("fdm")}.`, fig: "growth", color: "coral" },
+  { n: 1, href: "/mediacontext/", label: "MediaContext", hint: "Our product. Find the next publisher account worth calling.", fig: "radar", color: "blue" },
+  { n: 2, href: "/fdm/", label: "Forward deployed marketer", hint: "A senior operator inside your team for three months. From $15,000.", fig: "growth", color: "coral" },
   { n: 3, href: "/notes/", label: "Lab notes", hint: "Experiments, and the field notes they turn into.", fig: "flask", color: "green" },
   { n: 4, href: "/record/", label: "On record", hint: "Bylines and coverage in Digiday, Adweek, AdExchanger and others.", fig: "press", color: "lilac" },
 ];
@@ -68,6 +67,7 @@ export const MEDIACONTEXT = {
   ],
   image: { src: "/products/mediacontext-publishers.webp", alt: "MediaContext Publishers view: premium publishers ranked by traffic, with sales house, ad formats, header bidding and ad density per account." },
   href: "https://mediacontext.dev",
+  cta: "Book a MediaContext call",
 };
 
 export const FDM = {
@@ -83,7 +83,14 @@ export const FDM = {
     for: "For a media or adtech company whose product has outgrown its positioning, website and pipeline.",
     description: "We start with a diagnosis of your positioning, website, pipeline and tooling. Then we agree the few changes that will move revenue, and I build them inside your stack.",
     scope: ["A written diagnosis and plan before implementation starts", "Hands-on implementation, one priority at a time", "Priorities and progress reviewed regularly", "Price set by scope, starting at $15,000"],
-    cta: "Scope your engagement",
+    cta: "Book a scoping call",
+  },
+  caseStudy: {
+    title: "Filament. From positioning to a shipped site.",
+    description: "Positioning, messaging and a WordPress site rebuilt in Next.js, with Sanity CMS and a WebGL hero.",
+    href: "https://www.wearefilament.com",
+    before: { src: "/case-studies/filament/before-hero.png", alt: "Filament's previous WordPress homepage." },
+    after: { src: "/case-studies/filament/after-hero.webp", alt: "The redesigned Filament homepage with its new positioning and WebGL hero." },
   },
   experience: [
     { company: "Blockthrough", role: "Director, Marketing & Sales Operations", result: "3× organic traffic", work: "Built and led the marketing and revenue operations team. Ran search experiments, research-led campaigns, and brand modernization." },
