@@ -1,0 +1,26 @@
+---
+/**
+ * The visitor briefing: Snitcher Spotter -> Exa -> Jev, printed as a
+ * factsheet in Paper Mono onto a DOM paper sheet that fills the pane.
+ * The only chrome is the dot-matrix printer front pinned to the bottom:
+ * platen, guide rail, toothed belt and a 9-pin carriage whose nose
+ * tracks the column being typed (the front is drawn by teletype.ts).
+ * Rendered inside the persistent .viz aside on every page so
+ * transition:persist never drops it; CSS shows it only on home, where it
+ * replaces the engine. Behaviour lives in src/scripts/briefing.ts, the
+ * printer in src/scripts/teletype.ts.
+ */
+import "../styles/briefing.css";
+---
+
+<div class="brief" data-briefing>
+  <div class="psheet" data-tty>
+    <div class="sheet-paper" role="log" aria-live="polite" aria-label="Printed company factsheet" tabindex="0">
+      <div class="sheet-lines"></div>
+    </div>
+    <div class="tty-bar">
+      <svg class="tty-front" data-front aria-hidden="true"></svg>
+      <span class="sheet-status" role="status"></span>
+    </div>
+  </div>
+</div>

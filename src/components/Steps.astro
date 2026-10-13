@@ -1,0 +1,14 @@
+---
+/** A numbered tile (How it works, What you get) used by the listing layout. */
+interface Props { id: string; label: string; items: { name: string; text: string }[]; class?: string; }
+const { id, label, items, class: cls } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, "0");
+---
+<section class:list={["tile", cls]} aria-labelledby={`${id}-h`}>
+  <h2 class="sec-h" id={`${id}-h`}><span>{label}</span><span class="n">{pad(items.length)}</span></h2>
+  <ul class="steps">
+    {items.map((s, i) => (
+      <li><span class="sn" aria-hidden="true">{pad(i + 1)}</span><div><h3>{s.name}</h3><p>{s.text}</p></div></li>
+    ))}
+  </ul>
+</section>

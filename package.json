@@ -4,14 +4,17 @@
   "version": "1.2.0",
   "author": "shadcnblocks.com",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "node scripts/dev.mjs",
     "build": "npm run build:megafly && astro build",
+    "build:staging": "PUBLIC_STAGE=staging npm run build && cp -R .scratch/briefing/fixtures dist/brief-fixtures",
     "preview": "astro preview",
     "test:subscribe": "node --experimental-strip-types --test tests/subscribe.test.mjs",
     "astro": "astro",
     "lint": "eslint . --fix",
     "format": "prettier -w .",
-    "build:megafly": "cd megafly && npm ci --no-audit --no-fund && npx vite build --base=/megafly/ --outDir ../public/megafly --emptyOutDir"
+    "build:megafly": "cd megafly && npm ci --no-audit --no-fund && npx vite build --base=/megafly/ --outDir ../public/megafly --emptyOutDir",
+    "build:fig": "node figures/gpu/build.mjs",
+    "build:engine": "node figures/engine/build.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.7",
@@ -30,6 +33,7 @@
     "@types/react-dom": "^19.0.4",
     "@typescript-eslint/eslint-plugin": "^7.3.1",
     "@typescript-eslint/parser": "^7.18.0",
+    "agentation": "^3.1.2",
     "astro-eslint-parser": "^1.2.2",
     "eslint": "^8.57.1",
     "eslint-import-resolver-typescript": "^4.3.4",

@@ -53,3 +53,17 @@ interface D1Database {
   ) => Promise<D1Result<T>[]>;
   exec: (query: string) => Promise<{ count: number; duration: number }>;
 }
+
+/**
+ * KV, declared here for the same reason as PagesFunction above: the briefing
+ * only needs text get/put with a TTL, and @cloudflare/workers-types would
+ * redeclare the DOM lib Astro already provides.
+ */
+interface KVNamespace {
+  get: (key: string) => Promise<string | null>;
+  put: (
+    key: string,
+    value: string,
+    options?: { expirationTtl?: number },
+  ) => Promise<void>;
+}

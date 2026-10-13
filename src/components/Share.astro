@@ -1,0 +1,23 @@
+---
+import Icon from "./Icon.astro";
+
+interface Props { url: string; title: string; }
+const { url, title } = Astro.props;
+const enc = encodeURIComponent;
+const links = [
+  { name: "linkedin", net: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}` },
+  { name: "x", net: "X", href: `https://x.com/intent/post?url=${enc(url)}&text=${enc(title)}&via=eclecticV` },
+  { name: "facebook", net: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}` },
+  { name: "bluesky", net: "Bluesky", href: `https://bsky.app/intent/compose?text=${enc(`${title} ${url}`)}` },
+  { name: "reddit", net: "Reddit", href: `https://www.reddit.com/submit?url=${enc(url)}&title=${enc(title)}` },
+  { name: "hackernews", net: "Hacker News", href: `https://news.ycombinator.com/submitlink?u=${enc(url)}&t=${enc(title)}` },
+] as const;
+---
+<div class="share">
+  <span class="label">Share</span>
+  {links.map(l => <a href={l.href} target="_blank" rel="noopener" aria-label={`Share on ${l.net}`} title={l.net}><Icon name={l.name} /></a>)}
+  <a href={`mailto:?subject=${enc(title)}&body=${enc(url)}`} aria-label="Share by email" title="Email"><Icon name="email" /></a>
+  <button type="button" data-copy-link aria-label="Copy link" title="Copy link"><Icon name="link" /></button>
+  <button type="button" data-share-native hidden aria-label="Share" title="Share"><Icon name="share" /></button>
+  <span class="copied" aria-live="polite"></span>
+</div>

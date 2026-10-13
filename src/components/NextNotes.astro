@@ -1,0 +1,10 @@
+---
+import Subscribe from "./Subscribe.astro";
+import { FDM } from "../data/site";
+
+interface Props { source: "blog-index" | "blog-post" | "record"; }
+const { source } = Astro.props;
+---
+<div class="card" id="subscribe"><Subscribe source={source} /></div>
+<p>{FDM.offer.for}</p>
+<a class="text-link" href="/fdm/">{FDM.title} <span aria-hidden="true">→</span></a>

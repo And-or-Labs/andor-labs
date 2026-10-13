@@ -1,18 +1,11 @@
 ---
-import Crumb from "../components/Crumb.astro";
-import ItemNav from "../components/ItemNav.astro";
-import Section from "../components/Section.astro";
-import Sheet from "../layouts/Sheet.astro";
+import Page from "../layouts/Page.astro";
 ---
-<Sheet title="Not found" fig="ripple">
-  <Crumb slot="crumb" />
-  <p class="eyebrow"><span class="br">[404]</span> File not found</p>
-  <h1 class="title">Bad command or file name.</h1>
-  <p class="lede">That page moved, or never existed. The interference pattern on the right is unrelated, but calming.</p>
-  <div class="body">
-    <Section id="next" label="Next step">
-      <div class="ctas"><a class="btn primary" href="/" data-back>Back to the index</a></div>
-    </Section>
-  </div>
-  <ItemNav current={0} />
-</Sheet>
+<Page
+  n={0}
+  title="404"
+  here="Not found"
+  heading="That page does not exist."
+  lede="Probably my fault, not yours. The index has everything that still lives here."
+  cta={{ label: "Back to the index", href: "/" }}
+/>

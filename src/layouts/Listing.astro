@@ -1,0 +1,57 @@
+---
+import Sheet from "./Sheet.astro";
+import Crumb from "../components/Crumb.astro";
+import Cta from "../components/Cta.astro";
+import ItemNav from "../components/ItemNav.astro";
+import Steps from "../components/Steps.astro";
+import { MENU } from "../data/site";
+
+interface Props {
+  n: 1 | 2;
+  heading: string;
+  lede: string;
+  description?: string;
+  price: { label: string; amount: string; unit: string; note: string };
+  cta: { label: string; href: string };
+  /** Exactly three rows: the facts that complete the title, lede and price. */
+  facts: [{ k: string; v: string }, { k: string; v: string }, { k: string; v: string }];
+  proofLabel: string;
+  how: { name: string; text: string }[];
+  get: { name: string; text: string }[];
+}
+const { n, heading, lede, description, price, cta, facts, proofLabel, how, get } = Astro.props;
+const m = MENU.find(x => x.n === n);
+---
+<Sheet
+  title={m?.label}
+  description={description}
+  fig={m?.fig ?? "ripple"}
+  color={m?.color ?? "blue"}
+  variant="listing"
+>
+  <slot name="head" slot="head" />
+  <Crumb slot="crumb" current={m?.label} />
+  <div class="listing-body">
+    <div class="decision">
+      <h1 class="title">{heading}</h1>
+      <p class="lede">{lede}</p>
+      <article class="card price-card">
+        <p class="label c">{price.label}</p>
+        <p class="amount"><b>{price.amount}</b><span class="unit">{price.unit}</span><span class="price-note">{price.note}</span></p>
+        <div class="ctas"><Cta href={cta.href} label={cta.label} meta="30 min" external /></div>
+      </article>
+      <dl class="facts">
+        {facts.map(f => <div><dt>{f.k}</dt><dd>{f.v}</dd></div>)}
+      </dl>
+    </div>
+    <div class="bento">
+      <section class="tile tile-proof" aria-labelledby="proof-h">
+        <h2 class="sec-h" id="proof-h"><span>{proofLabel}</span></h2>
+        <div class="proof-body"><slot name="proof" /></div>
+      </section>
+      <Steps id="how" label="How it works" items={how} />
+      <Steps id="get" label="What you get" items={get} />
+    </div>
+  </div>
+  <div class="listing-foot"><ItemNav current={n} /></div>
+</Sheet>

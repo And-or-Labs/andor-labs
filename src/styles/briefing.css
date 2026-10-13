@@ -1,0 +1,99 @@
+/* ---------- Visitor briefing: the printed factsheet ----------
+   An off-white paper sheet fills the right pane edge to edge; a
+   dot-matrix printer front (SVG: platen, rail, toothed belt, 9-pin
+   carriage) is pinned to the bottom. Visible on home only, where it
+   covers the engine figure. */
+.brief {
+  display: none;
+  --bf-ink: #222222;
+  --bf-line: #81ACEC;
+  --bf-muted: rgba(0, 0, 0, .5);
+  --bf-paper: #FBFBF8;
+  --bf-mech: #F6F6F3;
+  --bf-mech2: #EEEEEB;
+}
+html[data-home] .brief {
+  position: absolute; inset: 0; display: block;
+  font: 400 14px/18px var(--mono); color: var(--bf-ink);
+}
+/* The briefing takes the pane on home; the persisted engine stays mounted
+   underneath but hidden. */
+html[data-home] .viz .ao { visibility: hidden; }
+
+/* On desktop the left pane's blueprint grid is a 120px repeat; snapping
+   the home pane to whole cells (6 x 120px) puts the pane/viz boundary on
+   a guide line so the paper's left edge sits on a rule instead of
+   leaving a partial guide cell between the last guide and the border. */
+@media (min-width: 1024px) {
+  html[data-home] .frame { grid-template-columns: calc(6 * 120px) minmax(0, 1fr); }
+}
+
+/* --- Sheet: paper + printer front --- */
+/* The sheet sits on the viz pane's blueprint grid like a Paper window:
+   inset two grid cells (32px = 2 x 16px) so its edges land on guide lines,
+   ink border plus the site's blue offset shadow. */
+.psheet {
+  position: absolute; inset: 32px 36px 36px 32px; display: flex; flex-direction: column;
+  background: var(--bf-paper); border: 1px solid var(--bf-ink); box-shadow: 4px 4px 0 var(--blue);
+}
+
+.sheet-paper {
+  position: relative; flex: 1 1 auto; min-height: 0;
+  overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: rgba(34, 34, 34, .3) transparent;
+  /* Plain paper with a real margin; teletype.ts measures it for the column count. */
+  padding: 24px 3ch 14px;
+  background: var(--bf-paper);
+}
+.sheet-paper:focus-visible { outline: 1px solid var(--bf-ink); outline-offset: -2px; }
+.sheet-lines { min-height: 100%; display: flex; flex-direction: column; }
+.sheet-lines > :first-child { margin-top: auto; }
+.pl { position: relative; height: 17px; flex: 0 0 auto; font: 400 12px/17px "Paper Mono", ui-monospace, monospace; white-space: pre; color: var(--bf-ink); }
+.pl .s-mut { color: var(--bf-muted); }
+.pl .s-acc { color: #1B4DFF; }
+.pl a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--bf-line); }
+.pl a:focus-visible { outline: 1px solid var(--bf-ink); outline-offset: 1px; }
+/* Screen-reader text for a progress bar's real result (bars are
+   aria-hidden). */
+.pl .sr {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* The departing sheet: a clone that slides up and away while the next
+   sheet prints onto the emptied paper. */
+.sheet-ghost {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  padding: inherit;
+  background: var(--bf-paper);
+  z-index: 2;
+  transition: transform .65s cubic-bezier(.55, 0, .85, .36), opacity .65s ease-in;
+}
+.sheet-ghost.gone { transform: translateY(-112%); opacity: 0; }
+
+/* --- Printer front: SVG mechanics + muted run status ---
+   The drawing itself (platen, rail, belt, carriage) is laid out by
+   teletype.ts so the carriage can sit exactly under the print column. */
+.tty-bar { position: relative; flex: 0 0 96px; }
+/* The carriage head pokes ~11px above the bar onto the paper's bottom
+   line; the svg may not clip it. */
+.tty-front { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* The switchband under the separator: LED + ONLINE, then the status,
+   which ellipsizes before it reaches the model plate. */
+.sheet-status {
+  position: absolute; left: 70px; right: 126px; bottom: 4px;
+  font: 400 10px/14px "Paper Mono", ui-monospace, monospace;
+  color: rgba(34, 34, 34, .5);
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+
+/* --- Mobile: no sheet. Stacked under the menu it would print to nobody, and
+   briefing.ts skips the pipeline below 861px. --- */
+@media (max-width: 860px) {
+  html[data-home] .viz { display: none; }
+  html[data-home] .frame { grid-template-rows: auto 1fr auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet-ghost { transition: none; }
+}

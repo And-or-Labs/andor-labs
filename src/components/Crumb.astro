@@ -1,5 +1,20 @@
 ---
-interface Props { href?: string; label?: string; }
-const { href = "/", label = "Index" } = Astro.props;
+/**
+ * Breadcrumb, always top left. Esc goes to the parent (the last link).
+ * `trail` is the path above the page; `current` names the page itself
+ * (omitted on posts, where the h1 does that job).
+ */
+interface Props { trail?: { href: string; label: string }[]; current?: string; }
+const { trail = [{ href: "/", label: "Index" }], current } = Astro.props;
+const last = trail.length - 1;
 ---
-<a class="crumb" href={href} data-back><kbd>[Esc]</kbd> {label}</a>
+<nav class="crumbs" aria-label="Breadcrumb">
+  <kbd aria-hidden="true">[Esc]</kbd>
+  {trail.map((t, i) => (
+    <>
+      <a class="crumb" href={t.href} {...(i === last ? { "data-back": true } : {})}>{t.label}</a>
+      {(i < last || current) && <span class="sep" aria-hidden="true">/</span>}
+    </>
+  ))}
+  {current && <span class="here" aria-current="page">{current}</span>}
+</nav>

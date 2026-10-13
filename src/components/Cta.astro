@@ -1,0 +1,14 @@
+---
+/**
+ * The one primary call to action. The header's Book a call and every page
+ * CTA render through this, so they cannot drift apart. `meta` adds the
+ * second segment (e.g. "30 min"); the arrow follows the last segment.
+ */
+interface Props { href: string; label: string; meta?: string; external?: boolean; }
+const { href, label, meta, external = false } = Astro.props;
+const arrow = external ? "↗" : href.startsWith("#") ? "↓" : "→";
+---
+<a class="cta" href={href} {...(external ? { target: "_blank", rel: "noopener" } : {})}>
+  <span class="cta-t">{label}{!meta && <span class="arr" aria-hidden="true">{arrow}</span>}</span>
+  {meta && <span class="cta-m">{meta} <span class="arr" aria-hidden="true">{arrow}</span></span>}
+</a>

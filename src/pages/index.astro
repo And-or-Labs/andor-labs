@@ -1,36 +1,14 @@
 ---
-import { HOME, MENU, PARTNERS, PRINTED_IN, tone } from "../data/site";
+import { HOME, MENU, PARTNERS, tone } from "../data/site";
 import Sheet from "../layouts/Sheet.astro";
 const [before, after] = HOME.title.split(HOME.emphasis);
-const commercial = MENU.slice(0, 2);
-const supporting = MENU.slice(2);
 ---
 <Sheet fig="ripple" variant="index">
-  <h1 class="display">{before}<em>{HOME.emphasis}</em>{after}</h1>
-  <p class="founder">{HOME.founder}</p>
 
-  <nav class="home-menu" aria-label="Lines of work">
-    <ol class="menu commercial-menu">
-      {commercial.map(m => (
-        <li><a href={m.href} data-n={m.n} data-fig={m.fig} style={tone(m.color)}>
-          <span class="br" aria-hidden="true">[{m.n}]</span>
-          <span class="t">{m.label}<span class="menu-description">{m.hint}</span></span>
-          <span class="go" aria-hidden="true">↗</span>
-          <span class="lead" aria-hidden="true"></span>
-        </a></li>
-      ))}
-    </ol>
-    <ol class="menu supporting-menu" start="3">
-      {supporting.map(m => (
-        <li><a href={m.href} data-n={m.n} data-fig={m.fig} style={tone(m.color)}>
-          <span class="br" aria-hidden="true">[{m.n}]</span>
-          <span class="t">{m.label}</span><span class="go" aria-hidden="true">↗</span>
-        </a></li>
-      ))}
-    </ol>
-  </nav>
 
-  <dl class="proof" aria-label="Partners and press">
+  <h1 class="display">{before}<em>{HOME.emphasis}</em><span class="rest">{after}</span></h1>
+  <p class="founder">Founded by Vishveshwar Jatain, former marketing head of AdPushup (acquired by Geniee, Inc.) and Blockthrough (acquired by eyeo GmbH)</p>
+  <dl class="proof proof-top" aria-label="Launch partners">
     <div>
       <dt class="label">Launch partners</dt>
       <dd>
@@ -40,9 +18,22 @@ const supporting = MENU.slice(2);
       </dd>
     </div>
     <div>
-      <dt class="label">Printed in</dt>
-      <dd class="printed"><a href="/record/" aria-label="Read bylines and coverage">{PRINTED_IN.map((p, i) => <span class="pi"><b>{p}</b>{i < PRINTED_IN.length - 1 && <span class="dot" aria-hidden="true">/</span>}</span>)}</a></dd>
+      <dt class="label">Bylines &amp; coverage</dt>
+      <dd class="press-names"><a href="/record/" aria-label="Bylines and coverage in Digiday, Adweek, AdExchanger, Forbes and eMarketer">{["Digiday", "Adweek", "AdExchanger", "Forbes", "eMarketer"].map(p => <span class="tag">{p}</span>)}<span class="go" aria-hidden="true">→</span></a></dd>
     </div>
   </dl>
+
+  <nav class="home-menu" aria-label="Lines of work">
+    <ol class="menu commercial-menu">
+      {MENU.map(m => (
+        <li><a href={m.href} data-n={m.n} data-fig={m.fig} style={tone(m.color)}>
+          <span class="br" aria-hidden="true">[{m.n}]</span>
+          <span class="t">{m.label}</span><span class="hint">{m.hint}</span>
+          <span class="go" aria-hidden="true">→</span>
+          <span class="lead" aria-hidden="true"></span>
+        </a></li>
+      ))}
+    </ol>
+  </nav>
 
 </Sheet>

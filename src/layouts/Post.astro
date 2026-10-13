@@ -1,0 +1,176 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+import Page from "./Page.astro";
+import NextNotes from "../components/NextNotes.astro";
+import Share from "../components/Share.astro";
+import { HOME, MENU, SITE, SOCIALS } from "../data/site";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+  newer?: CollectionEntry<"blog">;
+  older?: CollectionEntry<"blog">;
+  minutes: number;
+}
+const { post, newer, older, minutes } = Astro.props;
+const d = post.data;
+const notes = MENU.find(m => m.n === 3)!;
+const author = d.author ?? "Vishveshwar Jatain";
+const linkedin = SOCIALS.find(s => s.id === "linkedin")!;
+const x = SOCIALS.find(s => s.id === "x")!;
+const github = SOCIALS.find(s => s.id === "github")!;
+const url = new URL(`/notes/${post.id}/`, SITE.url).toString();
+const fmt = (x: Date) => x.toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+const words = (post.body ?? "").split(/\s+/).length;
+// Imported excerpts end mid-sentence ("…"); repeating the opening paragraph
+// as a clipped lede reads as a bug, so only real standfirsts are shown.
+const lede = d.standfirst && !/(…|\.\.\.)$/.test(d.standfirst.trim()) ? d.standfirst : undefined;
+const modified = d.updatedDate && d.updatedDate.valueOf() !== d.pubDate.valueOf() ? d.updatedDate : undefined;
+const graph = [
+  {
+    "@type": "BlogPosting",
+    "@id": `${url}#article`,
+    headline: d.title,
+    description: d.description,
+    image: d.heroImage ? [new URL(d.heroImage, SITE.url).toString()] : undefined,
+    datePublished: d.pubDate.toISOString(),
+    dateModified: (d.updatedDate ?? d.pubDate).toISOString(),
+    author: {
+      "@type": "Person",
+      "@id": "https://andorlabs.ca/#vj",
+      name: "Vishveshwar Jatain",
+      url: linkedin.href,
+      image: new URL("/founder.png", SITE.url).toString(),
+      jobTitle: "Founder, And/or Labs",
+      sameAs: [linkedin.href, x.href, github.href],
+    },
+    publisher: {
+      "@type": "Organization",
+      "@id": "https://andorlabs.ca/#org",
+      name: SITE.name,
+      url: SITE.url,
+      logo: { "@type": "ImageObject", url: new URL("/favicon/apple-touch-icon.png", SITE.url).toString() },
+    },
+    mainEntityOfPage: url,
+    keywords: d.tags?.join(", "),
+    wordCount: words,
+    timeRequired: `PT${minutes}M`,
+    inLanguage: "en",
+  },
+  {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: SITE.name, item: `${SITE.url}/` },
+      { "@type": "ListItem", position: 2, name: notes.label, item: new URL("/notes/", SITE.url).toString() },
+      { "@type": "ListItem", position: 3, name: d.title, item: url },
+    ],
+  },
+  ...(d.faq?.length ? [{
+    "@type": "FAQPage",
+    mainEntity: d.faq.map(f => ({ "@type": "Question", name: f.question, acceptedAnswer: { "@type": "Answer", text: f.answer } })),
+  }] : []),
+];
+---
+<Page
+  n={3}
+  title={d.title}
+  description={d.description}
+  heading={d.title}
+  lede={lede}
+  crumb={{ href: "/notes/", label: notes.label }}
+  image={d.heroImage}
+  type="article"
+  publishedTime={d.pubDate}
+>
+  <Fragment slot="head">
+    <meta name="author" content={author} />
+    <meta property="article:modified_time" content={(d.updatedDate ?? d.pubDate).toISOString()} />
+    <meta property="article:author" content={linkedin.href} />
+    {d.tags?.map(t => <meta property="article:tag" content={t} />)}
+    {d.heroAlt && <meta property="og:image:alt" content={d.heroAlt} />}
+    <meta name="twitter:site" content="@eclecticV" />
+    <script type="application/ld+json" set:html={JSON.stringify({ "@context": "https://schema.org", "@graph": graph })} />
+  </Fragment>
+  <div slot="header-extra" class="post-head">
+    <div class="byline">
+      <img class="byline-photo" src="/founder.png" alt={author} width="40" height="40" />
+      <div class="byline-copy">
+        <a class="byline-name" href={linkedin.href} rel="author">{author}</a>
+        <p class="byline-credential">Led marketing and sales ops at Blockthrough and AdPushup through their acquisitions.</p>
+        <p class="post-meta"><span>Published <time datetime={d.pubDate.toISOString()}>{fmt(d.pubDate)}</time></span>{modified && <span>Updated <time datetime={modified.toISOString()}>{fmt(modified)}</time></span>}<span>{minutes} min read</span></p>
+      </div>
+    </div>
+    <Share url={url} title={d.title} />
+  </div>
+  {d.heroImage && (
+    <figure class="post-hero">
+      <img src={d.heroImage} alt={d.heroAlt ?? ""} width="1600" height="900" loading="eager" decoding="async" />
+      {d.heroCredit && <figcaption>{d.heroCredit}</figcaption>}
+    </figure>
+  )}
+  {d.keyTakeaways?.length ? (
+    <details class="card takeaways"><summary class="label">Key takeaways</summary><ul>{d.keyTakeaways.map(k => <li>{k}</li>)}</ul></details>
+  ) : null}
+  <div class="prose"><slot /></div>
+  {d.faq?.length ? (
+    <section class="post-faq" aria-labelledby="post-faq-h">
+      <h3 id="post-faq-h" class="label">Frequently asked questions</h3>
+      {d.faq.map(f => (
+        <details class="card takeaways"><summary>{f.question}</summary><p class="faq-answer">{f.answer}</p></details>
+      ))}
+    </section>
+  ) : null}
+  {d.tags?.length ? <ul class="post-tags">{d.tags.map(t => <li>{t}</li>)}</ul> : null}
+  <Share url={url} title={d.title} />
+  <aside class="author-box">
+    <img class="author-photo" src="/founder.png" alt={author} width="72" height="72" loading="lazy" decoding="async" />
+    <div class="author-copy">
+      <p class="author-name"><a href={linkedin.href} rel="author">{author}</a></p>
+      <p>{HOME.founder}</p>
+      <p class="author-links"><a class="text-link" href={linkedin.href} target="_blank" rel="noopener">LinkedIn <span aria-hidden="true">↗</span></a><a class="text-link" href={x.href} target="_blank" rel="noopener">X <span aria-hidden="true">↗</span></a></p>
+    </div>
+  </aside>
+  <nav class="pager" aria-label="More notes">
+    {older ? <a href={`/notes/${older.id}/`}><span class="label">Older</span>{older.data.title}</a> : <span></span>}
+    {newer ? <a href={`/notes/${newer.id}/`}><span class="label">Newer</span>{newer.data.title}</a> : <span></span>}
+  </nav>
+  <NextNotes slot="next" source="blog-post" />
+</Page>
+
+<style>
+  .post-head { display: grid; gap: 18px; margin-top: 20px; }
+  .post-head :global(.share) { padding-top: 0; border-top: 0; }
+  .byline { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; align-items: start; }
+  .byline-photo { width: 40px; height: 40px; outline: 1px solid var(--rule); }
+  .byline-name { display: inline-block; padding-block: 11px; margin-block: -11px; font-weight: 500; color: var(--ink); text-decoration: none; }
+  .byline-name:hover { color: var(--blue-ink); }
+  .byline-credential { margin-top: 2px; font-size: 13px; line-height: 1.45; color: var(--dim); }
+  .post-head .post-meta { margin-top: 6px; }
+  .post-faq { display: grid; gap: 12px; }
+  .post-faq .takeaways { padding: 0 20px; }
+  .post-faq summary { min-height: 48px; padding-block: 14px; cursor: pointer; color: var(--ink); font-size: 15px; }
+  .post-faq .faq-answer { padding-bottom: 18px; margin-top: 0; font-size: 14px; line-height: 1.6; }
+  .post-tags { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; }
+  .post-tags li { padding: 4px 10px; font: 12px/1.6 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--dim); border: 1px solid var(--rule); }
+  .author-box { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 20px; padding: 24px; background: var(--white); border: 1px solid var(--ink); box-shadow: var(--lift); }
+  .author-photo { width: 72px; height: 72px; outline: 1px solid var(--rule); }
+  .author-name { font-weight: 500; }
+  .author-name a { color: var(--ink); text-decoration: none; }
+  .author-name a:hover { color: var(--blue-ink); }
+  .author-copy > p { font-size: 14px; line-height: 1.55; }
+  .author-copy > p + p { margin-top: 8px; }
+  .author-links { display: flex; gap: 16px; }
+  .author-links .text-link { min-height: 40px; padding: 0; }
+  .post-hero figcaption { color: var(--dim); }
+  .takeaways { padding-block: 0; }
+  .takeaways summary { min-height: 48px; padding-block: 16px; cursor: pointer; color: var(--ink); }
+  .takeaways ul { padding-bottom: 20px; margin-top: 0; }
+  .prose { overflow-wrap: anywhere; }
+  .pager { gap: 0 24px; }
+  @media (max-width: 860px) {
+    .post-head :global(.share) { display: none; }
+    .pager > span { display: none; }
+    .author-box { grid-template-columns: 56px minmax(0, 1fr); gap: 16px; padding: 18px; }
+    .author-photo { width: 56px; height: 56px; }
+  }
+</style>

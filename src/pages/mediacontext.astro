@@ -1,46 +1,35 @@
 ---
-import Crumb from "../components/Crumb.astro";
-import ItemNav from "../components/ItemNav.astro";
-import Section from "../components/Section.astro";
-import { book, MEDIACONTEXT as M } from "../data/site";
-import Sheet from "../layouts/Sheet.astro";
+import { MEDIACONTEXT as M, book } from "../data/site";
+import Listing from "../layouts/Listing.astro";
 ---
-<Sheet title="MediaContext" description={M.title + " " + M.lede} fig="radar" color="blue">
-  <Crumb slot="crumb" />
-  <p class="eyebrow"><span class="br">[1]</span> MediaContext</p>
-  <h1 class="title">{M.title}</h1>
-  <p class="lede">Market intelligence for the premium open web.</p>
-  <div class="ctas hero-ctas">
-    <a class="btn primary" href={book("mediacontext-hero")} target="_blank" rel="noopener">{M.cta} <span class="arr" aria-hidden="true">↗</span></a>
-    <a class="text-link" href="#product">See the product <span aria-hidden="true">↓</span></a>
-  </div>
-  <div class="body">
-    <Section id="product" label="Product">
-      <figure class="card shot-card product-shot">
-        <a href={M.image.src} target="_blank" rel="noopener" aria-label="Open the full-size MediaContext product screenshot">
-          <img class="shot" src={M.image.src} alt={M.image.alt} width="2880" height="1800" decoding="async" />
-        </a>
-        <figcaption><span class="label">Publishers view / ranked by traffic</span><a class="text-link" href={M.image.src} target="_blank" rel="noopener">View full size <span aria-hidden="true">↗</span></a></figcaption>
-      </figure>
-      <ol class="product-reading">
-        <li><span class="label">01 / Accounts</span><p>Premium publishers ranked by traffic.</p></li>
-        <li><span class="label">02 / Context</span><p>Sales house, ad formats and header bidding.</p></li>
-        <li><span class="label">03 / Page experience</span><p>Ad density behind each account.</p></li>
-      </ol>
-    </Section>
-    <Section id="glance" label="At a glance">
-      <p class="measure">{M.lede}</p>
-      <dl class="facts">
-        {M.facts.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
-      </dl>
-    </Section>
-    <Section id="next" label="Next step">
-      <p class="measure">A 30-minute call with Vishveshwar Jatain.</p>
-      <div class="ctas">
-        <a class="btn primary" href={book("mediacontext-next")} target="_blank" rel="noopener">{M.cta} <span class="arr" aria-hidden="true">&nearr;</span></a>
-        <a class="text-link" href={M.href} target="_blank" rel="noopener">MediaContext website <span aria-hidden="true">↗</span></a>
-      </div>
-    </Section>
-  </div>
-  <ItemNav current={1} />
-</Sheet>
+<Listing
+  n={1}
+  heading={M.title}
+  lede="Market intelligence for the premium open web, built for adtech teams that sell to publishers. Synthetic browsers render every page, so each answer is observed on the live site, not inferred."
+  description={M.lede}
+  price={{ label: "Subscription", amount: "$1,000", unit: "/ month", note: "App, REST API and MCP" }}
+  cta={{ label: M.cta, href: book("mediacontext-hero") }}
+  facts={[
+    { k: "Coverage", v: "Top 100,000 premium publishers" },
+    { k: "Fields", v: "Sales house, ad formats, header bidding, ad density" },
+    { k: "Refresh", v: "Weekly scans, every fact dated" },
+  ]}
+  proofLabel="Publishers view"
+  how={[
+    { name: "Land", text: "Publishers with no sign of you. Displace a sales house or take the greenfield." },
+    { name: "Expand", text: "Once you are in, the sister sites in the same media group." },
+    { name: "Defend", text: "Your accounts where a competitor just showed up." },
+  ]}
+  get={[
+    { name: "Top prospects", text: "Accounts ranked by fit, with the reason each one made the list." },
+    { name: "Signals", text: "Rules over any field, on any publisher or list." },
+    { name: "Buying committees", text: "Ranked by who decides, not by who has the longest title." },
+  ]}
+>
+  <figure slot="proof" class="proof-shot">
+    <a class="proof-media" href={M.image.src} target="_blank" rel="noopener" aria-label="Open the full-size MediaContext product screenshot">
+      <img class="shot" src={M.image.src} alt={M.image.alt} width="2880" height="1800" decoding="async" />
+    </a>
+    <figcaption class="proof-cap"><span class="label">Ranked by traffic</span><a class="text-link" href={M.image.src} target="_blank" rel="noopener">View full size <span aria-hidden="true">↗</span></a></figcaption>
+  </figure>
+</Listing>

@@ -9,4 +9,10 @@ export default defineConfig({
   integrations: [mdx(), sitemap()],
   output: "static",
   trailingSlash: "ignore",
+  devToolbar: { enabled: false },
+  vite: {
+    server: {
+      proxy: { "/api": "http://127.0.0.1:8788" },
+    },
+  },
 });

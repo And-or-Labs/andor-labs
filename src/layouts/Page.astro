@@ -1,0 +1,81 @@
+---
+import Sheet from "./Sheet.astro";
+import Crumb from "../components/Crumb.astro";
+import Cta from "../components/Cta.astro";
+import ItemNav from "../components/ItemNav.astro";
+import Section from "../components/Section.astro";
+import { MENU, type Color, type Fig } from "../data/site";
+
+interface Props {
+  n: 0 | 1 | 2 | 3 | 4;
+  heading: string;
+  lede?: string;
+  title?: string;
+  description?: string;
+  crumb?: { href: string; label: string };
+  here?: string;
+  spec?: { k: string; v: string; href?: string }[];
+  cta?: { label: string; href: string; external?: boolean };
+  secondary?: { label: string; href: string; external?: boolean };
+  fig?: Fig;
+  color?: Color;
+  image?: string;
+  type?: "website" | "article";
+  publishedTime?: Date;
+}
+const { n, heading, lede, title, description, crumb, here, spec, cta, secondary, fig, color, image, type, publishedTime } = Astro.props;
+const m = MENU.find(x => x.n === n);
+const arrow = (c: { href: string; external?: boolean }) => (c.external || c.href.startsWith("http") ? "↗" : c.href.startsWith("#") ? "↓" : "→");
+---
+<Sheet
+  title={title ?? m?.label}
+  description={description}
+  fig={fig ?? m?.fig ?? "ripple"}
+  color={color ?? m?.color ?? "blue"}
+  image={image}
+  type={type}
+  publishedTime={publishedTime}
+  variant="document"
+>
+  <slot name="head" slot="head" />
+  <Crumb slot="crumb" trail={crumb ? [{ href: "/", label: "Index" }, crumb] : undefined} current={crumb ? undefined : here ?? m?.label} />
+  <header class="doc-head">
+    <h1 class="title">{heading}</h1>
+    {lede && <p class="lede">{lede}</p>}
+    <slot name="header-extra" />
+    {spec?.length ? (
+      <ul class="strip" aria-label="On this page">
+        {spec.map(r => (
+          <li>{r.href
+            ? <a href={r.href} {...(r.href.startsWith("http") ? { target: "_blank", rel: "noopener" } : {})}><span class="k">{r.k}</span> <span class="v">{r.v}</span> <span class="x" aria-hidden="true">{arrow(r)}</span></a>
+            : <span><span class="k">{r.k}</span> <span class="v">{r.v}</span></span>}
+          </li>
+        ))}
+      </ul>
+    ) : null}
+    {cta && (
+      <div class="ctas hero-ctas">
+        <Cta href={cta.href} label={cta.label} external={cta.external} />
+        {secondary && <a class="text-link" href={secondary.href} {...(secondary.external ? { target: "_blank", rel: "noopener" } : {})}>{secondary.label} <span aria-hidden="true">{arrow(secondary)}</span></a>}
+      </div>
+    )}
+  </header>
+  <div class="body">
+    <slot />
+    {Astro.slots.has("next") && <Section id="next" label="Next step"><slot name="next" /></Section>}
+  </div>
+  <ItemNav current={n} />
+</Sheet>
+
+<style>
+  .doc-head { display: grid; gap: 0; }
+  .strip { display: flex; flex-wrap: wrap; gap: 0 4px; margin-top: 18px; margin-left: -10px; list-style: none; }
+  .strip a, .strip li > span { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 10px; font: 12px/1 var(--mono); text-decoration: none; color: var(--ink); transition: color .15s var(--ease), background-color .15s var(--ease); }
+  .strip .k { letter-spacing: .06em; text-transform: uppercase; color: var(--label, var(--dim)); }
+  .strip .v { font-variant-numeric: tabular-nums; }
+  .strip .x { color: var(--faint); transition: transform .2s var(--ease), color .15s var(--ease); }
+  @media (hover: hover) and (pointer: fine) {
+    .strip a:hover { background: var(--sky); }
+    .strip a:hover .x { color: var(--blue); transform: translateY(2px); }
+  }
+</style>

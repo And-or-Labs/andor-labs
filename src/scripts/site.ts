@@ -22,6 +22,10 @@ const takeOrigin = () => {
   try { const v = sessionStorage.getItem(ORIGIN_KEY); sessionStorage.removeItem(ORIGIN_KEY); return v ? JSON.parse(v) : undefined; } catch { return undefined; }
 };
 
+// The engine figure in the side pane (an iframe) advances the throttle to match the hovered menu item.
+const gpu = (mode: string | null) =>
+  document.querySelector<HTMLIFrameElement>(".ao iframe")?.contentWindow?.postMessage({ throttle: mode }, location.origin);
+
 function wireMenu() {
   const items = [...document.querySelectorAll<HTMLAnchorElement>(".menu a[data-fig]")];
   if (!items.length) return;
@@ -33,6 +37,7 @@ function wireMenu() {
     enterTimer = window.setTimeout(() => {
       const r = a.getBoundingClientRect();
       getFigure()?.preview(a.dataset.fig as FigName, { clientY: r.top + r.height / 2 });
+      gpu(a.dataset.fig ?? null);
     }, intent);
   };
   const leave = () => {
@@ -40,6 +45,7 @@ function wireMenu() {
     leaveTimer = window.setTimeout(() => {
       items.forEach(x => x.classList.remove("on"));
       getFigure()?.preview(null);
+      gpu(null);
     }, 140);
   };
   for (const a of items) {
@@ -96,9 +102,16 @@ function wirePrinted() {
 }
 
 function wireShare() {
+  document.querySelectorAll<HTMLButtonElement>("[data-share-native]").forEach(b => {
+    if (!("share" in navigator)) return;
+    b.hidden = false;
+    b.addEventListener("click", () => {
+      void navigator.share({ title: document.title, url: location.href }).catch(() => { /* dismissed */ });
+    });
+  });
   document.querySelectorAll<HTMLButtonElement>("[data-copy-link]").forEach(b => {
     b.addEventListener("click", async () => {
-      const note = b.parentElement?.querySelector(".copied");
+      const note = b.closest(".share")?.querySelector(".copied");
       try { await navigator.clipboard.writeText(location.href); if (note) note.textContent = "Link copied"; }
       catch { if (note) note.textContent = "Copy failed"; }
       setTimeout(() => { if (note) note.textContent = ""; }, 1800);
@@ -109,6 +122,11 @@ function wireShare() {
 document.addEventListener("astro:page-load", () => {
   const main = document.getElementById("main");
   getFigure()?.set((main?.dataset.fig || "ripple") as FigName, takeOrigin());
+  // The header persists across navigations, so its current marker is kept in sync here.
+  document.querySelectorAll<HTMLAnchorElement>(".topnav a").forEach(a => {
+    a.toggleAttribute("aria-current", location.pathname.startsWith(new URL(a.href).pathname));
+    if (a.hasAttribute("aria-current")) a.setAttribute("aria-current", "page");
+  });
   wireMenu();
   wireSubscribe();
   wireShare();

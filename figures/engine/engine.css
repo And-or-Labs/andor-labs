@@ -1,0 +1,69 @@
+.en-main{max-width:640px;margin:0 auto}
+.en{margin:0}
+.en-plate{position:relative;width:560px;height:680px;background:#f5f7fa;background-image:linear-gradient(#1b4dff14 1px,transparent 1px),linear-gradient(90deg,#1b4dff14 1px,transparent 1px);background-size:16px 16px;box-shadow:0 0 0 1px #1b4dff1f;border-radius:2px;overflow:hidden}
+.en-stage{position:absolute;inset:0;outline:none;cursor:crosshair;-webkit-tap-highlight-color:transparent}
+.en-stage:focus-visible{outline:2px solid #1b4dff;outline-offset:-2px}
+.iso-svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.en-gl{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.en-c{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#1b4dff}
+.en-title{position:absolute;right:18px;bottom:16px;min-width:172px;background:#fff;border:1px solid #1b4dff2e;font:11.5px/1.3 "Paper Mono",ui-monospace,Menlo,monospace;color:#0b1533;pointer-events:none;font-variant-numeric:tabular-nums}
+.en-trow{display:flex;align-items:baseline;gap:8px;padding:5px 8px}
+.en-trow+.en-trow{border-top:1px solid #1b4dff2e}
+.en-trow b{font-weight:400;color:#0b1533}
+.en-trow .en-n{margin-left:auto}
+.en-half{padding:0}
+.en-cell{display:flex;align-items:baseline;gap:8px;padding:5px 8px;flex:1}
+.en-cell+.en-cell{border-left:1px solid #1b4dff2e}
+.en-hint{color:#5a6482}
+.en-state{position:absolute;left:18px;bottom:16px;display:flex;align-items:baseline;gap:10px;padding:8px 2px;border-top:1px solid #0b15331a;border-bottom:1px solid #0b15331a;font:11.5px/1.2 "Paper Mono",ui-monospace,Menlo,monospace;pointer-events:none;font-variant-numeric:tabular-nums}
+.en-state b{font-weight:400;color:#0b1533;transition:color .2s}
+.en-cap{margin-top:14px;font:12px/1.6 "Paper Mono",ui-monospace,Menlo,monospace;color:#5a6482}
+.en-load{font-family:"Paper Mono",ui-monospace,monospace;fill:#7ea0ff}
+.en-plate-txt{font-family:"Paper Mono",ui-monospace,monospace;fill:#1b4dff}
+.en-shadow{fill:#0b1533;opacity:.06}
+.en-ogv path{fill:var(--anatomy-mid);stroke:var(--anatomy-hi);stroke-width:.3}
+.en-plate-name{font-family:"Paper Mono",ui-monospace,monospace;fill:#5a6482}
+.en-callout{opacity:0;transition:opacity .35s ease .18s}
+.en-stage[data-apart] .en-callout{opacity:1}
+.en-callout path{fill:none;stroke:#1b4dff;stroke-width:.7}
+.en-callout circle{fill:#1b4dff}
+.en-callout text{fill:#1b4dff;font-family:"Paper Mono",ui-monospace,monospace;font-size:9px;letter-spacing:.08em}
+/* phantom cutaway: casings ghost to dashed hidden lines, internals go crisp */
+.en-int{opacity:0;transition:opacity .4s ease .15s}
+.en-stage[data-apart] .en-int{opacity:1}
+.en-case .iso-fill{transition:opacity .5s ease}
+.en-case .iso-line{transition:stroke .5s ease,opacity .5s ease}
+.en-stage[data-apart] .en-case .iso-fill{opacity:.06}
+.en-stage[data-apart] .en-case .iso-line{stroke:var(--anatomy-mid);stroke-dasharray:2.6 2;opacity:.7}
+.en-heat{fill:#f0764f;fill-opacity:.5;opacity:calc(var(--en-heat,0)*.55)}
+.en-burn{fill:#f0764f;opacity:calc(var(--en-heat,0)*.35)}
+.en-rblade{fill:none;stroke:var(--anatomy-mid);stroke-width:1;stroke-linecap:round}
+.en-blade{fill:var(--anatomy-mid);stroke:var(--anatomy-hi);stroke-width:.55}
+.en-blade-le{fill:none;stroke:#fbfcfe;stroke-width:.7;stroke-linecap:round;opacity:.85}
+.en-blur{fill:var(--anatomy-mid)}
+.en-vane{fill:none;stroke:var(--anatomy-lo);stroke-width:.55}
+.en-swirl{fill:none;stroke:#1b4dff;stroke-width:2.2;stroke-linecap:round}
+.en-recess{fill:var(--anatomy-shade-0)}
+.en-stage{--anatomy-weight:.95px}
+.en-stage[data-gl] .en-fallback{display:none}
+
+/* phone strip */
+.en-strip{margin-top:56px}
+.en-strip h2{font:600 11px/1 "Paper Mono",ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#5a6482;margin:0 0 12px}
+.en-phone{display:flex;gap:24px;flex-wrap:wrap}
+.en-plate-phone{width:390px;height:220px}
+.en-plate-phone .en-stage svg,.en-plate-phone .en-stage canvas{width:560px;height:680px;left:50%;top:50%;transform:translate(-50%,-50%) scale(.36)}
+.en-plate-phone .en-title{display:none}
+.en-plate-phone .en-state{left:12px;bottom:10px;gap:6px;padding:5px 2px;font-size:9px}
+.en-plate-phone .en-state .en-c{font-size:8px}
+
+/* Site palette (andorlabs.com paper + ink + blue guides), replacing the kit's neutral light theme. */
+.iso[data-theme="light"]{
+  --anatomy-page:#f5f7fa;--anatomy-card:#ffffff;--anatomy-text:#5a6482;--anatomy-strong:#0b1533;--anatomy-muted:#69738e;
+  --anatomy-paper:#f5f7fa;--anatomy-face:#ffffff;--anatomy-top:#fbfcfe;
+  --anatomy-shade-0:#d9e0ef;--anatomy-shade-1:#e3e8f4;--anatomy-shade-2:#ecf0f8;--anatomy-shade-3:#f3f5fb;
+  --anatomy-lit-top:#ffffff;--anatomy-lit-shade:#e8edfb;
+  --anatomy-hi:#0b1533;--anatomy-mid:#5f6c93;--anatomy-lo:#a3aecb;--anatomy-faint:#cdd5ea;--anatomy-lit:#1b4dff;
+  --anatomy-halo:#1b2a66;--anatomy-halo-opacity:.18;--anatomy-dot:#0b1533;
+  --anatomy-red:#f0764f;--anatomy-green:#19b37a;--anatomy-blue:#1b4dff;
+}
