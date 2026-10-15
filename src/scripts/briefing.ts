@@ -6,7 +6,7 @@
  * astro:page-load; the flow activates only on home and only once per session.
  */
 import { trackError, trackOps } from "./analytics.ts";
-import { consentState, hasAnalyticsConsent } from "./consent.ts";
+import { consentState } from "./consent.ts";
 import { mount, type BarHandle, type BarKind, type Sheet } from "./teletype.ts";
 import { dataPoints } from "../lib/brief/facts.ts";
 import type { Briefing } from "../lib/brief/interpret.ts";
@@ -76,12 +76,8 @@ interface Refs {
 }
 
 let ctl: AbortController | null = null;
-let currentKind: RunKind | null = null;
 let done = false;
-let consentWatched = false;
 let runWhen = new Date();
-/** Telemetry: whether the next run starts on load or after late consent. */
-let runTrigger: "initial" | "late_consent" = "initial";
 
 function refsOf(root: HTMLElement): Refs {
   const q = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel) as T;
@@ -102,7 +98,7 @@ let lastLogical: Line[] = [];
 
 function saveSession(rc: RunCtx) {
   try {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ v: 7, log: rc.log, sheet: lastLogical }));
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ v: 8, log: rc.log, sheet: lastLogical }));
   } catch {
     // Private mode etc: the session restore is a nicety, not a requirement.
   }
@@ -113,7 +109,7 @@ function restoreSession(r: Refs): boolean {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return false;
     const s = JSON.parse(raw) as { v?: number; log?: LogEntry[]; sheet?: Line[] };
-    if (s.v !== 7 || !Array.isArray(s.sheet) || !s.sheet.length) return false;
+    if (s.v !== 8 || !Array.isArray(s.sheet) || !s.sheet.length) return false;
     const cs = r.tty.cols();
     const ls = (s.log ?? []).map((e) => entryLine(e, cs));
     if (ls.length) ls.push({ segs: [{ text: "" }] });
@@ -371,7 +367,6 @@ async function runExclusive(r: Refs, kind: RunKind, fn: (s: AbortSignal, rc: Run
   const c = new AbortController();
   ctl = c;
   c.signal.addEventListener("abort", () => r.tty.abortPrint(), { once: true });
-  currentKind = kind;
   done = false;
   runWhen = new Date();
 
@@ -392,9 +387,8 @@ async function runExclusive(r: Refs, kind: RunKind, fn: (s: AbortSignal, rc: Run
     jevEl: null,
     jevDone: null,
     pending: new Map(),
-    tm: { kind, trigger: runTrigger, consent: consentState(), viewport: innerWidth >= 1280 ? "wide" : "desktop" },
+    tm: { kind, trigger: "initial", consent: consentState(), viewport: innerWidth >= 1280 ? "wide" : "desktop" },
   };
-  runTrigger = "initial";
   const t0 = performance.now();
 
   try {
@@ -442,8 +436,8 @@ function injectSnitcher() {
   document.head.appendChild(el);
 }
 
-/** Wait for the tracker: live gets it from GTM, staging/local injects it
-    after a 4s grace period. Never injects over an existing tracker. */
+/** Wait briefly for GTM, then load Snitcher directly if needed.
+    Visitor identification starts independently of CookieYes initialization. */
 async function ensureTracker(s: AbortSignal): Promise<"gtm" | "injected"> {
   const deadline = Date.now() + 4000;
   while (!window.Snitcher && Date.now() < deadline) await zleep(100, s);
@@ -493,25 +487,7 @@ async function spotterIdentify(s: AbortSignal): Promise<SpotterResult | null> {
 
 /** Post the self-brief inside the open box, Exa bar first. */
 async function selfBrief(r: Refs, s: AbortSignal, rc: RunCtx) {
-  currentKind = "self";
   await postWithBar(r, s, rc, { domain: SELF.domain, name: SELF.name, source: "typed" });
-}
-
-/** A "no match" Snitcher row that never called the tracker. */
-async function noMatchRow(r: Refs, s: AbortSignal, rc: RunCtx) {
-  const b = mkBar(r, rc, "Calling Snitcher", 1.2, performance.now());
-  rc.snBar = b.h;
-  rc.snEntry = b.entry;
-  await settle(rc, b.h, b.entry, "partial");
-  await logLine(r, rc, `No company match. Briefing ${SELF.domain} instead.`, 1);
-  await selfBrief(r, s, rc);
-}
-
-/** Consentless run: box + instantly-settled Snitcher row + self-brief. */
-async function flowSelf(r: Refs, s: AbortSignal, rc: RunCtx) {
-  rc.tm.snitcher = "not_called";
-  await openBox(r, rc);
-  await noMatchRow(r, s, rc);
 }
 
 async function flowSpotter(r: Refs, s: AbortSignal, rc: RunCtx) {
@@ -576,26 +552,6 @@ async function flowTyped(r: Refs, s: AbortSignal, rc: RunCtx, domain: string) {
   await postBrief(r, s, rc, { domain, source: "typed" });
 }
 
-/** Quiet Spotter probe after late consent: brief the identified business,
-    otherwise leave the self-brief alone. The run re-identifies inside the
-    box (the tracker caches it, so the row settles fast). */
-async function probeSpotter(r: Refs) {
-  const s = new AbortController().signal;
-  try {
-    await ensureTracker(s);
-    const id = await spotterIdentify(s);
-    const d = id?.data;
-    if (id?.success && d?.name && id.type !== "isp") {
-      const domain = host(d.website ?? d.domain ?? "") || String(d.website ?? d.domain ?? "");
-      if (!domain) return;
-      runTrigger = "late_consent";
-      void runExclusive(r, "spotter", (rs, rc) => flowSpotter(r, rs, rc));
-    }
-  } catch {
-    // Probe failures keep the self-brief.
-  }
-}
-
 async function activate(r: Refs) {
   if (done || ctl) return;
 
@@ -608,18 +564,6 @@ async function activate(r: Refs) {
 
   if (restoreSession(r)) return;
 
-  if (!hasAnalyticsConsent()) {
-    // Brief ourselves while the cookie question hangs.
-    void runExclusive(r, "self", (s, rc) => flowSelf(r, s, rc));
-    if (!consentWatched) {
-      consentWatched = true;
-      document.addEventListener("cookieyes_consent_update", () => {
-        if (!hasAnalyticsConsent()) return;
-        if (currentKind === "self" || currentKind === null) void probeSpotter(r);
-      });
-    }
-    return;
-  }
   void runExclusive(r, "spotter", (s, rc) => flowSpotter(r, s, rc));
 }
 
